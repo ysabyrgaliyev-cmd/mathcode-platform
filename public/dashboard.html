@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard — MathCode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header id="topbar" class="topbar"></header>
+<main class="container">
+  <h1 id="hello" style="margin:0 0 6px">Welcome back</h1>
+  <p class="muted" id="sub">Pick up where you left off, or start a new project.</p>
+
+  <div class="stat-row" id="stats"></div>
+
+  <section class="section">
+    <h2>Progress by tier</h2>
+    <div id="tier-progress"></div>
+  </section>
+
+  <section class="section">
+    <h2>Recent activity</h2>
+    <div id="recent"></div>
+  </section>
+
+  <section class="section">
+    <h2>Continue learning</h2>
+    <div class="cards" id="continue-cards"></div>
+  </section>
+</main>
+
+<footer>© <span id="yr"></span> TAS&BA LLC — MathCode Platform</footer>
+
+<script src="/js/app.js"></script>
+<script>
+async function init() {
+  await mountTopbar('dashboard');
+  const me = await getMe();
+  if (!me) { window.location = '/login.html'; return; }
+  document.getElementById('hello').textContent = 'Welcome, ' + me.full_name;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  const d = await api('/api/dashboard');
+
+  const stats = document.getElementById('stats');
+  stats.innerHTML = '';
+  const cards = [
+    { num: d.completed, lbl: 'Projects completed' },
+    { num: d.in_progress, lbl: 'In progress' },
+    { num: d.total_projects, lbl: 'Projects available' },
+    { num: d.avg_score == null ? '—' : d.avg_score + '%', lbl: 'Average score' },
+  ];
+  for (const c of cards) {
+    stats.appendChild(el('div', { class: 'stat' },
+      el('div', { class: 'num' }, String(c.num)),
+      el('div', { class: 'lbl' }, c.lbl)
+    ));
+  }
+
+  const tp = document.getElementById('tier-progress');
+  tp.innerHTML = '';
+  for (const t of d.tierStats) {
+    const pct = t.total ? Math.round((t.completed/t.total)*100) : 0;
+    tp.appendChild(el('div', { class: 'tier-progress' },
+      el('span', { class: 'tier-pill tier-' + t.tier }, 'Tier ' + t.tier),
+      el('div', { class: 'bar' }, el('div', { class: 'bar-fill', style: 'width:' + pct + '%' })),
+      el('span', { class: 'muted', style: 'min-width:80px;text-align:right' },
+        t.completed + ' / ' + t.total + '  (' + pct + '%)'),
+      el('a', { href: '/tier.html?tier=' + t.tier, class: 'btn' }, 'Open')
+    ));
+  }
+
+  const recentDiv = document.getElementById('recent');
+  recentDiv.innerHTML = '';
+  if (!d.recent.length) {
+    recentDiv.appendChild(el('p', { class: 'muted' },
+      'No activity yet. Start with ',
+      el('a', { href: '/tier.html?tier=1' }, 'Tier 1, Project 1'),
+      '.'));
+  } else {
+    const tbl = el('table', { class: 'data' });
+    const head = el('thead', {}, el('tr', {},
+      el('th', {}, 'Project'), el('th', {}, 'Tier'),
+      el('th', {}, 'Status'), el('th', {}, 'Score'), el('th', {}, 'Last activity')));
+    const body = el('tbody');
+    for (const r of d.recent) {
+      body.appendChild(el('tr', {},
+        el('td', {}, el('a', { href: '/learn/' + r.id }, r.title)),
+        el('td', {}, el('span', { class: 'tier-pill tier-' + r.tier }, 'Tier ' + r.tier)),
+        el('td', {}, el('span', { class: 'status-pill status-' + r.status }, r.status.replace('_',' '))),
+        el('td', {}, r.score == null ? '—' : (r.score + '%')),
+        el('td', { class: 'muted' }, r.updated_at)
+      ));
+    }
+    tbl.appendChild(head); tbl.appendChild(body);
+    recentDiv.appendChild(tbl);
+  }
+
+  // Suggest next: first incomplete project across tiers
+  const all = await api('/api/projects');
+  const next3 = all.filter(p => !p.progress || p.progress.status !== 'completed').slice(0, 3);
+  const cont = document.getElementById('continue-cards');
+  cont.innerHTML = '';
+  for (const p of next3) {
+    cont.appendChild(el('div', { class: 'card' },
+      el('span', { class: 'tier-pill tier-' + p.tier }, 'Tier ' + p.tier + ' · ' + p.grade_band),
+      el('h3', {}, p.title),
+      el('p', { class: 'muted', style:'font-size:13px' }, p.subtitle),
+      el('div', { class: 'meta' },
+        el('span', {}, '⏱ ' + p.duration_min + ' min'),
+        el('span', {}, '· ' + p.language)),
+      el('div', { class: 'card-actions' },
+        el('a', { href: '/learn/' + p.id, class: 'btn primary' },
+          p.progress ? 'Continue' : 'Start'))
+    ));
+  }
+}
+init();
+</script>
+</body>
+</html>

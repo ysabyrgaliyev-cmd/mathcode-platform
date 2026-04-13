@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 3 — Statistics Data Analyzer</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a1e;color:#fff;min-height:100vh}
+  .header{background:linear-gradient(135deg,#0d0d30,#1a0a3e);padding:16px 24px;border-bottom:3px solid #e74c3c}
+  .header h1{font-size:1.4em;color:#ff6b6b}.header .sub{font-size:.82em;color:#74b9ff;margin-top:3px}
+  .header .meta{font-size:.7em;color:#666;margin-top:5px}
+  .main{display:flex;min-height:calc(100vh - 85px)}
+  .code-panel{width:44%;background:#121230;padding:16px;border-right:2px solid #222;display:flex;flex-direction:column}
+  .game-panel{width:56%;padding:16px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+  .ptitle{font-size:.95em;color:#ffd93d;margin-bottom:8px}
+  .code-editor{flex:1;background:#080818;border-radius:8px;padding:12px;font-family:'Fira Code','Courier New',monospace;font-size:12px;overflow-y:auto}
+  .code-line{display:flex;margin-bottom:0;min-height:18px;align-items:center}
+  .code-line.hl{background:rgba(231,76,60,.12);border-left:2px solid #e74c3c}
+  .ln{color:#444;width:26px;text-align:right;margin-right:8px;font-size:10px;flex-shrink:0}
+  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
+  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
+  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
+  .ctrls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .btn{padding:8px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-run{background:#e74c3c;color:#fff}.btn-run:hover{background:#c0392b}
+  .btn-gen{background:#3498db;color:#fff}.btn-gen:hover{background:#2980b9}
+  .btn-reset{background:#555;color:#fff}.btn-reset:hover{background:#666}
+  canvas{border-radius:8px;border:1px solid #222}
+  .controls{width:100%;max-width:500px;margin:8px 0}
+  .dataset-btns{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+  .ds-btn{padding:6px 12px;border:1px solid #333;border-radius:6px;background:#121230;color:#ddd;font-size:.75em;cursor:pointer}
+  .ds-btn:hover{border-color:#e74c3c;background:rgba(231,76,60,.1)}
+  .ds-btn.active{border-color:#e74c3c;background:rgba(231,76,60,.25);color:#ff6b6b}
+  .viz-btns{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+  .viz-btn{padding:5px 10px;border:1px solid #333;border-radius:5px;background:#121230;color:#ddd;font-size:.72em;cursor:pointer}
+  .viz-btn:hover{border-color:#3498db}.viz-btn.active{border-color:#3498db;background:rgba(52,152,219,.2);color:#74b9ff}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:500px;margin-top:8px}
+  .stat-card{background:#121230;border-radius:6px;padding:8px 12px}
+  .stat-label{font-size:.7em;color:#666;margin-bottom:2px}
+  .stat-val{font-size:1.1em;color:#ffd93d;font-family:'Courier New',monospace}
+  .data-input{width:100%;max-width:500px;margin:6px 0}
+  .data-input textarea{width:100%;height:60px;padding:8px;border-radius:6px;border:2px solid #333;background:#121230;color:#c3e88d;font-family:'Courier New',monospace;font-size:12px;resize:vertical}
+  .data-input textarea:focus{border-color:#e74c3c;outline:none}
+  .explanation{margin-top:8px;background:rgba(116,185,255,.06);border-left:3px solid #74b9ff;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;color:#999;line-height:1.5;width:100%;max-width:500px}
+  .explanation strong{color:#74b9ff}
+  .challenge{margin-top:10px;background:rgba(231,76,60,.06);border-left:3px solid #e74c3c;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;width:100%;max-width:500px}
+  .challenge h3{color:#ff6b6b;font-size:1em;margin-bottom:6px}
+  .ch-q{color:#ddd;margin:6px 0}
+  .ch-opts{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0}
+  .ch-opt{padding:5px 12px;border:1px solid #333;border-radius:5px;background:#121230;color:#ddd;font-size:.9em;cursor:pointer}
+  .ch-opt:hover{border-color:#e74c3c}.ch-opt.correct{border-color:#27ae60;background:rgba(39,174,96,.2);color:#2ecc71}
+  .ch-opt.wrong{border-color:#e74c3c;background:rgba(231,76,60,.2);color:#e74c3c}
+  .ch-feedback{font-size:.9em;margin-top:5px;min-height:18px}
+  .score-bar{display:flex;gap:12px;align-items:center;margin-top:4px}
+  .score-bar span{font-size:.75em;color:#666}.score-bar .sv{color:#ffd93d}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>MathCode Project: Statistics Data Analyzer</h1>
+  <div class="sub">Tier 3 — Unit 3: Statistics & Data Analysis (Grades 9-12, Ages 14-18)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students compute mean, median, mode, standard deviation, and quartiles from real-world datasets, then visualize distributions using histograms and box plots</div>
+</div>
+<div class="main">
+  <div class="code-panel">
+    <div class="ptitle">&#128187; Python Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="ctrls">
+      <button class="btn btn-run" onclick="analyze()">&#9654; Analyze</button>
+      <button class="btn btn-gen" onclick="generateRandom()">&#127922; Random Data</button>
+      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
+    </div>
+  </div>
+  <div class="game-panel">
+    <div class="ptitle">&#128202; Data Visualization</div>
+    <div class="dataset-btns">
+      <button class="ds-btn active" onclick="loadDataset('test')" id="dsTest">Test Scores</button>
+      <button class="ds-btn" onclick="loadDataset('temp')" id="dsTemp">Temperatures</button>
+      <button class="ds-btn" onclick="loadDataset('height')" id="dsHeight">Heights (cm)</button>
+      <button class="ds-btn" onclick="loadDataset('salary')" id="dsSalary">Salaries ($K)</button>
+      <button class="ds-btn" onclick="loadDataset('custom')" id="dsCustom">Custom</button>
+    </div>
+    <div class="data-input">
+      <textarea id="dataInput" placeholder="Enter numbers separated by commas, e.g.: 85, 92, 78, 91, 65">85, 92, 78, 91, 65, 73, 88, 95, 70, 82, 90, 76, 88, 94, 67, 81, 89, 74, 86, 93</textarea>
+    </div>
+    <div class="viz-btns">
+      <button class="viz-btn active" onclick="setViz('histogram')" id="vizHist">Histogram</button>
+      <button class="viz-btn" onclick="setViz('boxplot')" id="vizBox">Box Plot</button>
+      <button class="viz-btn" onclick="setViz('dot')" id="vizDot">Dot Plot</button>
+    </div>
+    <canvas id="statCanvas" width="480" height="280"></canvas>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="explanation">
+      <strong>Central Tendency:</strong> Mean (average of all values), Median (middle value when sorted), Mode (most frequent value).<br><br>
+      <strong>Spread:</strong> Range = max − min. Standard Deviation measures how far values typically are from the mean. A small σ means data is clustered; a large σ means it's spread out.<br><br>
+      <strong>Quartiles & IQR:</strong> Q1 (25th percentile), Q2 (median), Q3 (75th percentile). IQR = Q3 − Q1 contains the middle 50% of data. Outliers lie beyond Q1 − 1.5·IQR or Q3 + 1.5·IQR.
+    </div>
+    <div class="challenge" id="challengePanel"></div>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('statCanvas');
+const ctx = canvas.getContext('2d');
+let data = [];
+let vizType = 'histogram';
+let currentDataset = 'test';
+let score = 0, total = 0, currentQ = null;
+
+const datasets = {
+  test: '85, 92, 78, 91, 65, 73, 88, 95, 70, 82, 90, 76, 88, 94, 67, 81, 89, 74, 86, 93',
+  temp: '72, 75, 68, 71, 80, 85, 79, 74, 69, 77, 82, 88, 73, 76, 70, 84, 78, 81, 67, 90, 86, 75, 71, 83, 77',
+  height: '155, 162, 170, 158, 175, 168, 160, 172, 165, 180, 153, 167, 174, 161, 169, 178, 156, 171, 164, 176, 159, 182, 166, 173, 163',
+  salary: '35, 42, 38, 55, 48, 62, 41, 73, 39, 150, 45, 52, 47, 58, 44, 36, 50, 43, 67, 41, 56, 49, 85, 40, 46'
+};
+
+function loadDataset(name) {
+  currentDataset = name;
+  document.querySelectorAll('.ds-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ds' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  if(name !== 'custom') {
+    document.getElementById('dataInput').value = datasets[name];
+  }
+  analyze();
+}
+
+function parseData() {
+  let raw = document.getElementById('dataInput').value;
+  return raw.split(/[,\s]+/).map(Number).filter(n => !isNaN(n) && isFinite(n));
+}
+
+function setViz(type) {
+  vizType = type;
+  document.querySelectorAll('.viz-btn').forEach(b => b.classList.remove('active'));
+  if(type === 'histogram') document.getElementById('vizHist').classList.add('active');
+  else if(type === 'boxplot') document.getElementById('vizBox').classList.add('active');
+  else document.getElementById('vizDot').classList.add('active');
+  drawViz();
+}
+
+function mean(arr) { return arr.reduce((s,v) => s+v, 0) / arr.length; }
+function median(arr) { let s = [...arr].sort((a,b) => a-b); let m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function mode(arr) { let freq = {}; arr.forEach(v => freq[v] = (freq[v]||0)+1); let maxF = Math.max(...Object.values(freq)); let modes = Object.keys(freq).filter(k => freq[k] === maxF).map(Number); return modes.length === arr.length ? 'None' : modes.join(', '); }
+function stddev(arr) { let m = mean(arr); return Math.sqrt(arr.reduce((s,v) => s + (v-m)**2, 0) / arr.length); }
+function quartile(arr, q) { let s = [...arr].sort((a,b) => a-b); let pos = (s.length - 1) * q; let lo = Math.floor(pos), hi = Math.ceil(pos); return s[lo] + (s[hi]-s[lo]) * (pos-lo); }
+
+function analyze() {
+  data = parseData();
+  if(data.length < 2) return;
+  let stats = computeStats();
+  renderStats(stats);
+  drawViz();
+  updateCode(stats);
+  loadChallenge();
+}
+
+function computeStats() {
+  let sorted = [...data].sort((a,b) => a-b);
+  let m = mean(data);
+  let med = median(data);
+  let md = mode(data);
+  let sd = stddev(data);
+  let q1 = quartile(data, 0.25);
+  let q3 = quartile(data, 0.75);
+  let iqr = q3 - q1;
+  let min = sorted[0], max = sorted[sorted.length-1];
+  let outlierLow = q1 - 1.5 * iqr;
+  let outlierHigh = q3 + 1.5 * iqr;
+  let outliers = data.filter(v => v < outlierLow || v > outlierHigh);
+  return {mean: m, median: med, mode: md, stddev: sd, q1, q3, iqr, min, max, count: data.length, range: max - min, outliers, outlierLow, outlierHigh, sorted};
+}
+
+function renderStats(s) {
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Mean (x̄)</div><div class="stat-val">${s.mean.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Median</div><div class="stat-val">${s.median.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Mode</div><div class="stat-val">${s.mode}</div></div>
+    <div class="stat-card"><div class="stat-label">Std Dev (σ)</div><div class="stat-val">${s.stddev.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Q1 (25th %ile)</div><div class="stat-val">${s.q1.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Q3 (75th %ile)</div><div class="stat-val">${s.q3.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">IQR</div><div class="stat-val">${s.iqr.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-label">Range</div><div class="stat-val">${s.range.toFixed(1)}</div></div>
+    <div class="stat-card"><div class="stat-label">Count (n)</div><div class="stat-val">${s.count}</div></div>
+    <div class="stat-card"><div class="stat-label">Outliers</div><div class="stat-val">${s.outliers.length > 0 ? s.outliers.join(', ') : 'None'}</div></div>
+  `;
+}
+
+function drawViz() {
+  if(data.length < 2) return;
+  const W = canvas.width, H = canvas.height;
+  ctx.fillStyle = '#080818'; ctx.fillRect(0, 0, W, H);
+  if(vizType === 'histogram') drawHistogram(W, H);
+  else if(vizType === 'boxplot') drawBoxPlot(W, H);
+  else drawDotPlot(W, H);
+}
+
+function drawHistogram(W, H) {
+  let sorted = [...data].sort((a,b) => a-b);
+  let min = sorted[0], max = sorted[sorted.length-1];
+  let binCount = Math.min(Math.ceil(Math.sqrt(data.length)), 12);
+  let binWidth = (max - min) / binCount || 1;
+  let bins = new Array(binCount).fill(0);
+  data.forEach(v => {
+    let idx = Math.min(Math.floor((v - min) / binWidth), binCount - 1);
+    bins[idx]++;
+  });
+  let maxBin = Math.max(...bins);
+  let pad = {l: 45, r: 15, t: 20, b: 40};
+  let chartW = W - pad.l - pad.r, chartH = H - pad.t - pad.b;
+
+  // Y-axis
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.stroke();
+  ctx.fillStyle = '#666'; ctx.font = '9px monospace';
+  for(let i = 0; i <= 4; i++) {
+    let val = Math.round(maxBin * i / 4);
+    let y = H - pad.b - (i / 4) * chartH;
+    ctx.fillText(val, 5, y + 3);
+    ctx.strokeStyle = '#1a1a3a'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+  }
+
+  // Bars
+  let barW = chartW / binCount;
+  let m = mean(data);
+  bins.forEach((count, i) => {
+    let x = pad.l + i * barW;
+    let h = (count / maxBin) * chartH;
+    let y = H - pad.b - h;
+    let grad = ctx.createLinearGradient(x, y, x, H - pad.b);
+    grad.addColorStop(0, '#e74c3c'); grad.addColorStop(1, '#c0392b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x + 1, y, barW - 2, h);
+    // Bin label
+    ctx.fillStyle = '#666'; ctx.font = '8px monospace';
+    let label = (min + i * binWidth).toFixed(0);
+    ctx.fillText(label, x + barW/2 - 8, H - pad.b + 12);
+    // Count on bar
+    if(count > 0) { ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.fillText(count, x + barW/2 - 4, y - 4); }
+  });
+
+  // Mean line
+  let meanX = pad.l + ((m - min) / (max - min)) * chartW;
+  ctx.strokeStyle = '#ffd93d'; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(meanX, pad.t); ctx.lineTo(meanX, H - pad.b); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ffd93d'; ctx.font = '9px sans-serif';
+  ctx.fillText('x̄=' + m.toFixed(1), meanX + 3, pad.t + 10);
+
+  // X label
+  ctx.fillStyle = '#555'; ctx.font = '10px sans-serif';
+  ctx.fillText('Frequency', 2, 12);
+}
+
+function drawBoxPlot(W, H) {
+  let s = computeStats();
+  let pad = {l: 50, r: 30, t: 50, b: 50};
+  let plotW = W - pad.l - pad.r;
+  let dataMin = s.min, dataMax = s.max;
+  let range = dataMax - dataMin || 1;
+  let toX = v => pad.l + ((v - dataMin) / range) * plotW;
+  let midY = H / 2;
+
+  // Axis
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, H - pad.b + 10); ctx.lineTo(W - pad.r, H - pad.b + 10); ctx.stroke();
+
+  // Tick marks
+  ctx.fillStyle = '#666'; ctx.font = '9px monospace';
+  let step = range / 5;
+  for(let i = 0; i <= 5; i++) {
+    let val = dataMin + step * i;
+    let x = toX(val);
+    ctx.beginPath(); ctx.moveTo(x, H - pad.b + 7); ctx.lineTo(x, H - pad.b + 13); ctx.stroke();
+    ctx.fillText(val.toFixed(0), x - 8, H - pad.b + 25);
+  }
+
+  // Whiskers
+  let whiskerLow = Math.max(s.min, s.outlierLow);
+  let whiskerHigh = Math.min(s.max, s.outlierHigh);
+  // Find actual whisker ends (closest data points within bounds)
+  let wl = s.sorted.find(v => v >= s.outlierLow) || s.min;
+  let wh = [...s.sorted].reverse().find(v => v <= s.outlierHigh) || s.max;
+
+  ctx.strokeStyle = '#74b9ff'; ctx.lineWidth = 2;
+  // Left whisker
+  ctx.beginPath(); ctx.moveTo(toX(wl), midY - 20); ctx.lineTo(toX(wl), midY + 20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toX(wl), midY); ctx.lineTo(toX(s.q1), midY); ctx.stroke();
+  // Right whisker
+  ctx.beginPath(); ctx.moveTo(toX(wh), midY - 20); ctx.lineTo(toX(wh), midY + 20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toX(s.q3), midY); ctx.lineTo(toX(wh), midY); ctx.stroke();
+
+  // Box (Q1 to Q3)
+  let boxX = toX(s.q1), boxW = toX(s.q3) - toX(s.q1);
+  ctx.fillStyle = 'rgba(52,152,219,0.25)';
+  ctx.fillRect(boxX, midY - 30, boxW, 60);
+  ctx.strokeStyle = '#3498db'; ctx.lineWidth = 2;
+  ctx.strokeRect(boxX, midY - 30, boxW, 60);
+
+  // Median line
+  ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(toX(s.median), midY - 30); ctx.lineTo(toX(s.median), midY + 30); ctx.stroke();
+
+  // Mean diamond
+  let mx = toX(s.mean);
+  ctx.fillStyle = '#ffd93d';
+  ctx.beginPath(); ctx.moveTo(mx, midY - 8); ctx.lineTo(mx + 6, midY); ctx.lineTo(mx, midY + 8); ctx.lineTo(mx - 6, midY); ctx.closePath(); ctx.fill();
+
+  // Outliers
+  s.outliers.forEach(v => {
+    ctx.beginPath(); ctx.arc(toX(v), midY, 5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(231,76,60,0.6)'; ctx.fill();
+    ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1.5; ctx.stroke();
+  });
+
+  // Labels
+  ctx.fillStyle = '#666'; ctx.font = '9px sans-serif';
+  ctx.fillText('Q1=' + s.q1.toFixed(1), toX(s.q1) - 10, midY - 36);
+  ctx.fillText('Med=' + s.median.toFixed(1), toX(s.median) - 12, midY + 46);
+  ctx.fillText('Q3=' + s.q3.toFixed(1), toX(s.q3) - 10, midY - 36);
+  ctx.fillStyle = '#ffd93d'; ctx.fillText('x̄=' + s.mean.toFixed(1), mx - 10, midY - 14);
+
+  // Legend
+  ctx.fillStyle = '#555'; ctx.font = '9px sans-serif';
+  ctx.fillText('Five-Number Summary: Min=' + s.min + '  Q1=' + s.q1.toFixed(1) + '  Med=' + s.median.toFixed(1) + '  Q3=' + s.q3.toFixed(1) + '  Max=' + s.max, pad.l, 20);
+}
+
+function drawDotPlot(W, H) {
+  let sorted = [...data].sort((a,b) => a-b);
+  let min = sorted[0], max = sorted[sorted.length-1];
+  let range = max - min || 1;
+  let pad = {l: 40, r: 20, t: 20, b: 40};
+  let plotW = W - pad.l - pad.r;
+  let toX = v => pad.l + ((v - min) / range) * plotW;
+
+  // Axis
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b); ctx.stroke();
+
+  // Stack dots
+  let stacks = {};
+  data.forEach(v => {
+    let key = v.toFixed(1);
+    stacks[key] = (stacks[key] || 0) + 1;
+  });
+
+  let dotR = Math.min(8, plotW / Object.keys(stacks).length / 3);
+  let m = mean(data);
+
+  Object.entries(stacks).forEach(([val, count]) => {
+    let v = parseFloat(val);
+    let x = toX(v);
+    for(let i = 0; i < count; i++) {
+      let y = H - pad.b - dotR - i * (dotR * 2 + 2);
+      ctx.beginPath(); ctx.arc(x, y, dotR, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(231,76,60,0.7)'; ctx.fill();
+      ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1; ctx.stroke();
+    }
+  });
+
+  // Tick labels
+  ctx.fillStyle = '#666'; ctx.font = '8px monospace';
+  let step = range / 8;
+  for(let i = 0; i <= 8; i++) {
+    let val = min + step * i;
+    let x = toX(val);
+    ctx.fillText(val.toFixed(0), x - 6, H - pad.b + 14);
+  }
+
+  // Mean marker
+  let mx = toX(m);
+  ctx.strokeStyle = '#ffd93d'; ctx.lineWidth = 2; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(mx, pad.t); ctx.lineTo(mx, H - pad.b); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ffd93d'; ctx.font = '9px sans-serif';
+  ctx.fillText('x̄=' + m.toFixed(1), mx + 3, pad.t + 10);
+}
+
+function updateCode(s) {
+  const ed = document.getElementById('codeEditor');
+  let dataStr = data.length <= 10 ? data.join(', ') : data.slice(0,8).join(', ') + ', ...';
+  let lines = [
+    {t:[{c:'import',s:'kw'},{c:' numpy ',s:'vr'},{c:'as',s:'kw'},{c:' np',s:'vr'}]},
+    {t:[{c:'import',s:'kw'},{c:' matplotlib.pyplot ',s:'vr'},{c:'as',s:'kw'},{c:' plt',s:'vr'}]},
+    {t:[{c:'from',s:'kw'},{c:' statistics ',s:'vr'},{c:'import',s:'kw'},{c:' mean, median, mode, stdev',s:'fn'}]},
+    {t:[]},
+    {t:[{c:'# Load dataset',s:'cm'}]},
+    {t:[{c:'data',s:'vr'},{c:' = ',s:'op'},{c:`[${dataStr}]`,s:'nm'}],hl:true},
+    {t:[{c:'n',s:'vr'},{c:' = ',s:'op'},{c:'len',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:')',s:'op'}]},
+    {t:[]},
+    {t:[{c:'# Central tendency',s:'cm'}]},
+    {t:[{c:'x_bar',s:'vr'},{c:' = ',s:'op'},{c:'mean',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:')',s:'op'}],hl:true},
+    {t:[{c:'med',s:'vr'},{c:' = ',s:'op'},{c:'median',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:')',s:'op'}],hl:true},
+    {t:[{c:'print',s:'fn'},{c:'(',s:'op'},{c:`f"Mean: ${s.mean.toFixed(2)}, Median: ${s.median.toFixed(2)}"`,s:'st'},{c:')',s:'op'}]},
+    {t:[]},
+    {t:[{c:'# Spread measures',s:'cm'}]},
+    {t:[{c:'sigma',s:'vr'},{c:' = ',s:'op'},{c:'np.',s:'vr'},{c:'std',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:')',s:'op'}],hl:true},
+    {t:[{c:'q1',s:'vr'},{c:' = ',s:'op'},{c:'np.',s:'vr'},{c:'percentile',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:', ',s:'op'},{c:'25',s:'nm'},{c:')',s:'op'}],hl:true},
+    {t:[{c:'q3',s:'vr'},{c:' = ',s:'op'},{c:'np.',s:'vr'},{c:'percentile',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:', ',s:'op'},{c:'75',s:'nm'},{c:')',s:'op'}],hl:true},
+    {t:[{c:'iqr',s:'vr'},{c:' = ',s:'op'},{c:'q3',s:'vr'},{c:' - ',s:'op'},{c:'q1',s:'vr'}],hl:true},
+    {t:[{c:'print',s:'fn'},{c:'(',s:'op'},{c:`f"Std Dev: ${s.stddev.toFixed(2)}, IQR: ${s.iqr.toFixed(2)}"`,s:'st'},{c:')',s:'op'}]},
+    {t:[]},
+    {t:[{c:'# Detect outliers (1.5 * IQR rule)',s:'cm'}]},
+    {t:[{c:'lower',s:'vr'},{c:' = ',s:'op'},{c:'q1',s:'vr'},{c:' - ',s:'op'},{c:'1.5',s:'nm'},{c:' * ',s:'op'},{c:'iqr',s:'vr'}]},
+    {t:[{c:'upper',s:'vr'},{c:' = ',s:'op'},{c:'q3',s:'vr'},{c:' + ',s:'op'},{c:'1.5',s:'nm'},{c:' * ',s:'op'},{c:'iqr',s:'vr'}]},
+    {t:[{c:'outliers',s:'vr'},{c:' = ',s:'op'},{c:'[',s:'op'},{c:'x',s:'vr'},{c:' ',s:''},{c:'for',s:'kw'},{c:' x ',s:'vr'},{c:'in',s:'kw'},{c:' data ',s:'vr'},{c:'if',s:'kw'},{c:' x',s:'vr'},{c:' < ',s:'op'},{c:'lower',s:'vr'},{c:' ',s:''},{c:'or',s:'kw'},{c:' x',s:'vr'},{c:' > ',s:'op'},{c:'upper',s:'vr'},{c:']',s:'op'}],hl:true},
+    {t:[]},
+    {t:[{c:'# Visualize',s:'cm'}]},
+    {t:[{c:'plt.',s:'vr'},{c:'hist',s:'fn'},{c:'(',s:'op'},{c:'data',s:'vr'},{c:', ',s:'op'},{c:'bins',s:'vr'},{c:'=',s:'op'},{c:'10',s:'nm'},{c:', ',s:'op'},{c:'color',s:'vr'},{c:'=',s:'op'},{c:"'salmon'",s:'st'},{c:', ',s:'op'},{c:'edgecolor',s:'vr'},{c:'=',s:'op'},{c:"'darkred'",s:'st'},{c:')',s:'op'}],hl:true},
+    {t:[{c:'plt.',s:'vr'},{c:'axvline',s:'fn'},{c:'(',s:'op'},{c:'x_bar',s:'vr'},{c:', ',s:'op'},{c:'color',s:'vr'},{c:'=',s:'op'},{c:"'gold'",s:'st'},{c:', ',s:'op'},{c:'linestyle',s:'vr'},{c:'=',s:'op'},{c:"'--'",s:'st'},{c:', ',s:'op'},{c:'label',s:'vr'},{c:'=',s:'op'},{c:"'Mean'",s:'st'},{c:')',s:'op'}]},
+    {t:[{c:'plt.',s:'vr'},{c:'title',s:'fn'},{c:'(',s:'op'},{c:`"Distribution of ${currentDataset} data (n=${data.length})"`,s:'st'},{c:')',s:'op'}]},
+    {t:[{c:'plt.',s:'vr'},{c:'show',s:'fn'},{c:'()',s:'op'}]}
+  ];
+  ed.innerHTML = lines.map((l,i) => {
+    let cls = l.hl ? ' hl' : '';
+    let inner = l.t.map(p => `<span class="${p.s}">${p.c}</span>`).join('');
+    return `<div class="code-line${cls}"><span class="ln">${i+1}</span><span class="ct">${inner || '&nbsp;'}</span></div>`;
+  }).join('');
+}
+
+function generateRandom() {
+  let n = 20 + Math.floor(Math.random() * 30);
+  let base = 40 + Math.random() * 50;
+  let spread = 5 + Math.random() * 20;
+  let vals = [];
+  for(let i = 0; i < n; i++) {
+    // Box-Muller for normal distribution
+    let u1 = Math.random(), u2 = Math.random();
+    let z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    vals.push(Math.round(base + z * spread));
+  }
+  // Add 1-2 potential outliers
+  if(Math.random() > 0.5) vals.push(Math.round(base + spread * 3.5));
+  if(Math.random() > 0.5) vals.push(Math.round(base - spread * 3.2));
+  document.getElementById('dataInput').value = vals.join(', ');
+  currentDataset = 'custom';
+  document.querySelectorAll('.ds-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('dsCustom').classList.add('active');
+  analyze();
+}
+
+function resetAll() {
+  loadDataset('test');
+  setViz('histogram');
+}
+
+// Challenges
+function loadChallenge() {
+  if(data.length < 2) return;
+  let s = computeStats();
+  let questions = [
+    {q: `The mean of this dataset is ${s.mean.toFixed(2)}. If we add 10 to every value, the new mean is:`, opts: [(s.mean+10).toFixed(2), s.mean.toFixed(2), (s.mean*10).toFixed(2), (s.mean+5).toFixed(2)], ans: 0, expl: 'Adding a constant k to every value shifts the mean by k.'},
+    {q: `The standard deviation is ${s.stddev.toFixed(2)}. If we add 10 to every value, the new σ is:`, opts: [s.stddev.toFixed(2), (s.stddev+10).toFixed(2), (s.stddev*10).toFixed(2), '0.00'], ans: 0, expl: 'Adding a constant shifts all values equally — spread doesn\'t change, so σ stays the same.'},
+    {q: `With IQR = ${s.iqr.toFixed(2)}, a value is an outlier if it's below:`, opts: [(s.q1 - 1.5*s.iqr).toFixed(2), (s.q1 - s.iqr).toFixed(2), s.q1.toFixed(2), (s.mean - 2*s.stddev).toFixed(2)], ans: 0, expl: 'Outlier boundary: Q1 − 1.5 × IQR'},
+    {q: 'Which measure of center is most resistant to outliers?', opts: ['Median','Mean','Mode','Range'], ans: 0, expl: 'The median only depends on the middle value(s), so extreme outliers don\'t affect it much.'},
+    {q: `For n = ${data.length} values, how many bins does Sturges' rule suggest?`, opts: [Math.ceil(1 + 3.322 * Math.log10(data.length)).toString(), Math.ceil(Math.sqrt(data.length)).toString(), '10', Math.ceil(data.length/5).toString()], ans: 0, expl: 'Sturges\' rule: k = ⌈1 + 3.322 · log₁₀(n)⌉'},
+  ];
+  let idx = Math.floor(Math.random() * questions.length);
+  currentQ = questions[idx];
+  let shuffled = [...currentQ.opts];
+  let correctVal = currentQ.opts[currentQ.ans];
+  for(let i = shuffled.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i+1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  currentQ._shuffled = shuffled;
+  currentQ._correctIdx = shuffled.indexOf(correctVal);
+  document.getElementById('challengePanel').innerHTML = `<h3>&#127891; Statistics Challenge</h3>
+    <div class="ch-q">${currentQ.q}</div>
+    <div class="ch-opts">${shuffled.map((o,i) => `<div class="ch-opt" onclick="checkAnswer(${i})">${o}</div>`).join('')}</div>
+    <div class="ch-feedback" id="chFeedback"></div>
+    <div class="score-bar"><span>Score: <span class="sv">${score}/${total}</span></span>
+    <span style="cursor:pointer;color:#74b9ff" onclick="loadChallenge()">Next →</span></div>`;
+}
+
+function checkAnswer(i) {
+  total++;
+  const fb = document.getElementById('chFeedback');
+  const opts = document.querySelectorAll('.ch-opt');
+  opts.forEach(o => o.style.pointerEvents = 'none');
+  if(i === currentQ._correctIdx) {
+    score++;
+    opts[i].classList.add('correct');
+    fb.innerHTML = `<span style="color:#2ecc71">✓ Correct! ${currentQ.expl}</span>`;
+  } else {
+    opts[i].classList.add('wrong');
+    opts[currentQ._correctIdx].classList.add('correct');
+    fb.innerHTML = `<span style="color:#e74c3c">✗ ${currentQ.expl}</span>`;
+  }
+  document.querySelector('.score-bar .sv').textContent = `${score}/${total}`;
+}
+
+// Init
+analyze();
+</script>
+</body>
+</html>

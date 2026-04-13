@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in — MathCode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header id="topbar" class="topbar"></header>
+<div class="auth-card">
+  <h1>Welcome back</h1>
+  <p class="lead">Sign in to continue your projects.</p>
+  <div id="msg"></div>
+  <form id="login-form">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required autocomplete="current-password">
+    </div>
+    <button class="btn primary full" type="submit">Sign in</button>
+  </form>
+  <div class="auth-foot">
+    No account? <a href="/register.html">Create one</a>
+    <br><br>
+    <span class="muted" style="font-size:12px">
+      Demo: <code>student@mathcode.local</code> / <code>student123</code><br>
+      Teacher: <code>teacher@mathcode.local</code> / <code>teacher123</code>
+    </span>
+  </div>
+</div>
+<script src="/js/app.js"></script>
+<script>
+mountTopbar();
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msg');
+  msg.innerHTML = '';
+  try {
+    await api('/api/login', { method: 'POST', body: {
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value
+    }});
+    window.location = '/dashboard.html';
+  } catch (err) {
+    msg.innerHTML = '<div class="form-msg err">' + (err.message || 'Sign in failed') + '</div>';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "mathcode-platform",
+  "version": "1.0.0",
+  "description": "MathCode Learning Platform — integrated CS+Math instruction for Grades K-12 (TAS&BA LLC)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "init-db": "node db/init.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "author": "TAS&BA LLC"
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>About — MathCode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header id="topbar" class="topbar"></header>
+<main class="container narrow">
+  <h1>About MathCode</h1>
+  <p>MathCode is an integrated K-12 curriculum and learning platform that teaches
+     mathematics and computer science as a single, coherent subject. The methodology
+     was developed at TAS&amp;BA LLC (Katy, Texas) to address two well-documented
+     U.S. educational gaps: declining mathematical proficiency and uneven access
+     to computer-science instruction.</p>
+
+  <h2>The methodology</h2>
+  <p>MathCode is built on three principles:</p>
+  <p><strong>Math first, syntax second.</strong> Coding constructs are introduced
+     only when they make a mathematical idea visible. A loop is taught when it
+     replaces repeated addition; a conditional is taught when it formalizes a
+     rule; a function is taught when it captures a mapping.</p>
+  <p><strong>Concrete → Representational → Abstract.</strong> Every project moves
+     learners along the CRA progression, manipulating concrete objects, then
+     visual representations, then symbolic code that drives those representations.</p>
+  <p><strong>Applied projects, not exercises.</strong> Each unit culminates in a
+     self-contained interactive project students can show, share, and extend.</p>
+
+  <h2>Three tiers, twelve flagship projects</h2>
+  <p><strong>Tier 1 (K-3).</strong> Number sense, fractions, geometry, patterns
+     using Scratch-style block coding.</p>
+  <p><strong>Tier 2 (4-7).</strong> Ratios, algebra, coordinate geometry, probability
+     using a side-by-side block ↔ Python view that bridges to text.</p>
+  <p><strong>Tier 3 (8-12).</strong> Functions, trigonometry, statistics, calculus
+     using Python with NumPy and Matplotlib for modeling and analysis.</p>
+
+  <h2>Standards alignment</h2>
+  <p>Every unit is mapped to Common Core State Standards for Mathematics
+     (CCSS-M), the CSTA K-12 Computer Science Standards, and the K-12 Computer
+     Science Framework. Detailed alignments are included in the per-tier
+     curriculum guides.</p>
+
+  <h2>Built by TAS&amp;BA LLC</h2>
+  <p>TAS&amp;BA LLC was founded in Katy, Texas to deliver MathCode instruction
+     directly to students and to disseminate the methodology to other educators.
+     The platform is one component of a broader effort that includes published
+     curriculum guides, classroom pilots, and partnerships with schools.</p>
+
+  <p style="margin-top:32px">
+    <a class="btn primary" href="/register.html">Start using MathCode</a>
+    <a class="btn" href="/dashboard.html">Already a member? Open dashboard</a>
+  </p>
+</main>
+<footer>© <span id="yr"></span> TAS&BA LLC — MathCode Platform</footer>
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  mountTopbar('about');
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MathCode — Integrated Math + CS Learning, K-12</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="MathCode integrates mathematics and computer science instruction for grades K-12. Built by TAS&BA LLC.">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header id="topbar" class="topbar"></header>
+
+<section class="hero">
+  <h1>Mathematics, brought to life by code.</h1>
+  <p class="lead">
+    MathCode is an integrated K-12 curriculum where every mathematical concept is
+    explored through a code-driven, interactive project. Math first, syntax second.
+  </p>
+  <div class="hero-cta">
+    <a href="/register.html" class="btn primary">Start learning</a>
+    <a href="/about.html" class="btn">About the methodology</a>
+  </div>
+</section>
+
+<main class="container">
+  <section class="section">
+    <h2 class="center">Three tiers, twelve flagship projects</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="tier-pill tier-1">Tier 1 · K-3</span>
+        <h3>Concrete + visual</h3>
+        <p>Number sense, fractions, shapes, and patterns through Scratch-style block coding.
+           Sequencing, loops, conditionals introduced via play.</p>
+        <div class="card-actions"><a class="btn" href="/tier.html?tier=1">Browse Tier 1 →</a></div>
+      </div>
+      <div class="card">
+        <span class="tier-pill tier-2">Tier 2 · 4-7</span>
+        <h3>Bridge to abstraction</h3>
+        <p>Ratios, algebra, coordinate geometry, and probability. Students transition
+           from blocks to readable Python with mirrored block + text views.</p>
+        <div class="card-actions"><a class="btn" href="/tier.html?tier=2">Browse Tier 2 →</a></div>
+      </div>
+      <div class="card">
+        <span class="tier-pill tier-3">Tier 3 · 8-12</span>
+        <h3>Applied + analytical</h3>
+        <p>Functions, trigonometry, statistics, calculus. Students use Python with
+           NumPy and Matplotlib to model and explore mathematical objects.</p>
+        <div class="card-actions"><a class="btn" href="/tier.html?tier=3">Browse Tier 3 →</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="center">What makes MathCode different</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Math first, syntax second</h3>
+        <p>Every coding construct is introduced only when it deepens a mathematical idea.
+           Code is a thinking tool, not a vocabulary list.</p>
+      </div>
+      <div class="card">
+        <h3>Concrete → Representational → Abstract</h3>
+        <p>Each project follows the CRA progression. Students manipulate interactive
+           visualizations before writing the symbolic code that drives them.</p>
+      </div>
+      <div class="card">
+        <h3>Standards-aligned</h3>
+        <p>Curriculum maps to CCSS-Mathematics, CSTA K-12 CS Standards, and the
+           K-12 Computer Science Framework across all twelve units per tier.</p>
+      </div>
+      <div class="card">
+        <h3>Built for teachers, free for schools</h3>
+        <p>Projects run in any browser. No installs. Curriculum guides, pacing,
+           and assessments included for every unit.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section center">
+    <h2>Try it in your browser, no install required.</h2>
+    <p class="muted">Sign up for a free student account and start with Tier 1, Project 1.</p>
+    <div class="hero-cta">
+      <a href="/register.html" class="btn primary">Create student account</a>
+      <a href="/login.html" class="btn">Sign in</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © <span id="yr"></span> TAS&amp;BA LLC · MathCode Learning Platform · Katy, Texas
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  mountTopbar('home');
+</script>
+</body>
+</html>

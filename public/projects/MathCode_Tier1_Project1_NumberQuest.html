@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 1 — Number Quest: Counting Adventure</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
+
+  .header { background: linear-gradient(135deg, #1a1a4e, #2d1b69); padding: 20px 30px; border-bottom: 3px solid #6c5ce7; }
+  .header h1 { font-size: 1.6em; color: #a29bfe; }
+  .header .subtitle { font-size: 0.9em; color: #74b9ff; margin-top: 4px; }
+  .header .meta { font-size: 0.75em; color: #888; margin-top: 8px; }
+
+  .main { display: flex; min-height: calc(100vh - 100px); }
+
+  .code-panel { width: 45%; background: #1e1e3f; padding: 20px; border-right: 2px solid #333; display: flex; flex-direction: column; }
+  .game-panel { width: 55%; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+  .panel-title { font-size: 1.1em; color: #ffd93d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .panel-title .icon { font-size: 1.3em; }
+
+  .code-editor { flex: 1; background: #0d0d2b; border-radius: 10px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; overflow-y: auto; }
+
+  .code-line { display: flex; margin-bottom: 2px; min-height: 22px; align-items: center; }
+  .line-num { color: #555; width: 30px; text-align: right; margin-right: 12px; font-size: 12px; flex-shrink: 0; }
+  .code-text { color: #ddd; white-space: pre; }
+  .code-text .keyword { color: #c792ea; }
+  .code-text .function { color: #82aaff; }
+  .code-text .string { color: #c3e88d; }
+  .code-text .number { color: #f78c6c; }
+  .code-text .comment { color: #546e7a; font-style: italic; }
+  .code-text .variable { color: #ffcb6b; }
+  .code-text .operator { color: #89ddff; }
+
+  .highlight-line { background: rgba(108, 92, 231, 0.15); border-left: 3px solid #6c5ce7; margin-left: -15px; padding-left: 12px; border-radius: 0 4px 4px 0; }
+
+  .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-run { background: #00b894; color: #fff; }
+  .btn-run:hover { background: #00a381; transform: scale(1.03); }
+  .btn-step { background: #6c5ce7; color: #fff; }
+  .btn-step:hover { background: #5a4bd1; transform: scale(1.03); }
+  .btn-reset { background: #d63031; color: #fff; }
+  .btn-reset:hover { background: #c02020; transform: scale(1.03); }
+  .btn-challenge { background: #fdcb6e; color: #2d3436; }
+  .btn-challenge:hover { background: #f9bf3b; transform: scale(1.03); }
+
+  .game-canvas { background: #141432; border-radius: 15px; border: 2px solid #333; width: 100%; max-width: 500px; aspect-ratio: 4/3; position: relative; overflow: hidden; }
+
+  .game-object { position: absolute; transition: all 0.3s ease; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2em; }
+  .game-object:hover { transform: scale(1.15); }
+  .game-object.collected { animation: collect 0.5s ease forwards; }
+  @keyframes collect {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.7; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  .score-display { margin-top: 15px; background: #1e1e3f; border-radius: 10px; padding: 15px 25px; text-align: center; width: 100%; max-width: 500px; }
+  .score-label { font-size: 0.85em; color: #888; }
+  .score-value { font-size: 2.5em; font-weight: bold; color: #ffd93d; }
+  .score-equation { font-size: 1.1em; color: #74b9ff; margin-top: 5px; font-family: 'Courier New', monospace; }
+
+  .explanation { margin-top: 15px; background: rgba(116, 185, 255, 0.1); border-left: 3px solid #74b9ff; border-radius: 0 8px 8px 0; padding: 12px 15px; font-size: 0.85em; color: #b2bec3; line-height: 1.5; width: 100%; max-width: 500px; }
+  .explanation strong { color: #74b9ff; }
+
+  .challenge-box { margin-top: 15px; background: rgba(253, 203, 110, 0.1); border: 2px dashed #fdcb6e; border-radius: 10px; padding: 15px; width: 100%; max-width: 500px; display: none; }
+  .challenge-box h3 { color: #fdcb6e; font-size: 1em; margin-bottom: 8px; }
+  .challenge-box p { color: #dfe6e9; font-size: 0.85em; line-height: 1.4; }
+  .challenge-input { display: flex; gap: 8px; margin-top: 10px; }
+  .challenge-input input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 2px solid #444; background: #1e1e3f; color: #fff; font-size: 16px; font-family: 'Courier New', monospace; }
+  .challenge-input button { padding: 8px 16px; border-radius: 6px; border: none; background: #00b894; color: #fff; font-weight: 600; cursor: pointer; }
+  .challenge-feedback { margin-top: 8px; font-size: 0.85em; min-height: 20px; }
+
+  .level-indicator { display: flex; gap: 6px; margin-top: 10px; width: 100%; max-width: 500px; justify-content: center; }
+  .level-dot { width: 12px; height: 12px; border-radius: 50%; background: #333; transition: background 0.3s; }
+  .level-dot.active { background: #ffd93d; }
+  .level-dot.completed { background: #00b894; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MathCode Project: Number Quest</h1>
+  <div class="subtitle">Tier 1 — Unit 1: Counting & Number Sense (Grades K-2, Ages 5-7)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students understand counting as accumulation by coding a collection game</div>
+</div>
+
+<div class="main">
+  <div class="code-panel">
+    <div class="panel-title"><span class="icon">&#128187;</span> Your Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="controls">
+      <button class="btn btn-run" onclick="runCode()">&#9654; Run Code</button>
+      <button class="btn btn-step" onclick="stepCode()">&#9654;&#9654; Step</button>
+      <button class="btn btn-reset" onclick="resetGame()">&#8635; Reset</button>
+      <button class="btn btn-challenge" onclick="showChallenge()">&#9733; Challenge</button>
+    </div>
+  </div>
+
+  <div class="game-panel">
+    <div class="panel-title"><span class="icon">&#127918;</span> Your Game</div>
+    <div class="game-canvas" id="gameCanvas"></div>
+    <div class="score-display">
+      <div class="score-label">Stars Collected</div>
+      <div class="score-value" id="scoreValue">0</div>
+      <div class="score-equation" id="scoreEquation">score = 0</div>
+    </div>
+    <div class="level-indicator" id="levelDots"></div>
+    <div class="explanation" id="explanation">
+      <strong>What's happening:</strong> Press <strong>Run Code</strong> to start your game! Stars will appear on the screen. Click each star to collect it. Watch how the code counts each star you collect — that's how computers count, one at a time, just like you do!
+    </div>
+    <div class="challenge-box" id="challengeBox">
+      <h3>&#9733; Code Challenge!</h3>
+      <p id="challengeText"></p>
+      <div class="challenge-input">
+        <input type="number" id="challengeAnswer" placeholder="Type your answer...">
+        <button onclick="checkChallenge()">Check</button>
+      </div>
+      <div class="challenge-feedback" id="challengeFeedback"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const codeLines = [
+  { text: '# Number Quest — Counting Game', type: 'comment' },
+  { text: '', type: 'blank' },
+  { text: '# Set up our game', type: 'comment' },
+  { text: 'score = 0', type: 'variable-assign', parts: [
+    { text: 'score', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '0', cls: 'number' }
+  ]},
+  { text: 'stars_to_find = 5', type: 'variable-assign', parts: [
+    { text: 'stars_to_find', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '5', cls: 'number' }
+  ]},
+  { text: '', type: 'blank' },
+  { text: '# Place stars on the screen', type: 'comment' },
+  { text: 'for each star in range(stars_to_find):', type: 'loop', parts: [
+    { text: 'for each ', cls: 'keyword' }, { text: 'star', cls: 'variable' }, { text: ' in ', cls: 'keyword' },
+    { text: 'range', cls: 'function' }, { text: '(', cls: '' }, { text: 'stars_to_find', cls: 'variable' }, { text: '):', cls: '' }
+  ]},
+  { text: '    place_star(random_spot())', type: 'function-call', parts: [
+    { text: '    ', cls: '' }, { text: 'place_star', cls: 'function' }, { text: '(', cls: '' },
+    { text: 'random_spot', cls: 'function' }, { text: '())', cls: '' }
+  ]},
+  { text: '', type: 'blank' },
+  { text: '# When player clicks a star:', type: 'comment' },
+  { text: 'when star_clicked:', type: 'event', parts: [
+    { text: 'when ', cls: 'keyword' }, { text: 'star_clicked', cls: 'function' }, { text: ':', cls: '' }
+  ]},
+  { text: '    score = score + 1', type: 'counting', parts: [
+    { text: '    ', cls: '' }, { text: 'score', cls: 'variable' }, { text: ' = ', cls: 'operator' },
+    { text: 'score', cls: 'variable' }, { text: ' + ', cls: 'operator' }, { text: '1', cls: 'number' }
+  ]},
+  { text: '    show(score)', type: 'function-call', parts: [
+    { text: '    ', cls: '' }, { text: 'show', cls: 'function' }, { text: '(', cls: '' },
+    { text: 'score', cls: 'variable' }, { text: ')', cls: '' }
+  ]},
+  { text: '    play_sound("ding")', type: 'function-call', parts: [
+    { text: '    ', cls: '' }, { text: 'play_sound', cls: 'function' }, { text: '(', cls: '' },
+    { text: '"ding"', cls: 'string' }, { text: ')', cls: '' }
+  ]},
+  { text: '', type: 'blank' },
+  { text: '# Check if we found them all', type: 'comment' },
+  { text: '    if score == stars_to_find:', type: 'conditional', parts: [
+    { text: '    ', cls: '' }, { text: 'if ', cls: 'keyword' }, { text: 'score', cls: 'variable' },
+    { text: ' == ', cls: 'operator' }, { text: 'stars_to_find', cls: 'variable' }, { text: ':', cls: '' }
+  ]},
+  { text: '        show("You found them all!")', type: 'function-call', parts: [
+    { text: '        ', cls: '' }, { text: 'show', cls: 'function' }, { text: '(', cls: '' },
+    { text: '"You found them all!"', cls: 'string' }, { text: ')', cls: '' }
+  ]},
+];
+
+let gameState = { score: 0, totalStars: 5, stars: [], running: false, currentStep: -1, level: 1 };
+let highlightedLine = -1;
+
+function renderCode() {
+  const editor = document.getElementById('codeEditor');
+  editor.innerHTML = '';
+  codeLines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line' + (i === highlightedLine ? ' highlight-line' : '');
+
+    const num = document.createElement('span');
+    num.className = 'line-num';
+    num.textContent = i + 1;
+    div.appendChild(num);
+
+    const code = document.createElement('span');
+    code.className = 'code-text';
+
+    if (line.parts) {
+      line.parts.forEach(part => {
+        const span = document.createElement('span');
+        span.className = part.cls;
+        span.textContent = part.text;
+        code.appendChild(span);
+      });
+    } else if (line.type === 'comment') {
+      const span = document.createElement('span');
+      span.className = 'comment';
+      span.textContent = line.text;
+      code.appendChild(span);
+    } else {
+      code.textContent = line.text;
+    }
+
+    div.appendChild(code);
+    editor.appendChild(div);
+  });
+}
+
+function placeStars() {
+  const canvas = document.getElementById('gameCanvas');
+  canvas.innerHTML = '';
+  gameState.stars = [];
+
+  const emojis = ['&#11088;', '&#127775;', '&#10024;', '&#128171;', '&#127752;'];
+  const starCount = gameState.totalStars;
+
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('div');
+    star.className = 'game-object';
+    star.innerHTML = emojis[i % emojis.length];
+
+    const x = 10 + Math.random() * 75;
+    const y = 10 + Math.random() * 75;
+    star.style.left = x + '%';
+    star.style.top = y + '%';
+    star.style.fontSize = (1.8 + Math.random() * 0.8) + 'em';
+    star.dataset.index = i;
+    star.onclick = () => collectStar(star, i);
+
+    canvas.appendChild(star);
+    gameState.stars.push({ el: star, collected: false });
+  }
+}
+
+function collectStar(el, index) {
+  if (!gameState.running || gameState.stars[index].collected) return;
+
+  gameState.stars[index].collected = true;
+  el.classList.add('collected');
+  gameState.score++;
+
+  // Highlight the counting line
+  highlightedLine = 12; // score = score + 1
+  renderCode();
+
+  updateScore();
+
+  setTimeout(() => {
+    highlightedLine = 17; // if score == stars_to_find
+    renderCode();
+
+    if (gameState.score === gameState.totalStars) {
+      setTimeout(() => {
+        highlightedLine = 18;
+        renderCode();
+        document.getElementById('explanation').innerHTML =
+          '<strong>You did it!</strong> You collected all ' + gameState.totalStars + ' stars! ' +
+          'The code counted each one: <em>score = score + 1</em> happened ' + gameState.totalStars + ' times. ' +
+          'That means: 0 + 1 + 1 + 1 + 1 + 1 = <strong>' + gameState.totalStars + '</strong>. ' +
+          'This is how computers count — they add 1 each time something happens. ' +
+          'Try the <strong>Challenge</strong> button to test what you learned!';
+
+        if (gameState.level < 5) {
+          gameState.level++;
+          updateLevelDots();
+        }
+      }, 300);
+    }
+  }, 500);
+
+  // Explain what just happened
+  const remaining = gameState.totalStars - gameState.score;
+  if (remaining > 0) {
+    document.getElementById('explanation').innerHTML =
+      '<strong>Line 13 just ran!</strong> <code>score = score + 1</code> means: ' +
+      'take the old score (' + (gameState.score - 1) + '), add 1, and save the new score (' + gameState.score + '). ' +
+      'You have <strong>' + remaining + ' more</strong> star' + (remaining > 1 ? 's' : '') + ' to find!';
+  }
+}
+
+function updateScore() {
+  document.getElementById('scoreValue').textContent = gameState.score;
+
+  let equation = 'score = 0';
+  for (let i = 0; i < gameState.score; i++) {
+    equation += ' + 1';
+  }
+  equation += ' = ' + gameState.score;
+  document.getElementById('scoreEquation').textContent = equation;
+}
+
+function runCode() {
+  gameState.score = 0;
+  gameState.running = true;
+  updateScore();
+
+  // Animate through setup lines
+  highlightedLine = 3;
+  renderCode();
+
+  setTimeout(() => {
+    highlightedLine = 4;
+    renderCode();
+
+    setTimeout(() => {
+      highlightedLine = 7;
+      renderCode();
+
+      setTimeout(() => {
+        highlightedLine = 8;
+        renderCode();
+        placeStars();
+
+        document.getElementById('explanation').innerHTML =
+          '<strong>Code is running!</strong> First, we set <code>score = 0</code> (we start with nothing). ' +
+          'Then <code>stars_to_find = ' + gameState.totalStars + '</code> tells the game how many stars to place. ' +
+          'The <code>for</code> loop placed ' + gameState.totalStars + ' stars in random spots. ' +
+          'Now <strong>click the stars</strong> to collect them and watch the code count!';
+      }, 400);
+    }, 400);
+  }, 400);
+}
+
+let stepIndex = 0;
+const stepSequence = [3, 4, 7, 8];
+
+function stepCode() {
+  if (stepIndex < stepSequence.length) {
+    highlightedLine = stepSequence[stepIndex];
+    renderCode();
+
+    const explanations = [
+      '<strong>score = 0</strong> — We create a variable called "score" and set it to zero. A variable is like a box with a label. Right now the box labeled "score" has 0 inside it.',
+      '<strong>stars_to_find = 5</strong> — We create another variable that tells our game how many stars to place. Try changing this number in the challenge!',
+      '<strong>for each star...</strong> — This is a LOOP. It means "do the next line multiple times." How many times? As many as stars_to_find (which is ' + gameState.totalStars + '). Loops save us from writing the same line over and over.',
+      '<strong>place_star(random_spot())</strong> — This line runs inside the loop. Each time it runs, it places one star in a random spot. The loop runs it ' + gameState.totalStars + ' times, so we get ' + gameState.totalStars + ' stars!'
+    ];
+
+    document.getElementById('explanation').innerHTML = explanations[stepIndex];
+
+    if (stepIndex === stepSequence.length - 1) {
+      gameState.running = true;
+      gameState.score = 0;
+      updateScore();
+      placeStars();
+    }
+    stepIndex++;
+  } else {
+    document.getElementById('explanation').innerHTML = '<strong>All setup steps done!</strong> Now click the stars to see the counting code in action!';
+  }
+}
+
+function resetGame() {
+  gameState.score = 0;
+  gameState.running = false;
+  highlightedLine = -1;
+  stepIndex = 0;
+
+  document.getElementById('gameCanvas').innerHTML = '';
+  updateScore();
+  renderCode();
+  document.getElementById('challengeBox').style.display = 'none';
+  document.getElementById('explanation').innerHTML =
+    '<strong>What\'s happening:</strong> Press <strong>Run Code</strong> to start your game! Stars will appear on the screen. Click each star to collect it. Watch how the code counts each star you collect — that\'s how computers count, one at a time, just like you do!';
+}
+
+let currentChallenge = null;
+
+function showChallenge() {
+  const box = document.getElementById('challengeBox');
+  box.style.display = 'block';
+  document.getElementById('challengeFeedback').textContent = '';
+  document.getElementById('challengeAnswer').value = '';
+
+  const challenges = [
+    {
+      text: 'If you change stars_to_find to 8, and you collect all the stars, what will score equal?',
+      answer: 8,
+      explanation: 'Correct! If there are 8 stars and you collect them all, score = score + 1 happens 8 times. Starting from 0: 0 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 8!'
+    },
+    {
+      text: 'If score starts at 0 and you click 3 stars, what does score equal? (Hint: score = score + 1 runs once per click)',
+      answer: 3,
+      explanation: 'Correct! Each click runs score = score + 1. After 3 clicks: 0 → 1 → 2 → 3. Score equals 3!'
+    },
+    {
+      text: 'If we change the code to say score = score + 2 (instead of + 1), and you click 4 stars, what would score be?',
+      answer: 8,
+      explanation: 'Correct! If each click adds 2 instead of 1: 0 + 2 + 2 + 2 + 2 = 8. This is like counting by 2s!'
+    },
+    {
+      text: 'If stars_to_find = 10, how many times does the loop run to place stars?',
+      answer: 10,
+      explanation: 'Correct! The loop runs as many times as stars_to_find. If stars_to_find = 10, the loop runs 10 times and places 10 stars!'
+    }
+  ];
+
+  currentChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+  document.getElementById('challengeText').textContent = currentChallenge.text;
+}
+
+function checkChallenge() {
+  const answer = parseInt(document.getElementById('challengeAnswer').value);
+  const feedback = document.getElementById('challengeFeedback');
+
+  if (isNaN(answer)) {
+    feedback.textContent = 'Type a number!';
+    feedback.style.color = '#fdcb6e';
+    return;
+  }
+
+  if (answer === currentChallenge.answer) {
+    feedback.textContent = currentChallenge.explanation;
+    feedback.style.color = '#00b894';
+  } else {
+    feedback.textContent = 'Not quite! Think about it: if score starts at 0 and we add 1 each time... Try again!';
+    feedback.style.color = '#d63031';
+  }
+}
+
+function updateLevelDots() {
+  const container = document.getElementById('levelDots');
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'level-dot' + (i < gameState.level ? ' completed' : '') + (i === gameState.level ? ' active' : '');
+    container.appendChild(dot);
+  }
+}
+
+// Initialize
+renderCode();
+updateLevelDots();
+</script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 1 — Shape Builder: Geometry Lab</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
+
+  .header { background: linear-gradient(135deg, #1a1a4e, #2d1b69); padding: 20px 30px; border-bottom: 3px solid #00cec9; }
+  .header h1 { font-size: 1.6em; color: #81ecec; }
+  .header .subtitle { font-size: 0.9em; color: #74b9ff; margin-top: 4px; }
+  .header .meta { font-size: 0.75em; color: #888; margin-top: 8px; }
+
+  .main { display: flex; min-height: calc(100vh - 100px); }
+  .code-panel { width: 42%; background: #1e1e3f; padding: 20px; border-right: 2px solid #333; display: flex; flex-direction: column; }
+  .game-panel { width: 58%; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+  .panel-title { font-size: 1.1em; color: #ffd93d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+  .code-editor { flex: 1; background: #0d0d2b; border-radius: 10px; padding: 15px; font-family: 'Courier New', monospace; font-size: 13px; overflow-y: auto; }
+  .code-line { display: flex; margin-bottom: 2px; min-height: 20px; align-items: center; }
+  .line-num { color: #555; width: 30px; text-align: right; margin-right: 12px; font-size: 12px; flex-shrink: 0; }
+  .code-text .keyword { color: #c792ea; }
+  .code-text .function { color: #82aaff; }
+  .code-text .string { color: #c3e88d; }
+  .code-text .number { color: #f78c6c; }
+  .code-text .comment { color: #546e7a; font-style: italic; }
+  .code-text .variable { color: #ffcb6b; }
+  .code-text .operator { color: #89ddff; }
+  .highlight-line { background: rgba(0, 206, 201, 0.12); border-left: 3px solid #00cec9; margin-left: -15px; padding-left: 12px; }
+
+  .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-run { background: #00b894; color: #fff; }
+  .btn-run:hover { background: #00a381; }
+  .btn-reset { background: #d63031; color: #fff; }
+  .btn-reset:hover { background: #c02020; }
+
+  .canvas-area { background: #141432; border-radius: 15px; border: 2px solid #333; width: 100%; max-width: 520px; height: 360px; position: relative; overflow: hidden; }
+  .canvas-area canvas { width: 100%; height: 100%; }
+
+  .shape-controls { display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap; justify-content: center; }
+  .shape-btn { padding: 8px 16px; border: 2px solid #444; border-radius: 8px; background: #1e1e3f; color: #fff; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .shape-btn:hover { border-color: #00cec9; }
+  .shape-btn.active { border-color: #00cec9; background: rgba(0, 206, 201, 0.15); }
+
+  .slider-group { display: flex; align-items: center; gap: 10px; margin: 8px 0; width: 100%; max-width: 520px; }
+  .slider-group label { font-size: 0.85em; color: #81ecec; min-width: 80px; }
+  .slider-group input[type=range] { flex: 1; accent-color: #00cec9; }
+  .slider-group .val { font-family: 'Courier New', monospace; color: #ffd93d; min-width: 40px; text-align: right; }
+
+  .info-panel { background: #1e1e3f; border-radius: 12px; padding: 15px; width: 100%; max-width: 520px; margin-top: 10px; }
+  .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2d2d5e; font-size: 0.9em; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: #888; }
+  .info-value { color: #ffd93d; font-family: 'Courier New', monospace; font-weight: 600; }
+
+  .explanation { margin-top: 12px; background: rgba(116, 185, 255, 0.1); border-left: 3px solid #74b9ff; border-radius: 0 8px 8px 0; padding: 12px 15px; font-size: 0.85em; color: #b2bec3; line-height: 1.5; width: 100%; max-width: 520px; }
+  .explanation strong { color: #74b9ff; }
+  .explanation code { background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px; font-size: 0.95em; }
+
+  .transform-btns { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; justify-content: center; }
+  .t-btn { padding: 6px 14px; border: 2px solid #444; border-radius: 6px; background: #1e1e3f; color: #fff; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .t-btn:hover { border-color: #fdcb6e; background: rgba(253, 203, 110, 0.1); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MathCode Project: Shape Builder</h1>
+  <div class="subtitle">Tier 1 — Unit 5: Shapes & Geometry (Grades 1-3, Ages 6-8)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students explore geometric properties by coding shapes with adjustable sides, size, rotation, and color</div>
+</div>
+
+<div class="main">
+  <div class="code-panel">
+    <div class="panel-title">&#128187; Your Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="controls">
+      <button class="btn btn-run" onclick="runCode()">&#9654; Draw Shape</button>
+      <button class="btn btn-reset" onclick="resetCanvas()">&#8635; Clear</button>
+    </div>
+  </div>
+
+  <div class="game-panel">
+    <div class="panel-title">&#128316; Geometry Lab</div>
+
+    <div class="shape-controls">
+      <button class="shape-btn active" data-sides="3" onclick="setSides(3, this)">&#9650; Triangle (3)</button>
+      <button class="shape-btn" data-sides="4" onclick="setSides(4, this)">&#9632; Square (4)</button>
+      <button class="shape-btn" data-sides="5" onclick="setSides(5, this)">&#11039; Pentagon (5)</button>
+      <button class="shape-btn" data-sides="6" onclick="setSides(6, this)">&#11042; Hexagon (6)</button>
+      <button class="shape-btn" data-sides="8" onclick="setSides(8, this)">&#9724; Octagon (8)</button>
+      <button class="shape-btn" data-sides="50" onclick="setSides(50, this)">&#9679; Circle? (50)</button>
+    </div>
+
+    <div class="canvas-area">
+      <canvas id="shapeCanvas" width="520" height="360"></canvas>
+    </div>
+
+    <div class="slider-group">
+      <label>Size:</label>
+      <input type="range" id="sizeSlider" min="30" max="160" value="80" oninput="updateParam()">
+      <span class="val" id="sizeVal">80</span>
+    </div>
+    <div class="slider-group">
+      <label>Rotation:</label>
+      <input type="range" id="rotSlider" min="0" max="360" value="0" oninput="updateParam()">
+      <span class="val" id="rotVal">0&#176;</span>
+    </div>
+    <div class="slider-group">
+      <label>Color:</label>
+      <input type="range" id="hueSlider" min="0" max="360" value="180" oninput="updateParam()">
+      <span class="val" id="hueVal" style="width:20px; height:20px; border-radius:50%; background:hsl(180,80%,60%);"></span>
+    </div>
+
+    <div class="transform-btns">
+      <button class="t-btn" onclick="doTransform('flip_h')">&#8596; Flip Horizontal</button>
+      <button class="t-btn" onclick="doTransform('flip_v')">&#8597; Flip Vertical</button>
+      <button class="t-btn" onclick="doTransform('duplicate')">&#10697; Duplicate</button>
+      <button class="t-btn" onclick="doTransform('shrink')">&#128269; Shrink Half</button>
+      <button class="t-btn" onclick="doTransform('grow')">&#128270; Grow Double</button>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-row"><span class="info-label">Shape</span><span class="info-value" id="infoName">Triangle</span></div>
+      <div class="info-row"><span class="info-label">Sides</span><span class="info-value" id="infoSides">3</span></div>
+      <div class="info-row"><span class="info-label">Interior Angle</span><span class="info-value" id="infoAngle">60&#176;</span></div>
+      <div class="info-row"><span class="info-label">Angle Sum</span><span class="info-value" id="infoSum">180&#176;</span></div>
+      <div class="info-row"><span class="info-label">Perimeter</span><span class="info-value" id="infoPerim">—</span></div>
+      <div class="info-row"><span class="info-label">Symmetry Lines</span><span class="info-value" id="infoSym">3</span></div>
+    </div>
+
+    <div class="explanation" id="explanation">
+      <strong>How this works:</strong> Pick a shape, adjust its size, rotation, and color using the sliders, then press <strong>Draw Shape</strong>. The code uses a <strong>loop</strong> to draw each side — a triangle loops 3 times, a square loops 4 times. Notice how more sides make the shape look rounder. What happens at 50 sides?
+    </div>
+  </div>
+</div>
+
+<script>
+let state = {
+  sides: 3, size: 80, rotation: 0, hue: 180,
+  shapes: [], flipH: false, flipV: false
+};
+
+const shapeNames = { 3: 'Triangle', 4: 'Square', 5: 'Pentagon', 6: 'Hexagon', 8: 'Octagon', 50: 'Circle (50-gon)' };
+
+function getCodeLines() {
+  return [
+    { parts: [{ text: '# Shape Builder — Geometry Lab', cls: 'comment' }] },
+    { parts: [] },
+    { parts: [{ text: '# Set shape properties', cls: 'comment' }] },
+    { parts: [{ text: 'sides', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: String(state.sides), cls: 'number' }] },
+    { parts: [{ text: 'size', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: String(state.size), cls: 'number' }] },
+    { parts: [{ text: 'rotation', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: String(state.rotation), cls: 'number' }] },
+    { parts: [{ text: 'color', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: `"hsl(${state.hue}, 80%, 60%)"`, cls: 'string' }] },
+    { parts: [] },
+    { parts: [{ text: '# Calculate the angle for each turn', cls: 'comment' }] },
+    { parts: [{ text: 'turn_angle', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '360', cls: 'number' }, { text: ' / ', cls: 'operator' }, { text: 'sides', cls: 'variable' }] },
+    { parts: [{ text: '# turn_angle = 360 / ' + state.sides + ' = ' + (360 / state.sides).toFixed(1) + ' degrees', cls: 'comment' }] },
+    { parts: [] },
+    { parts: [{ text: '# Draw the shape using a loop', cls: 'comment' }] },
+    { parts: [{ text: 'for ', cls: 'keyword' }, { text: 'i', cls: 'variable' }, { text: ' in ', cls: 'keyword' }, { text: 'range', cls: 'function' }, { text: '(sides):', cls: '' }] },
+    { parts: [{ text: '    ', cls: '' }, { text: 'draw_line', cls: 'function' }, { text: '(length=size)', cls: '' }] },
+    { parts: [{ text: '    ', cls: '' }, { text: 'turn', cls: 'function' }, { text: '(turn_angle)', cls: '' }] },
+    { parts: [] },
+    { parts: [{ text: '# Shape properties:', cls: 'comment' }] },
+    { parts: [{ text: 'interior_angle', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '(sides - 2)', cls: '' }, { text: ' * ', cls: 'operator' }, { text: '180', cls: 'number' }, { text: ' / ', cls: 'operator' }, { text: 'sides', cls: 'variable' }] },
+    { parts: [{ text: 'angle_sum', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '(sides - 2)', cls: '' }, { text: ' * ', cls: 'operator' }, { text: '180', cls: 'number' }] },
+    { parts: [{ text: 'perimeter', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: 'sides', cls: 'variable' }, { text: ' * ', cls: 'operator' }, { text: 'size', cls: 'variable' }] },
+    { parts: [] },
+    { parts: [{ text: 'show', cls: 'function' }, { text: '(', cls: '' }, { text: `"${shapeNames[state.sides] || state.sides + '-gon'} drawn!"`, cls: 'string' }, { text: ')', cls: '' }] },
+  ];
+}
+
+let currentHL = -1;
+
+function renderCode() {
+  const lines = getCodeLines();
+  const editor = document.getElementById('codeEditor');
+  editor.innerHTML = '';
+  lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line' + (i === currentHL ? ' highlight-line' : '');
+    const num = document.createElement('span');
+    num.className = 'line-num';
+    num.textContent = i + 1;
+    div.appendChild(num);
+    const code = document.createElement('span');
+    code.className = 'code-text';
+    if (!line.parts || line.parts.length === 0) {
+      code.textContent = '';
+    } else {
+      line.parts.forEach(p => {
+        const s = document.createElement('span');
+        s.className = p.cls;
+        s.textContent = p.text;
+        code.appendChild(s);
+      });
+    }
+    div.appendChild(code);
+    editor.appendChild(div);
+  });
+}
+
+function drawShape(cx, cy, sides, size, rotation, hue, flipH, flipV, alpha) {
+  const canvas = document.getElementById('shapeCanvas');
+  const ctx = canvas.getContext('2d');
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation * Math.PI / 180);
+  ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+
+  ctx.beginPath();
+  for (let i = 0; i <= sides; i++) {
+    const angle = (i * 2 * Math.PI / sides) - Math.PI / 2;
+    const x = size * Math.cos(angle);
+    const y = size * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+
+  ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${alpha || 0.35})`;
+  ctx.fill();
+  ctx.strokeStyle = `hsl(${hue}, 80%, 45%)`;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Draw vertices
+  for (let i = 0; i < sides; i++) {
+    const angle = (i * 2 * Math.PI / sides) - Math.PI / 2;
+    const x = size * Math.cos(angle);
+    const y = size * Math.sin(angle);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${hue}, 80%, 80%)`;
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function redrawAll() {
+  const canvas = document.getElementById('shapeCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+  for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+  state.shapes.forEach(s => {
+    drawShape(s.cx, s.cy, s.sides, s.size, s.rotation, s.hue, s.flipH, s.flipV, s.alpha);
+  });
+}
+
+function updateInfo() {
+  const s = state.sides;
+  const interiorAngle = ((s - 2) * 180 / s).toFixed(1);
+  const angleSum = (s - 2) * 180;
+  const perimeter = s * state.size;
+
+  document.getElementById('infoName').textContent = shapeNames[s] || s + '-gon';
+  document.getElementById('infoSides').textContent = s;
+  document.getElementById('infoAngle').textContent = interiorAngle + '\u00B0';
+  document.getElementById('infoSum').textContent = angleSum + '\u00B0';
+  document.getElementById('infoPerim').textContent = perimeter + ' px (' + s + ' \u00D7 ' + state.size + ')';
+  document.getElementById('infoSym').textContent = s;
+}
+
+function setSides(n, btn) {
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.sides = n;
+  state.flipH = false;
+  state.flipV = false;
+  renderCode();
+  updateInfo();
+
+  const discovery = n === 50
+    ? '<strong>Whoa!</strong> With 50 sides, the shape looks like a circle! That\'s a big discovery: <strong>a circle is really just a shape with so many sides you can\'t see them anymore</strong>. The turn angle is only ' + (360/50).toFixed(1) + '\u00B0 — tiny turns make curves!'
+    : `<strong>${shapeNames[n]} selected!</strong> This shape has ${n} sides. The loop will run ${n} times, turning ${(360/n).toFixed(1)}\u00B0 each time. Notice: 360 \u00F7 ${n} = ${(360/n).toFixed(1)} — the turn angle gets smaller as you add more sides!`;
+
+  document.getElementById('explanation').innerHTML = discovery;
+}
+
+function updateParam() {
+  state.size = parseInt(document.getElementById('sizeSlider').value);
+  state.rotation = parseInt(document.getElementById('rotSlider').value);
+  state.hue = parseInt(document.getElementById('hueSlider').value);
+
+  document.getElementById('sizeVal').textContent = state.size;
+  document.getElementById('rotVal').textContent = state.rotation + '\u00B0';
+  document.getElementById('hueVal').style.background = `hsl(${state.hue}, 80%, 60%)`;
+
+  renderCode();
+  updateInfo();
+
+  // Live redraw if shapes exist
+  if (state.shapes.length > 0) {
+    const last = state.shapes[state.shapes.length - 1];
+    last.size = state.size;
+    last.rotation = state.rotation;
+    last.hue = state.hue;
+    last.sides = state.sides;
+    redrawAll();
+  }
+}
+
+function runCode() {
+  const canvas = document.getElementById('shapeCanvas');
+
+  state.shapes.push({
+    cx: canvas.clientWidth / 2,
+    cy: canvas.clientHeight / 2,
+    sides: state.sides,
+    size: state.size,
+    rotation: state.rotation,
+    hue: state.hue,
+    flipH: state.flipH,
+    flipV: state.flipV,
+    alpha: 0.35
+  });
+
+  // Animate code execution
+  currentHL = 3;
+  renderCode();
+
+  setTimeout(() => { currentHL = 9; renderCode(); }, 300);
+  setTimeout(() => {
+    currentHL = 13;
+    renderCode();
+
+    // Animate drawing sides
+    let sideCount = 0;
+    const tempCanvas = document.getElementById('shapeCanvas');
+    const ctx = tempCanvas.getContext('2d');
+
+    const animInterval = setInterval(() => {
+      sideCount++;
+      redrawAll();
+
+      // Draw partial shape for animation
+      const sh = state.shapes[state.shapes.length - 1];
+      ctx.save();
+      ctx.translate(sh.cx, sh.cy);
+      ctx.rotate(sh.rotation * Math.PI / 180);
+      ctx.beginPath();
+      for (let i = 0; i <= Math.min(sideCount, sh.sides); i++) {
+        const angle = (i * 2 * Math.PI / sh.sides) - Math.PI / 2;
+        const x = sh.size * Math.cos(angle);
+        const y = sh.size * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `hsl(${sh.hue}, 100%, 70%)`;
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.restore();
+
+      if (sideCount >= sh.sides) {
+        clearInterval(animInterval);
+        redrawAll();
+        currentHL = 22;
+        renderCode();
+
+        const turnAngle = (360 / state.sides).toFixed(1);
+        document.getElementById('explanation').innerHTML =
+          `<strong>Shape drawn!</strong> The loop ran <code>${state.sides}</code> times. Each time it drew a line and turned <code>${turnAngle}\u00B0</code>. ` +
+          `That's the secret: <strong>360 \u00F7 ${state.sides} = ${turnAngle}</strong> — the computer divides a full circle into equal turns. ` +
+          `The interior angle is <code>${((state.sides-2)*180/state.sides).toFixed(1)}\u00B0</code>, and all angles add up to <code>${(state.sides-2)*180}\u00B0</code>. ` +
+          `Try changing the sliders to <strong>rotate</strong>, <strong>resize</strong>, or <strong>recolor</strong> your shape!`;
+      }
+    }, state.sides > 10 ? 30 : 120);
+  }, 600);
+}
+
+function doTransform(type) {
+  if (state.shapes.length === 0) return;
+  const last = state.shapes[state.shapes.length - 1];
+
+  switch(type) {
+    case 'flip_h':
+      last.flipH = !last.flipH;
+      document.getElementById('explanation').innerHTML = '<strong>Flipped horizontally!</strong> A horizontal flip mirrors the shape across the vertical axis. The shape looks the same if it has vertical symmetry — does yours?';
+      break;
+    case 'flip_v':
+      last.flipV = !last.flipV;
+      document.getElementById('explanation').innerHTML = '<strong>Flipped vertically!</strong> A vertical flip mirrors the shape across the horizontal axis. Regular polygons have multiple lines of symmetry, so they often look the same after flipping.';
+      break;
+    case 'duplicate':
+      const dup = {...last};
+      dup.cx += 40 + Math.random() * 40 - 20;
+      dup.cy += 40 + Math.random() * 40 - 20;
+      dup.hue = (last.hue + 60) % 360;
+      state.shapes.push(dup);
+      document.getElementById('explanation').innerHTML = '<strong>Duplicated!</strong> We made a copy and shifted its position. In code, this is like calling <code>draw_shape()</code> again with a different position. Patterns are made by repeating shapes!';
+      break;
+    case 'shrink':
+      last.size = Math.max(20, Math.round(last.size / 2));
+      document.getElementById('sizeSlider').value = last.size;
+      document.getElementById('sizeVal').textContent = last.size;
+      state.size = last.size;
+      renderCode();
+      updateInfo();
+      document.getElementById('explanation').innerHTML = `<strong>Shrunk to half!</strong> Size went from ${last.size * 2} to ${last.size}. That's dividing by 2. The shape is the same but smaller — same angles, same number of sides. This is called <strong>scaling</strong>.`;
+      break;
+    case 'grow':
+      last.size = Math.min(160, last.size * 2);
+      document.getElementById('sizeSlider').value = last.size;
+      document.getElementById('sizeVal').textContent = last.size;
+      state.size = last.size;
+      renderCode();
+      updateInfo();
+      document.getElementById('explanation').innerHTML = `<strong>Doubled in size!</strong> Size is now ${last.size}. Multiplying by 2 makes everything twice as big. The angles stay the same — only the side lengths change. That's what <strong>similar shapes</strong> means!`;
+      break;
+  }
+  redrawAll();
+}
+
+function resetCanvas() {
+  state.shapes = [];
+  state.flipH = false;
+  state.flipV = false;
+  currentHL = -1;
+  const canvas = document.getElementById('shapeCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  renderCode();
+  document.getElementById('explanation').innerHTML = '<strong>Canvas cleared!</strong> Pick a shape, adjust the sliders, and press <strong>Draw Shape</strong> to start building.';
+}
+
+// Init
+renderCode();
+updateInfo();
+</script>
+</body>
+</html>

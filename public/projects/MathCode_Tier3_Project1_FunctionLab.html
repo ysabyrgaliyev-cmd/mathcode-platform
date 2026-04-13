@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 3 — Function Lab: Advanced Graphing</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a1e;color:#fff;min-height:100vh}
+  .header{background:linear-gradient(135deg,#0d0d30,#1a0a3e);padding:16px 24px;border-bottom:3px solid #e74c3c}
+  .header h1{font-size:1.4em;color:#ff6b6b}.header .sub{font-size:.82em;color:#74b9ff;margin-top:3px}
+  .header .meta{font-size:.7em;color:#666;margin-top:5px}
+  .main{display:flex;min-height:calc(100vh - 85px)}
+  .code-panel{width:44%;background:#121230;padding:16px;border-right:2px solid #222;display:flex;flex-direction:column}
+  .game-panel{width:56%;padding:16px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+  .ptitle{font-size:.95em;color:#ffd93d;margin-bottom:8px}
+  .code-editor{flex:1;background:#080818;border-radius:8px;padding:12px;font-family:'Fira Code','Courier New',monospace;font-size:12px;overflow-y:auto}
+  .code-line{display:flex;margin-bottom:0;min-height:18px;align-items:center}
+  .ln{color:#444;width:26px;text-align:right;margin-right:8px;font-size:10px;flex-shrink:0}
+  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
+  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
+  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
+  .ctrls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .btn{padding:8px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-plot{background:#e74c3c;color:#fff}.btn-plot:hover{background:#c0392b}
+  .btn-add{background:#3498db;color:#fff}.btn-clear{background:#555;color:#fff}
+  canvas{border-radius:8px;border:1px solid #222}
+  .input-area{width:100%;max-width:480px;margin:8px 0}
+  .func-input{display:flex;gap:6px;align-items:center}
+  .func-input label{color:#ff6b6b;font-family:'Courier New',monospace;font-size:.9em}
+  .func-input input{flex:1;padding:8px 12px;border-radius:6px;border:2px solid #333;background:#121230;color:#c3e88d;font-size:14px;font-family:'Courier New',monospace}
+  .func-input input:focus{border-color:#e74c3c;outline:none}
+  .presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+  .preset{padding:5px 10px;border:1px solid #333;border-radius:5px;background:#121230;color:#ddd;font-size:.72em;cursor:pointer;font-family:'Courier New',monospace}
+  .preset:hover{border-color:#e74c3c;background:rgba(231,76,60,.1)}
+  .analysis{background:#121230;border-radius:8px;padding:12px;width:100%;max-width:480px;margin-top:8px;font-size:.8em}
+  .a-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1a1a3a}
+  .a-row:last-child{border:none}.a-l{color:#666}.a-v{color:#ffd93d;font-family:'Courier New',monospace}
+  .explanation{margin-top:8px;background:rgba(116,185,255,.06);border-left:3px solid #74b9ff;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;color:#999;line-height:1.5;width:100%;max-width:480px}
+  .explanation strong{color:#74b9ff}
+  .func-list{width:100%;max-width:480px;margin-top:6px}
+  .fl-item{display:flex;align-items:center;gap:8px;padding:4px 8px;background:#121230;border-radius:5px;margin:3px 0;font-size:.8em}
+  .fl-color{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .fl-expr{flex:1;font-family:'Courier New',monospace;color:#ddd}
+  .fl-del{cursor:pointer;color:#555;font-size:1.1em}.fl-del:hover{color:#e74c3c}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>MathCode Project: Function Lab</h1>
+  <div class="sub">Tier 3 — Unit 1: Advanced Functions & Algebra (Grades 8-10, Ages 13-15)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students explore polynomial, trigonometric, exponential, and custom functions by writing Python expressions and analyzing their graphical behavior</div>
+</div>
+<div class="main">
+  <div class="code-panel">
+    <div class="ptitle">&#128187; Python Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="ctrls">
+      <button class="btn btn-plot" onclick="plotCurrent()">&#9654; Plot</button>
+      <button class="btn btn-add" onclick="addToGraph()">+ Add to Graph</button>
+      <button class="btn btn-clear" onclick="clearAll()">&#8635; Clear All</button>
+    </div>
+  </div>
+  <div class="game-panel">
+    <div class="ptitle">&#128202; Function Graph</div>
+    <div class="input-area">
+      <div class="func-input">
+        <label>f(x) =</label>
+        <input type="text" id="funcExpr" value="x**2 - 4*x + 3" placeholder="e.g., sin(x) * x">
+      </div>
+      <div class="presets">
+        <span class="preset" onclick="setExpr('x**2')">x&sup2;</span>
+        <span class="preset" onclick="setExpr('x**3 - 3*x')">x&sup3;-3x</span>
+        <span class="preset" onclick="setExpr('sin(x)')">sin(x)</span>
+        <span class="preset" onclick="setExpr('cos(x)')">cos(x)</span>
+        <span class="preset" onclick="setExpr('tan(x)')">tan(x)</span>
+        <span class="preset" onclick="setExpr('2**x')">2&#x02E3;</span>
+        <span class="preset" onclick="setExpr('log(x)')">ln(x)</span>
+        <span class="preset" onclick="setExpr('sqrt(x)')">&#8730;x</span>
+        <span class="preset" onclick="setExpr('abs(sin(x)*x)')">|sin(x)&#183;x|</span>
+        <span class="preset" onclick="setExpr('x**2 * sin(1/x)')">x&sup2;sin(1/x)</span>
+      </div>
+    </div>
+    <canvas id="graphCanvas" width="470" height="350"></canvas>
+    <div class="func-list" id="funcList"></div>
+    <div class="analysis" id="analysis"></div>
+    <div class="explanation" id="explanation">
+      <strong>Advanced Function Exploration:</strong> Type any mathematical expression using Python syntax. Use <code>x</code> as the variable. Available: <code>sin, cos, tan, sqrt, abs, log, exp, pi, e</code>, and operators <code>** + - * /</code>. Plot multiple functions to compare their behavior. The code evaluates your expression for hundreds of x-values and draws the result.
+    </div>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('graphCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+let ox = W/2, oy = H/2, scale = 30;
+const colors = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#fd79a8'];
+let functions = [];
+let colorIdx = 0;
+
+const mathFns = { sin: Math.sin, cos: Math.cos, tan: Math.tan, sqrt: Math.sqrt, abs: Math.abs, log: Math.log, exp: Math.exp, pi: Math.PI, e: Math.E, floor: Math.floor, ceil: Math.ceil, round: Math.round };
+
+function safeEval(expr, x) {
+  try {
+    const fn = new Function('x', ...Object.keys(mathFns), `return ${expr};`);
+    const result = fn(x, ...Object.values(mathFns));
+    if (!isFinite(result)) return NaN;
+    return result;
+  } catch(e) { return NaN; }
+}
+
+function drawGrid() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0a0a1e';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  for (let x = ox % scale; x < W; x += scale) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = oy % scale; y < H; y += scale) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(255,255,255,.2)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,H); ctx.stroke();
+  ctx.fillStyle = '#444';
+  ctx.font = '9px Courier New';
+  for (let i = -10; i <= 10; i++) {
+    if (i === 0) continue;
+    const px = ox + i * scale, py = oy + i * scale;
+    if (px > 0 && px < W) ctx.fillText(i, px - 3, oy + 12);
+    if (py > 0 && py < H) ctx.fillText(-i, ox + 4, py + 3);
+  }
+}
+
+function plotExpr(expr, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  let first = true;
+  let prevY = NaN;
+  for (let px = 0; px < W; px += 0.5) {
+    const x = (px - ox) / scale;
+    const y = safeEval(expr, x);
+    if (isNaN(y)) { first = true; continue; }
+    const py = oy - y * scale;
+    if (py < -200 || py > H + 200 || Math.abs(y - prevY) > 20) { first = true; prevY = y; continue; }
+    if (first) { ctx.moveTo(px, py); first = false; }
+    else ctx.lineTo(px, py);
+    prevY = y;
+  }
+  ctx.stroke();
+}
+
+function redrawAll() {
+  drawGrid();
+  functions.forEach(f => plotExpr(f.expr, f.color));
+}
+
+function analyzeFunction(expr) {
+  // Find zeros, min, max, y-intercept
+  const yInt = safeEval(expr, 0);
+  let zeros = [];
+  let minY = Infinity, maxY = -Infinity, minX = 0, maxX = 0;
+  let prevY = safeEval(expr, -10);
+
+  for (let x = -9.9; x <= 10; x += 0.05) {
+    const y = safeEval(expr, x);
+    if (isNaN(y)) { prevY = NaN; continue; }
+    if (!isNaN(prevY) && prevY * y < 0) zeros.push(x.toFixed(2));
+    if (y < minY && isFinite(y)) { minY = y; minX = x; }
+    if (y > maxY && isFinite(y)) { maxY = y; maxX = x; }
+    prevY = y;
+  }
+
+  const panel = document.getElementById('analysis');
+  panel.innerHTML = `
+    <div class="a-row"><span class="a-l">Expression</span><span class="a-v">f(x) = ${expr}</span></div>
+    <div class="a-row"><span class="a-l">Y-intercept</span><span class="a-v">f(0) = ${isNaN(yInt) ? 'undefined' : yInt.toFixed(3)}</span></div>
+    <div class="a-row"><span class="a-l">Zeros (approx)</span><span class="a-v">${zeros.length ? 'x = ' + zeros.slice(0, 5).join(', ') : 'none found in [-10, 10]'}</span></div>
+    <div class="a-row"><span class="a-l">Min in range</span><span class="a-v">f(${minX.toFixed(1)}) = ${minY.toFixed(3)}</span></div>
+    <div class="a-row"><span class="a-l">Max in range</span><span class="a-v">f(${maxX.toFixed(1)}) = ${maxY.toFixed(3)}</span></div>
+  `;
+}
+
+function plotCurrent() {
+  const expr = document.getElementById('funcExpr').value.trim();
+  if (!expr) return;
+  // Replace current last function or add first
+  if (functions.length === 0 || functions[functions.length - 1].locked) {
+    const color = colors[colorIdx % colors.length];
+    functions.push({ expr, color, locked: false });
+    colorIdx++;
+  } else {
+    functions[functions.length - 1].expr = expr;
+  }
+  redrawAll();
+  analyzeFunction(expr);
+  renderFuncList();
+  renderCode();
+
+  document.getElementById('explanation').innerHTML =
+    `<strong>Function plotted!</strong> The code evaluated <code>f(x) = ${expr}</code> for x from -10 to 10 (hundreds of points) and drew each (x, y) pair. ` +
+    `The analysis shows zeros (where the function crosses the x-axis), extrema, and the y-intercept. ` +
+    `Click <strong>+ Add to Graph</strong> to lock this function and plot another on top for comparison!`;
+}
+
+function addToGraph() {
+  if (functions.length > 0) functions[functions.length - 1].locked = true;
+  const color = colors[colorIdx % colors.length];
+  functions.push({ expr: document.getElementById('funcExpr').value.trim(), color, locked: false });
+  colorIdx++;
+  renderFuncList();
+}
+
+function renderFuncList() {
+  const list = document.getElementById('funcList');
+  list.innerHTML = '';
+  functions.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'fl-item';
+    div.innerHTML = `<div class="fl-color" style="background:${f.color}"></div><span class="fl-expr">f(x) = ${f.expr}</span><span class="fl-del" onclick="removeFunc(${i})">&times;</span>`;
+    list.appendChild(div);
+  });
+}
+
+function removeFunc(i) {
+  functions.splice(i, 1);
+  redrawAll();
+  renderFuncList();
+  renderCode();
+}
+
+function setExpr(expr) {
+  document.getElementById('funcExpr').value = expr;
+  plotCurrent();
+}
+
+function clearAll() {
+  functions = [];
+  colorIdx = 0;
+  drawGrid();
+  document.getElementById('funcList').innerHTML = '';
+  document.getElementById('analysis').innerHTML = '';
+  renderCode();
+}
+
+function getCode() {
+  const expr = document.getElementById('funcExpr').value.trim() || 'x**2';
+  return [
+    { parts: [{ t: '# Function Lab — Advanced Grapher', c: 'cm' }] },
+    { parts: [{ t: 'import ', c: 'kw' }, { t: 'numpy ', c: 'fn' }, { t: 'as ', c: 'kw' }, { t: 'np', c: 'vr' }] },
+    { parts: [{ t: 'import ', c: 'kw' }, { t: 'matplotlib.pyplot ', c: 'fn' }, { t: 'as ', c: 'kw' }, { t: 'plt', c: 'vr' }] },
+    { parts: [] },
+    { parts: [{ t: '# Define the function', c: 'cm' }] },
+    { parts: [{ t: 'def ', c: 'kw' }, { t: 'f', c: 'fn' }, { t: '(x):', c: '' }] },
+    { parts: [{ t: '    ', c: '' }, { t: 'return ', c: 'kw' }, { t: expr, c: 'vr' }] },
+    { parts: [] },
+    { parts: [{ t: '# Generate x values from -10 to 10', c: 'cm' }] },
+    { parts: [{ t: 'x', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'np.', c: 'vr' }, { t: 'linspace', c: 'fn' }, { t: '(-10, 10, 1000)', c: '' }] },
+    { parts: [{ t: 'y', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'f', c: 'fn' }, { t: '(x)', c: '' }] },
+    { parts: [] },
+    { parts: [{ t: '# Plot the function', c: 'cm' }] },
+    { parts: [{ t: 'plt.', c: 'vr' }, { t: 'plot', c: 'fn' }, { t: '(x, y, label=', c: '' }, { t: `f"f(x) = ${expr}"`, c: 'st' }, { t: ')', c: '' }] },
+    { parts: [{ t: 'plt.', c: 'vr' }, { t: 'axhline', c: 'fn' }, { t: '(y=0, color=', c: '' }, { t: '"gray"', c: 'st' }, { t: ', linewidth=0.5)', c: '' }] },
+    { parts: [{ t: 'plt.', c: 'vr' }, { t: 'axvline', c: 'fn' }, { t: '(x=0, color=', c: '' }, { t: '"gray"', c: 'st' }, { t: ', linewidth=0.5)', c: '' }] },
+    { parts: [{ t: 'plt.', c: 'vr' }, { t: 'grid', c: 'fn' }, { t: '(True, alpha=0.3)', c: '' }] },
+    { parts: [{ t: 'plt.', c: 'vr' }, { t: 'legend', c: 'fn' }, { t: '()', c: '' }] },
+    { parts: [] },
+    { parts: [{ t: '# Analyze the function', c: 'cm' }] },
+    { parts: [{ t: 'y_intercept', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'f', c: 'fn' }, { t: '(0)', c: '' }] },
+    { parts: [{ t: 'zeros', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'x[np.where(np.diff(np.sign(y)))]', c: 'fn' }] },
+    { parts: [{ t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: 'f"Y-intercept: {y_intercept:.3f}"', c: 'st' }, { t: ')', c: '' }] },
+    { parts: [{ t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: 'f"Zeros: {zeros}"', c: 'st' }, { t: ')', c: '' }] },
+    { parts: [{ t: 'plt.', c: 'vr' }, { t: 'show', c: 'fn' }, { t: '()', c: '' }] },
+  ];
+}
+
+function renderCode() {
+  const lines = getCode();
+  const ed = document.getElementById('codeEditor');
+  ed.innerHTML = '';
+  lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line';
+    const n = document.createElement('span'); n.className = 'ln'; n.textContent = i + 1;
+    div.appendChild(n);
+    const c = document.createElement('span'); c.className = 'ct';
+    if (!line.parts || !line.parts.length) c.textContent = '';
+    else line.parts.forEach(p => { const s = document.createElement('span'); s.className = p.c; s.textContent = p.t; c.appendChild(s); });
+    div.appendChild(c);
+    ed.appendChild(div);
+  });
+}
+
+document.getElementById('funcExpr').addEventListener('keydown', e => { if (e.key === 'Enter') plotCurrent(); });
+
+drawGrid();
+renderCode();
+</script>
+</body>
+</html>

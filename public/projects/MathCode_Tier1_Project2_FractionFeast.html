@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 1 — Fraction Feast: Pizza Party</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
+
+  .header { background: linear-gradient(135deg, #1a1a4e, #2d1b69); padding: 20px 30px; border-bottom: 3px solid #e17055; }
+  .header h1 { font-size: 1.6em; color: #fab1a0; }
+  .header .subtitle { font-size: 0.9em; color: #74b9ff; margin-top: 4px; }
+  .header .meta { font-size: 0.75em; color: #888; margin-top: 8px; }
+
+  .main { display: flex; min-height: calc(100vh - 100px); }
+  .code-panel { width: 42%; background: #1e1e3f; padding: 20px; border-right: 2px solid #333; display: flex; flex-direction: column; }
+  .game-panel { width: 58%; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+  .panel-title { font-size: 1.1em; color: #ffd93d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+  .code-editor { flex: 1; background: #0d0d2b; border-radius: 10px; padding: 15px; font-family: 'Courier New', monospace; font-size: 13px; overflow-y: auto; }
+  .code-line { display: flex; margin-bottom: 2px; min-height: 20px; align-items: center; }
+  .line-num { color: #555; width: 30px; text-align: right; margin-right: 12px; font-size: 12px; flex-shrink: 0; }
+  .code-text .keyword { color: #c792ea; }
+  .code-text .function { color: #82aaff; }
+  .code-text .string { color: #c3e88d; }
+  .code-text .number { color: #f78c6c; }
+  .code-text .comment { color: #546e7a; font-style: italic; }
+  .code-text .variable { color: #ffcb6b; }
+  .code-text .operator { color: #89ddff; }
+  .highlight-line { background: rgba(225, 112, 85, 0.15); border-left: 3px solid #e17055; margin-left: -15px; padding-left: 12px; }
+
+  .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-run { background: #00b894; color: #fff; }
+  .btn-run:hover { background: #00a381; }
+  .btn-reset { background: #d63031; color: #fff; }
+  .btn-reset:hover { background: #c02020; }
+
+  .pizza-container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+  .pizza-wrapper { text-align: center; }
+  .pizza-label { font-size: 0.9em; color: #fab1a0; margin-bottom: 8px; font-weight: 600; }
+
+  .pizza-svg { cursor: pointer; transition: transform 0.2s; }
+  .pizza-svg:hover { transform: scale(1.03); }
+  .slice { transition: all 0.3s ease; cursor: pointer; }
+  .slice:hover { filter: brightness(1.2); }
+  .slice.eaten { opacity: 0.15; }
+
+  .fraction-display { background: #1e1e3f; border-radius: 12px; padding: 20px; width: 100%; max-width: 520px; margin-top: 10px; }
+  .fraction-row { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 10px 0; }
+  .fraction-box { text-align: center; }
+  .fraction-num { font-size: 2em; font-weight: bold; color: #ffd93d; }
+  .fraction-line { width: 60px; height: 3px; background: #fff; margin: 4px auto; }
+  .fraction-denom { font-size: 2em; font-weight: bold; color: #fab1a0; }
+  .fraction-label { font-size: 0.8em; color: #888; margin-top: 4px; }
+  .fraction-equals { font-size: 2em; color: #74b9ff; }
+  .fraction-word { font-size: 1.2em; color: #dfe6e9; margin-top: 10px; text-align: center; }
+
+  .explanation { margin-top: 15px; background: rgba(116, 185, 255, 0.1); border-left: 3px solid #74b9ff; border-radius: 0 8px 8px 0; padding: 12px 15px; font-size: 0.85em; color: #b2bec3; line-height: 1.5; width: 100%; max-width: 520px; }
+  .explanation strong { color: #74b9ff; }
+
+  .game-controls { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; justify-content: center; }
+  .slice-btn { padding: 8px 18px; border: 2px solid #555; border-radius: 8px; background: #1e1e3f; color: #fff; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .slice-btn:hover { border-color: #e17055; background: rgba(225, 112, 85, 0.1); }
+  .slice-btn.active { border-color: #e17055; background: rgba(225, 112, 85, 0.2); }
+
+  .challenge-area { margin-top: 15px; background: rgba(253, 203, 110, 0.1); border: 2px dashed #fdcb6e; border-radius: 10px; padding: 15px; width: 100%; max-width: 520px; }
+  .challenge-area h3 { color: #fdcb6e; margin-bottom: 8px; }
+  .challenge-area p { color: #dfe6e9; font-size: 0.9em; line-height: 1.5; }
+  .challenge-options { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .challenge-opt { padding: 10px 20px; border: 2px solid #555; border-radius: 8px; background: #1e1e3f; color: #fff; font-size: 1.1em; cursor: pointer; transition: all 0.2s; }
+  .challenge-opt:hover { border-color: #fdcb6e; }
+  .challenge-opt.correct { border-color: #00b894; background: rgba(0, 184, 148, 0.2); }
+  .challenge-opt.wrong { border-color: #d63031; background: rgba(214, 48, 49, 0.2); }
+  .challenge-feedback { margin-top: 10px; font-size: 0.9em; min-height: 24px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MathCode Project: Fraction Feast</h1>
+  <div class="subtitle">Tier 1 — Unit 4: Introduction to Fractions (Grades 2-3, Ages 7-8)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students understand fractions as parts of a whole by coding an interactive pizza-sharing game</div>
+</div>
+
+<div class="main">
+  <div class="code-panel">
+    <div class="panel-title">&#128187; Your Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="controls">
+      <button class="btn btn-run" onclick="runGame()">&#9654; Run Code</button>
+      <button class="btn btn-reset" onclick="resetGame()">&#8635; Reset</button>
+    </div>
+  </div>
+
+  <div class="game-panel">
+    <div class="panel-title">&#127829; Pizza Party Game</div>
+
+    <div class="game-controls">
+      <span style="color:#888; font-size:0.9em; margin-right:5px;">Cut pizza into:</span>
+      <button class="slice-btn active" data-slices="2" onclick="setSlices(2, this)">2 slices</button>
+      <button class="slice-btn" data-slices="4" onclick="setSlices(4, this)">4 slices</button>
+      <button class="slice-btn" data-slices="6" onclick="setSlices(6, this)">6 slices</button>
+      <button class="slice-btn" data-slices="8" onclick="setSlices(8, this)">8 slices</button>
+    </div>
+
+    <div class="pizza-container" id="pizzaContainer"></div>
+
+    <div class="fraction-display" id="fractionDisplay">
+      <div class="fraction-row">
+        <div class="fraction-box">
+          <div class="fraction-label">eaten</div>
+          <div class="fraction-num" id="fracEaten">0</div>
+          <div class="fraction-line"></div>
+          <div class="fraction-denom" id="fracTotal">2</div>
+          <div class="fraction-label">total slices</div>
+        </div>
+        <div class="fraction-equals">=</div>
+        <div style="text-align:center;">
+          <div class="fraction-num" id="fracWord" style="font-size:1.3em; color:#74b9ff;">none</div>
+          <div class="fraction-label">of the pizza</div>
+        </div>
+      </div>
+      <div class="fraction-word" id="equationText">eaten_slices / total_slices = 0 / 2</div>
+    </div>
+
+    <div class="explanation" id="explanation">
+      <strong>How this works:</strong> Choose how many slices to cut the pizza into, then press <strong>Run Code</strong>. Click on slices to "eat" them. Watch how the fraction changes — the top number (eaten) and bottom number (total) tell you what part of the pizza is gone!
+    </div>
+
+    <div class="challenge-area" id="challengeArea" style="display:none;">
+      <h3>&#127829; Fraction Challenge!</h3>
+      <p id="challengeQ"></p>
+      <div class="challenge-options" id="challengeOpts"></div>
+      <div class="challenge-feedback" id="challengeFB"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let state = { totalSlices: 2, eatenSlices: 0, running: false, sliceEls: [] };
+
+const codeTemplate = (total) => [
+  { parts: [{ text: '# Fraction Feast — Pizza Sharing Game', cls: 'comment' }] },
+  { parts: [] },
+  { parts: [{ text: '# Set up our pizza', cls: 'comment' }] },
+  { parts: [{ text: 'total_slices', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: String(total), cls: 'number' }] },
+  { parts: [{ text: 'eaten_slices', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '0', cls: 'number' }] },
+  { parts: [] },
+  { parts: [{ text: '# Draw the pizza with slices', cls: 'comment' }] },
+  { parts: [{ text: 'draw_pizza', cls: 'function' }, { text: '(total_slices)', cls: '' }] },
+  { parts: [] },
+  { parts: [{ text: '# When player clicks a slice:', cls: 'comment' }] },
+  { parts: [{ text: 'when ', cls: 'keyword' }, { text: 'slice_clicked', cls: 'function' }, { text: ':', cls: '' }] },
+  { parts: [{ text: '    eaten_slices', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: 'eaten_slices', cls: 'variable' }, { text: ' + ', cls: 'operator' }, { text: '1', cls: 'number' }] },
+  { parts: [] },
+  { parts: [{ text: '    # Calculate the fraction', cls: 'comment' }] },
+  { parts: [{ text: '    fraction', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: 'eaten_slices', cls: 'variable' }, { text: ' / ', cls: 'operator' }, { text: 'total_slices', cls: 'variable' }] },
+  { parts: [{ text: '    ', cls: '' }, { text: 'show_fraction', cls: 'function' }, { text: '(eaten_slices, total_slices)', cls: '' }] },
+  { parts: [] },
+  { parts: [{ text: '    # Check if all eaten', cls: 'comment' }] },
+  { parts: [{ text: '    ', cls: '' }, { text: 'if ', cls: 'keyword' }, { text: 'eaten_slices', cls: 'variable' }, { text: ' == ', cls: 'operator' }, { text: 'total_slices', cls: 'variable' }, { text: ':', cls: '' }] },
+  { parts: [{ text: '        ', cls: '' }, { text: 'show', cls: 'function' }, { text: '(', cls: '' }, { text: '"The whole pizza is gone!"', cls: 'string' }, { text: ')', cls: '' }] },
+];
+
+let currentHighlight = -1;
+
+function renderCode() {
+  const lines = codeTemplate(state.totalSlices);
+  const editor = document.getElementById('codeEditor');
+  editor.innerHTML = '';
+  lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line' + (i === currentHighlight ? ' highlight-line' : '');
+    const num = document.createElement('span');
+    num.className = 'line-num';
+    num.textContent = i + 1;
+    div.appendChild(num);
+    const code = document.createElement('span');
+    code.className = 'code-text';
+    if (line.parts.length === 0) {
+      code.textContent = '';
+    } else {
+      line.parts.forEach(p => {
+        const s = document.createElement('span');
+        s.className = p.cls;
+        s.textContent = p.text;
+        code.appendChild(s);
+      });
+    }
+    div.appendChild(code);
+    editor.appendChild(div);
+  });
+}
+
+function drawPizza(container, total, id) {
+  const size = total <= 4 ? 200 : 180;
+  const cx = size / 2, cy = size / 2, r = size / 2 - 8;
+  const colors = ['#e17055', '#d63031', '#e74c3c', '#c0392b', '#ff7675', '#fab1a0', '#e17055', '#d63031'];
+
+  let svg = `<svg class="pizza-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r + 3}" fill="#f9ca24" stroke="#f0932b" stroke-width="3"/>`;
+
+  state.sliceEls = [];
+
+  for (let i = 0; i < total; i++) {
+    const startAngle = (i * 360 / total - 90) * Math.PI / 180;
+    const endAngle = ((i + 1) * 360 / total - 90) * Math.PI / 180;
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const largeArc = (360 / total > 180) ? 1 : 0;
+
+    const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+    svg += `<path class="slice" id="slice-${i}" d="${path}" fill="${colors[i % colors.length]}" stroke="#f0932b" stroke-width="2" onclick="eatSlice(${i})"/>`;
+
+    // Pepperoni dots
+    const midAngle = ((i + 0.5) * 360 / total - 90) * Math.PI / 180;
+    const dotR = r * 0.55;
+    const dx = cx + dotR * Math.cos(midAngle);
+    const dy = cy + dotR * Math.sin(midAngle);
+    svg += `<circle cx="${dx}" cy="${dy}" r="5" fill="#c0392b" opacity="0.6" pointer-events="none"/>`;
+  }
+
+  // Dividing lines
+  for (let i = 0; i < total; i++) {
+    const angle = (i * 360 / total - 90) * Math.PI / 180;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#f0932b" stroke-width="2" pointer-events="none"/>`;
+  }
+
+  svg += '</svg>';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'pizza-wrapper';
+  wrapper.innerHTML = `<div class="pizza-label">Your Pizza (${total} slices)</div>${svg}`;
+  container.appendChild(wrapper);
+}
+
+function eatSlice(index) {
+  if (!state.running) return;
+  const slice = document.getElementById(`slice-${index}`);
+  if (slice.classList.contains('eaten')) return;
+
+  slice.classList.add('eaten');
+  state.eatenSlices++;
+
+  currentHighlight = 11;
+  renderCode();
+
+  updateFraction();
+
+  setTimeout(() => {
+    currentHighlight = 14;
+    renderCode();
+  }, 400);
+
+  const remaining = state.totalSlices - state.eatenSlices;
+
+  if (state.eatenSlices === state.totalSlices) {
+    setTimeout(() => {
+      currentHighlight = 19;
+      renderCode();
+      document.getElementById('explanation').innerHTML =
+        `<strong>The whole pizza is gone!</strong> You ate ${state.totalSlices}/${state.totalSlices} = <strong>1 whole pizza</strong>. ` +
+        `When the top number equals the bottom number, the fraction equals 1 (the whole thing). ` +
+        `This is the key idea: fractions tell you how many parts out of the total you have!`;
+      showChallenges();
+    }, 500);
+  } else {
+    const fractionNames = getFractionName(state.eatenSlices, state.totalSlices);
+    document.getElementById('explanation').innerHTML =
+      `<strong>Line 12 ran!</strong> <code>eaten_slices = ${state.eatenSlices - 1} + 1 = ${state.eatenSlices}</code>. ` +
+      `The fraction is now <strong>${state.eatenSlices}/${state.totalSlices}</strong>${fractionNames ? ' (' + fractionNames + ')' : ''}. ` +
+      `${remaining} slice${remaining > 1 ? 's' : ''} left! The top number (numerator) counts what you ate. The bottom number (denominator) is the total pieces.`;
+  }
+}
+
+function getFractionName(num, den) {
+  if (num === 0) return 'none';
+  if (num === den) return 'the whole thing';
+  // Common fraction names
+  if (den === 2 && num === 1) return 'one half';
+  if (den === 4 && num === 1) return 'one quarter';
+  if (den === 4 && num === 2) return 'two quarters = one half';
+  if (den === 4 && num === 3) return 'three quarters';
+  if (den === 6 && num === 3) return 'three sixths = one half';
+  if (den === 8 && num === 4) return 'four eighths = one half';
+  return null;
+}
+
+function updateFraction() {
+  document.getElementById('fracEaten').textContent = state.eatenSlices;
+  document.getElementById('fracTotal').textContent = state.totalSlices;
+
+  const name = getFractionName(state.eatenSlices, state.totalSlices);
+  document.getElementById('fracWord').textContent = name || `${state.eatenSlices} out of ${state.totalSlices}`;
+
+  document.getElementById('equationText').textContent =
+    `eaten_slices / total_slices = ${state.eatenSlices} / ${state.totalSlices}`;
+}
+
+function setSlices(n, btn) {
+  document.querySelectorAll('.slice-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.totalSlices = n;
+  state.eatenSlices = 0;
+  state.running = false;
+  currentHighlight = -1;
+  renderCode();
+  updateFraction();
+  document.getElementById('pizzaContainer').innerHTML = '';
+  document.getElementById('challengeArea').style.display = 'none';
+  document.getElementById('explanation').innerHTML =
+    `<strong>Pizza set to ${n} slices!</strong> Press <strong>Run Code</strong> to start. Notice how <code>total_slices = ${n}</code> changed in the code — you just changed a variable!`;
+}
+
+function runGame() {
+  state.eatenSlices = 0;
+  state.running = true;
+  currentHighlight = 3;
+  renderCode();
+
+  setTimeout(() => {
+    currentHighlight = 7;
+    renderCode();
+    const container = document.getElementById('pizzaContainer');
+    container.innerHTML = '';
+    drawPizza(container, state.totalSlices, 'main');
+    updateFraction();
+    document.getElementById('challengeArea').style.display = 'none';
+
+    document.getElementById('explanation').innerHTML =
+      `<strong>Pizza is ready!</strong> The code set <code>total_slices = ${state.totalSlices}</code> and drew a pizza with ${state.totalSlices} equal slices. ` +
+      `Now <strong>click on slices</strong> to eat them. Watch the fraction change — the top number counts slices you eat, the bottom number stays the same (total slices).`;
+  }, 500);
+}
+
+function resetGame() {
+  state.eatenSlices = 0;
+  state.running = false;
+  currentHighlight = -1;
+  renderCode();
+  updateFraction();
+  document.getElementById('pizzaContainer').innerHTML = '';
+  document.getElementById('challengeArea').style.display = 'none';
+  document.getElementById('fracWord').textContent = 'none';
+  document.getElementById('explanation').innerHTML =
+    '<strong>How this works:</strong> Choose how many slices to cut the pizza into, then press <strong>Run Code</strong>. Click on slices to "eat" them. Watch how the fraction changes!';
+}
+
+function showChallenges() {
+  const area = document.getElementById('challengeArea');
+  area.style.display = 'block';
+
+  const challenges = [
+    { q: `You ate 2 slices of a pizza cut into ${state.totalSlices}. What fraction did you eat?`, opts: [`2/${state.totalSlices}`, `${state.totalSlices}/2`, `2/2`], correct: 0 },
+    { q: `If a pizza has 4 slices and you eat 2, did you eat more or less than half?`, opts: ['Exactly half', 'More than half', 'Less than half'], correct: 0 },
+    { q: `Which is more pizza: 1/2 or 1/4?`, opts: ['1/2 (one half)', '1/4 (one quarter)', 'They are equal'], correct: 0 },
+    { q: `A pizza has 8 slices. You eat 4. What fraction is that?`, opts: ['4/8 = one half', '8/4 = two', '4/4 = one whole'], correct: 0 },
+  ];
+
+  const c = challenges[Math.floor(Math.random() * challenges.length)];
+  document.getElementById('challengeQ').textContent = c.q;
+  const optsDiv = document.getElementById('challengeOpts');
+  optsDiv.innerHTML = '';
+  document.getElementById('challengeFB').textContent = '';
+
+  c.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'challenge-opt';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      document.querySelectorAll('.challenge-opt').forEach(b => b.classList.remove('correct', 'wrong'));
+      if (i === c.correct) {
+        btn.classList.add('correct');
+        document.getElementById('challengeFB').textContent = 'Correct! The top number (numerator) is the parts you have, the bottom (denominator) is the total parts.';
+        document.getElementById('challengeFB').style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        document.getElementById('challengeFB').textContent = 'Not quite — remember: numerator (top) = parts you ate, denominator (bottom) = total slices. Try again!';
+        document.getElementById('challengeFB').style.color = '#d63031';
+      }
+    };
+    optsDiv.appendChild(btn);
+  });
+}
+
+renderCode();
+updateFraction();
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Projects — MathCode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header id="topbar" class="topbar"></header>
+<main class="container">
+  <div id="head"></div>
+  <div class="cards" id="grid"></div>
+</main>
+<footer>© <span id="yr"></span> TAS&BA LLC — MathCode Platform</footer>
+<script src="/js/app.js"></script>
+<script>
+const tier = Number(new URLSearchParams(location.search).get('tier') || 1);
+const TIER_INFO = {
+  1: { band: 'K-3',  language: 'Scratch-style blocks',
+       blurb: 'Concrete, visual, playful. Counting through pattern-recognition.' },
+  2: { band: '4-7',  language: 'Block ↔ Python bridge',
+       blurb: 'Bridge from blocks to text. Ratios, algebra, geometry, probability.' },
+  3: { band: '8-12', language: 'Python + NumPy + Matplotlib',
+       blurb: 'Applied modeling. Functions, trig, statistics, calculus.' }
+};
+async function init() {
+  await mountTopbar('tier' + tier);
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  const info = TIER_INFO[tier] || TIER_INFO[1];
+  document.getElementById('head').appendChild(
+    el('div', {},
+      el('span', { class: 'tier-pill tier-' + tier }, 'Tier ' + tier + ' · ' + info.band),
+      el('h1', { style: 'margin:8px 0 6px' }, 'Tier ' + tier + ' Projects'),
+      el('p', { class: 'muted' }, info.blurb + ' · Language: ' + info.language),
+      el('div', { style: 'height: 16px' })
+    )
+  );
+
+  const projects = await api('/api/projects?tier=' + tier);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (const p of projects) {
+    const status = p.progress ? p.progress.status : null;
+    const btnLabel = status === 'completed' ? 'Review' : (status ? 'Continue' : 'Start');
+    grid.appendChild(el('div', { class: 'card' },
+      el('div', { class: 'row' },
+        el('span', { class: 'tier-pill tier-' + p.tier }, 'Project ' + p.ordinal),
+        status ? el('span', { class: 'status-pill status-' + status }, status.replace('_',' ')) : null,
+      ),
+      el('h3', {}, p.title),
+      el('p', { style: 'font-size:14px' }, p.subtitle),
+      el('p', { class: 'muted', style: 'font-size:13px' }, p.description),
+      el('div', { class: 'meta' },
+        el('span', {}, '📐 ' + p.math_topics),
+        el('span', {}, '💻 ' + p.cs_topics),
+        el('span', {}, '⏱ ' + p.duration_min + ' min'),
+        el('span', {}, '★'.repeat(p.difficulty) + '☆'.repeat(5-p.difficulty))
+      ),
+      el('div', { class: 'card-actions' },
+        el('a', { href: '/learn/' + p.id, class: 'btn primary' }, btnLabel)
+      )
+    ));
+  }
+  if (!projects.length) {
+    grid.appendChild(el('p', { class: 'muted' }, 'No projects yet for this tier.'));
+  }
+}
+init();
+</script>
+</body>
+</html>

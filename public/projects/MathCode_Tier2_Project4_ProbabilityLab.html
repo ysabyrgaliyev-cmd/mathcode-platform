@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 2 — Probability Lab: Simulation Engine</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f2e;color:#fff;min-height:100vh}
+  .header{background:linear-gradient(135deg,#1a1a4e,#2d1b69);padding:18px 28px;border-bottom:3px solid #fd79a8}
+  .header h1{font-size:1.5em;color:#fab1a0}.header .sub{font-size:.85em;color:#74b9ff;margin-top:4px}
+  .header .meta{font-size:.72em;color:#888;margin-top:6px}
+  .main{display:flex;min-height:calc(100vh - 95px)}
+  .code-panel{width:42%;background:#1a1a3e;padding:18px;border-right:2px solid #333;display:flex;flex-direction:column}
+  .game-panel{width:58%;padding:18px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+  .ptitle{font-size:1em;color:#ffd93d;margin-bottom:10px}
+  .code-editor{flex:1;background:#0d0d28;border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:12px;overflow-y:auto}
+  .code-line{display:flex;margin-bottom:1px;min-height:18px;align-items:center}
+  .ln{color:#555;width:28px;text-align:right;margin-right:10px;font-size:11px;flex-shrink:0}
+  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
+  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
+  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
+  .hl{background:rgba(253,121,168,.12);border-left:3px solid #fd79a8;margin-left:-14px;padding-left:11px}
+  .ctrls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-run{background:#00b894;color:#fff}.btn-x10{background:#fd79a8;color:#fff}.btn-x100{background:#e17055;color:#fff}
+  .btn-reset{background:#d63031;color:#fff}
+
+  .sim-area{background:#141432;border-radius:12px;padding:20px;width:100%;max-width:500px;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}
+  .die{width:60px;height:60px;background:#1a1a3e;border:2px solid #fd79a8;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2em;animation:roll .3s ease}
+  @keyframes roll{0%{transform:rotate(0)}50%{transform:rotate(180deg) scale(1.1)}100%{transform:rotate(360deg)}}
+  .coin{width:65px;height:65px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8em;animation:flip .4s ease;font-weight:700}
+  @keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(180deg)}100%{transform:rotateY(360deg)}}
+  .coin.heads{background:#ffd93d;color:#2d3436;border:3px solid #f9ca24}
+  .coin.tails{background:#636e72;color:#fff;border:3px solid #b2bec3}
+
+  .chart-area{width:100%;max-width:500px;margin-top:12px}
+  .chart-bar-row{display:flex;align-items:center;gap:8px;margin:3px 0}
+  .chart-label{min-width:30px;text-align:right;font-size:.8em;color:#888;font-family:'Courier New',monospace}
+  .chart-bar-bg{flex:1;height:22px;background:#1a1a3e;border-radius:4px;overflow:hidden;position:relative}
+  .chart-bar{height:100%;border-radius:4px;transition:width .3s ease;position:relative}
+  .chart-bar span{position:absolute;right:6px;top:2px;font-size:.7em;color:#fff;font-weight:600}
+  .chart-count{min-width:40px;font-size:.8em;color:#ffd93d;font-family:'Courier New',monospace}
+
+  .stats-panel{background:#1a1a3e;border-radius:10px;padding:12px;width:100%;max-width:500px;margin-top:10px;display:flex;flex-wrap:wrap;gap:15px;justify-content:center}
+  .stat{text-align:center}.stat-val{font-size:1.4em;font-weight:700;color:#ffd93d;font-family:'Courier New',monospace}.stat-label{font-size:.7em;color:#888}
+
+  .mode-tabs{display:flex;gap:6px;margin:10px 0}
+  .mt{padding:8px 14px;border:2px solid #444;border-radius:8px;background:#1a1a3e;color:#fff;font-size:.8em;cursor:pointer;transition:all .2s}
+  .mt:hover{border-color:#fd79a8}.mt.active{border-color:#fd79a8;background:rgba(253,121,168,.12)}
+
+  .explanation{margin-top:10px;background:rgba(116,185,255,.08);border-left:3px solid #74b9ff;border-radius:0 8px 8px 0;padding:11px 14px;font-size:.82em;color:#b2bec3;line-height:1.5;width:100%;max-width:500px}
+  .explanation strong{color:#74b9ff}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>MathCode Project: Probability Lab</h1>
+  <div class="sub">Tier 2 — Unit 6: Probability & Simulation (Grades 5-7, Ages 10-12)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students discover probability through simulation — running experiments thousands of times to see that experimental results converge to theoretical predictions</div>
+</div>
+<div class="main">
+  <div class="code-panel">
+    <div class="ptitle">&#128187; Python Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="ctrls">
+      <button class="btn btn-run" onclick="simulate(1)">&#9654; Run Once</button>
+      <button class="btn btn-x10" onclick="simulate(10)">&#215;10</button>
+      <button class="btn btn-x100" onclick="simulate(100)">&#215;100</button>
+      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
+    </div>
+  </div>
+  <div class="game-panel">
+    <div class="ptitle">&#127922; Probability Simulator</div>
+    <div class="mode-tabs">
+      <button class="mt active" onclick="setMode('coin',this)">&#129689; Coin Flip</button>
+      <button class="mt" onclick="setMode('die',this)">&#127922; Dice Roll</button>
+      <button class="mt" onclick="setMode('two_dice',this)">&#127922;&#127922; Two Dice</button>
+    </div>
+    <div class="sim-area" id="simArea"><span style="color:#555;font-style:italic">Press Run to start simulating!</span></div>
+    <div class="stats-panel" id="statsPanel"></div>
+    <div class="chart-area" id="chartArea"></div>
+    <div class="explanation" id="explanation">
+      <strong>How probability works in code:</strong> Instead of calculating probability with formulas, we can <strong>simulate</strong> thousands of experiments using <code>random</code>. The code flips a coin or rolls dice over and over, counting the results. As you run more trials, the experimental probability gets closer and closer to the theoretical probability. This is called the <strong>Law of Large Numbers</strong>. Try it!
+    </div>
+  </div>
+</div>
+<script>
+let mode = 'coin';
+let results = {};
+let totalTrials = 0;
+const dieColors = ['#e17055','#00b894','#6c5ce7','#fdcb6e','#74b9ff','#fd79a8'];
+
+function setMode(m, btn) {
+  document.querySelectorAll('.mt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  mode = m;
+  resetAll();
+}
+
+function getOutcomes() {
+  if (mode === 'coin') return ['Heads', 'Tails'];
+  if (mode === 'die') return ['1','2','3','4','5','6'];
+  if (mode === 'two_dice') return ['2','3','4','5','6','7','8','9','10','11','12'];
+}
+
+function getTheoretical(outcome) {
+  if (mode === 'coin') return 0.5;
+  if (mode === 'die') return 1/6;
+  if (mode === 'two_dice') {
+    const n = parseInt(outcome);
+    const ways = n <= 7 ? n - 1 : 13 - n;
+    return ways / 36;
+  }
+}
+
+function runOneTrial() {
+  if (mode === 'coin') {
+    return Math.random() < 0.5 ? 'Heads' : 'Tails';
+  } else if (mode === 'die') {
+    return String(Math.floor(Math.random() * 6) + 1);
+  } else {
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    return String(d1 + d2);
+  }
+}
+
+function simulate(n) {
+  const outcomes = getOutcomes();
+  if (totalTrials === 0) outcomes.forEach(o => results[o] = 0);
+
+  let lastResult = '';
+  for (let i = 0; i < n; i++) {
+    const r = runOneTrial();
+    results[r] = (results[r] || 0) + 1;
+    totalTrials++;
+    lastResult = r;
+  }
+
+  // Show last result visually
+  const area = document.getElementById('simArea');
+  if (n === 1) {
+    if (mode === 'coin') {
+      area.innerHTML = `<div class="coin ${lastResult.toLowerCase()}">${lastResult === 'Heads' ? 'H' : 'T'}</div>`;
+    } else if (mode === 'die') {
+      area.innerHTML = `<div class="die">${getDieFace(parseInt(lastResult))}</div>`;
+    } else {
+      const sum = parseInt(lastResult);
+      // Find a valid split
+      let d1 = Math.min(sum - 1, 6);
+      let d2 = sum - d1;
+      if (d2 < 1) { d2 = 1; d1 = sum - 1; }
+      area.innerHTML = `<div class="die">${getDieFace(d1)}</div><span style="color:#888;font-size:1.5em">+</span><div class="die">${getDieFace(d2)}</div><span style="color:#ffd93d;font-size:1.5em;margin-left:8px">= ${sum}</span>`;
+    }
+  } else {
+    area.innerHTML = `<span style="color:#ffd93d;font-size:1.2em;font-weight:600">${n} trials completed! (${totalTrials} total)</span>`;
+  }
+
+  renderChart();
+  renderStats();
+  renderCode();
+
+  const msg = totalTrials < 10
+    ? `<strong>${totalTrials} trial${totalTrials > 1 ? 's' : ''} so far.</strong> The results might look uneven — that's normal with small samples! Run more trials to see the pattern emerge.`
+    : totalTrials < 100
+    ? `<strong>${totalTrials} trials.</strong> You might start seeing a pattern. But the bars aren't perfectly even yet. In probability, we need LOTS of data to see the true pattern. Keep going!`
+    : `<strong>${totalTrials} trials!</strong> Notice how the experimental percentages are getting closer to the theoretical probability. This is the <strong>Law of Large Numbers</strong> — the more trials you run, the closer your results get to the mathematical prediction. With infinite trials, they'd match exactly!`;
+  document.getElementById('explanation').innerHTML = msg;
+}
+
+function getDieFace(n) {
+  const faces = ['', '\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685'];
+  return faces[n] || n;
+}
+
+function renderChart() {
+  const outcomes = getOutcomes();
+  const maxCount = Math.max(...outcomes.map(o => results[o] || 0), 1);
+  const container = document.getElementById('chartArea');
+  container.innerHTML = '';
+
+  outcomes.forEach((o, i) => {
+    const count = results[o] || 0;
+    const pct = totalTrials > 0 ? (count / totalTrials * 100).toFixed(1) : '0.0';
+    const theoretical = (getTheoretical(o) * 100).toFixed(1);
+    const barWidth = totalTrials > 0 ? (count / maxCount * 100) : 0;
+    const color = mode === 'coin' ? (o === 'Heads' ? '#ffd93d' : '#636e72') :
+      mode === 'die' ? dieColors[i] : `hsl(${(parseInt(o) - 2) * 33}, 70%, 60%)`;
+
+    const row = document.createElement('div');
+    row.className = 'chart-bar-row';
+    row.innerHTML = `
+      <span class="chart-label">${o}</span>
+      <div class="chart-bar-bg">
+        <div class="chart-bar" style="width:${barWidth}%;background:${color}"><span>${pct}%</span></div>
+      </div>
+      <span class="chart-count">${count} <span style="color:#555;font-size:.8em">(${theoretical}%)</span></span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function renderStats() {
+  const panel = document.getElementById('statsPanel');
+  const outcomes = getOutcomes();
+  let maxO = outcomes[0], maxC = 0;
+  outcomes.forEach(o => { if ((results[o] || 0) > maxC) { maxC = results[o] || 0; maxO = o; } });
+
+  panel.innerHTML = `
+    <div class="stat"><div class="stat-val">${totalTrials}</div><div class="stat-label">Total Trials</div></div>
+    <div class="stat"><div class="stat-val">${maxO}</div><div class="stat-label">Most Frequent</div></div>
+    <div class="stat"><div class="stat-val">${totalTrials > 0 ? (maxC / totalTrials * 100).toFixed(1) + '%' : '—'}</div><div class="stat-label">Highest %</div></div>
+    <div class="stat"><div class="stat-val">${(getTheoretical(maxO) * 100).toFixed(1)}%</div><div class="stat-label">Theoretical</div></div>
+  `;
+}
+
+function getCode() {
+  const exp = mode === 'coin' ? 'random.choice(["Heads", "Tails"])' :
+    mode === 'die' ? 'random.randint(1, 6)' : 'random.randint(1,6) + random.randint(1,6)';
+  const theo = mode === 'coin' ? '1/2 = 50%' : mode === 'die' ? '1/6 = 16.7% each' : '6/36 = 16.7% for 7 (most likely)';
+  return [
+    { parts: [{ t: '# Probability Lab — Simulation Engine', c: 'cm' }] },
+    { parts: [{ t: 'import ', c: 'kw' }, { t: 'random', c: 'fn' }] },
+    { parts: [] },
+    { parts: [{ t: '# Set up experiment', c: 'cm' }] },
+    { parts: [{ t: 'trials', c: 'vr' }, { t: ' = ', c: 'op' }, { t: String(totalTrials || 1000), c: 'nm' }] },
+    { parts: [{ t: 'results', c: 'vr' }, { t: ' = ', c: 'op' }, { t: '{}', c: '' }] },
+    { parts: [] },
+    { parts: [{ t: '# Run the simulation', c: 'cm' }] },
+    { parts: [{ t: 'for ', c: 'kw' }, { t: 'i', c: 'vr' }, { t: ' in ', c: 'kw' }, { t: 'range', c: 'fn' }, { t: '(trials):', c: '' }] },
+    { parts: [{ t: '    outcome', c: 'vr' }, { t: ' = ', c: 'op' }, { t: exp, c: 'fn' }] },
+    { parts: [{ t: '    results[outcome]', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'results.', c: 'vr' }, { t: 'get', c: 'fn' }, { t: '(outcome, 0)', c: '' }, { t: ' + ', c: 'op' }, { t: '1', c: 'nm' }] },
+    { parts: [] },
+    { parts: [{ t: '# Calculate experimental probability', c: 'cm' }] },
+    { parts: [{ t: 'for ', c: 'kw' }, { t: 'outcome, count', c: 'vr' }, { t: ' in ', c: 'kw' }, { t: 'results.items():', c: 'fn' }] },
+    { parts: [{ t: '    probability', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'count', c: 'vr' }, { t: ' / ', c: 'op' }, { t: 'trials', c: 'vr' }] },
+    { parts: [{ t: '    ', c: '' }, { t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: 'f"{outcome}: {probability:.1%}"', c: 'st' }, { t: ')', c: '' }] },
+    { parts: [] },
+    { parts: [{ t: `# Theoretical probability: ${theo}`, c: 'cm' }] },
+    { parts: [{ t: '# As trials increase, experimental → theoretical', c: 'cm' }] },
+    { parts: [{ t: '# This is the Law of Large Numbers!', c: 'cm' }] },
+  ];
+}
+
+function renderCode() {
+  const lines = getCode();
+  const ed = document.getElementById('codeEditor');
+  ed.innerHTML = '';
+  lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line';
+    const n = document.createElement('span'); n.className = 'ln'; n.textContent = i + 1;
+    div.appendChild(n);
+    const c = document.createElement('span'); c.className = 'ct';
+    if (!line.parts || !line.parts.length) c.textContent = '';
+    else line.parts.forEach(p => { const s = document.createElement('span'); s.className = p.c; s.textContent = p.t; c.appendChild(s); });
+    div.appendChild(c);
+    ed.appendChild(div);
+  });
+}
+
+function resetAll() {
+  results = {};
+  totalTrials = 0;
+  document.getElementById('simArea').innerHTML = '<span style="color:#555;font-style:italic">Press Run to start simulating!</span>';
+  document.getElementById('chartArea').innerHTML = '';
+  document.getElementById('statsPanel').innerHTML = '';
+  renderCode();
+  document.getElementById('explanation').innerHTML = '<strong>How probability works in code:</strong> Instead of formulas, we <strong>simulate</strong> thousands of experiments using <code>random</code>. Run trials and watch the experimental probability converge to the theoretical prediction. This is the <strong>Law of Large Numbers</strong>!';
+}
+
+renderCode();
+</script>
+</body>
+</html>

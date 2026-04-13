@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Teacher Dashboard — MathCode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header id="topbar" class="topbar"></header>
+<main class="container">
+  <h1 style="margin:0 0 4px">Teacher Dashboard</h1>
+  <p class="muted">Cohort overview: enrollment, completion rate, average score per student.</p>
+
+  <div class="stat-row" id="agg"></div>
+
+  <section class="section">
+    <h2>Students</h2>
+    <div id="students"></div>
+  </section>
+
+  <section class="section" id="detail-section" style="display:none">
+    <h2 id="detail-title">Student detail</h2>
+    <div id="detail"></div>
+  </section>
+</main>
+<footer>© <span id="yr"></span> TAS&BA LLC — MathCode Platform</footer>
+
+<script src="/js/app.js"></script>
+<script>
+async function init() {
+  await mountTopbar('teacher');
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  const me = await getMe();
+  if (!me || (me.role !== 'teacher' && me.role !== 'admin')) {
+    document.querySelector('main').innerHTML =
+      '<p>This page requires a teacher or admin account.</p>';
+    return;
+  }
+  const students = await api('/api/teacher/students');
+
+  // Aggregate
+  const totalStudents = students.length;
+  const totalCompleted = students.reduce((a, s) => a + (s.completed || 0), 0);
+  const avgScore = (() => {
+    const scores = students.map(s => s.avg_score).filter(x => x != null);
+    if (!scores.length) return null;
+    return Math.round(scores.reduce((a,b)=>a+b,0) / scores.length);
+  })();
+  const cards = [
+    { num: totalStudents, lbl: 'Active students' },
+    { num: totalCompleted, lbl: 'Total completions' },
+    { num: avgScore == null ? '—' : avgScore + '%', lbl: 'Cohort avg score' }
+  ];
+  const agg = document.getElementById('agg');
+  for (const c of cards) {
+    agg.appendChild(el('div', { class: 'stat' },
+      el('div', { class: 'num' }, String(c.num)),
+      el('div', { class: 'lbl' }, c.lbl)));
+  }
+
+  const sDiv = document.getElementById('students');
+  if (!students.length) {
+    sDiv.appendChild(el('p', { class:'muted' }, 'No students enrolled yet.'));
+    return;
+  }
+  const tbl = el('table', { class: 'data' });
+  tbl.appendChild(el('thead', {}, el('tr', {},
+    el('th', {}, 'Name'), el('th', {}, 'Email'), el('th', {}, 'Grade'),
+    el('th', {}, 'Attempted'), el('th', {}, 'Completed'),
+    el('th', {}, 'Avg score'), el('th', {}, 'Joined'), el('th', {}, ''))));
+  const body = el('tbody');
+  for (const s of students) {
+    body.appendChild(el('tr', {},
+      el('td', {}, s.full_name),
+      el('td', { class:'muted' }, s.email),
+      el('td', {}, s.grade_level == null ? '—' : String(s.grade_level)),
+      el('td', {}, String(s.attempted || 0)),
+      el('td', {}, String(s.completed || 0)),
+      el('td', {}, s.avg_score == null ? '—' : Math.round(s.avg_score) + '%'),
+      el('td', { class:'muted' }, s.created_at),
+      el('td', {}, el('button', { class: 'btn', onclick: () => openDetail(s.id, s.full_name) }, 'View'))
+    ));
+  }
+  tbl.appendChild(body);
+  sDiv.appendChild(tbl);
+}
+
+async function openDetail(id, name) {
+  const sec = document.getElementById('detail-section');
+  sec.style.display = 'block';
+  document.getElementById('detail-title').textContent = 'Detail — ' + name;
+  const div = document.getElementById('detail');
+  div.innerHTML = 'Loading…';
+  const data = await api('/api/teacher/student/' + id);
+  div.innerHTML = '';
+  const tbl = el('table', { class: 'data' });
+  tbl.appendChild(el('thead', {}, el('tr', {},
+    el('th', {}, 'Project'), el('th', {}, 'Tier'),
+    el('th', {}, 'Status'), el('th', {}, 'Score'),
+    el('th', {}, 'Started'), el('th', {}, 'Updated'))));
+  const body = el('tbody');
+  if (!data.progress.length) {
+    body.appendChild(el('tr', {}, el('td', { colspan: 6, class:'muted' }, 'No project activity yet.')));
+  } else {
+    for (const p of data.progress) {
+      body.appendChild(el('tr', {},
+        el('td', {}, p.title),
+        el('td', {}, el('span', { class:'tier-pill tier-' + p.tier }, 'Tier ' + p.tier)),
+        el('td', {}, el('span', { class:'status-pill status-' + p.status }, p.status.replace('_',' '))),
+        el('td', {}, p.score == null ? '—' : (p.score + '%')),
+        el('td', { class:'muted' }, p.started_at),
+        el('td', { class:'muted' }, p.updated_at)
+      ));
+    }
+  }
+  tbl.appendChild(body); div.appendChild(tbl);
+  sec.scrollIntoView({ behavior: 'smooth' });
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCode Tier 2 — Ratio Lab: Recipe Scaler</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f2e; color: #fff; min-height: 100vh; }
+  .header { background: linear-gradient(135deg, #1a1a4e, #2d1b69); padding: 18px 28px; border-bottom: 3px solid #e67e22; }
+  .header h1 { font-size: 1.5em; color: #f0c27f; }
+  .header .sub { font-size: 0.85em; color: #74b9ff; margin-top: 4px; }
+  .header .meta { font-size: 0.72em; color: #888; margin-top: 6px; }
+
+  .main { display: flex; min-height: calc(100vh - 95px); }
+  .code-panel { width: 44%; background: #1a1a3e; padding: 18px; border-right: 2px solid #333; display: flex; flex-direction: column; }
+  .game-panel { width: 56%; padding: 18px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+
+  .ptitle { font-size: 1em; color: #ffd93d; margin-bottom: 10px; }
+  .code-editor { flex: 1; background: #0d0d28; border-radius: 10px; padding: 14px; font-family: 'Courier New', monospace; font-size: 12.5px; overflow-y: auto; }
+  .code-line { display: flex; margin-bottom: 1px; min-height: 19px; align-items: center; }
+  .ln { color: #555; width: 28px; text-align: right; margin-right: 10px; font-size: 11px; flex-shrink: 0; }
+  .ct .kw { color: #c792ea; } .ct .fn { color: #82aaff; } .ct .st { color: #c3e88d; }
+  .ct .nm { color: #f78c6c; } .ct .cm { color: #546e7a; font-style: italic; }
+  .ct .vr { color: #ffcb6b; } .ct .op { color: #89ddff; }
+  .hl { background: rgba(230, 126, 34, 0.12); border-left: 3px solid #e67e22; margin-left: -14px; padding-left: 11px; }
+
+  .ctrls { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { padding: 9px 18px; border: none; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-run { background: #00b894; color: #fff; } .btn-run:hover { background: #00a381; }
+  .btn-reset { background: #d63031; color: #fff; } .btn-reset:hover { background: #b82020; }
+
+  .recipe-card { background: #1a1a3e; border-radius: 12px; padding: 18px; width: 100%; max-width: 500px; margin-top: 8px; }
+  .recipe-title { font-size: 1.1em; color: #f0c27f; margin-bottom: 12px; }
+  .ingredient { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a5a; }
+  .ing-name { color: #dfe6e9; font-size: 0.9em; display: flex; align-items: center; gap: 8px; }
+  .ing-amount { display: flex; align-items: center; gap: 6px; }
+  .ing-original { color: #888; font-size: 0.8em; text-decoration: line-through; }
+  .ing-scaled { color: #ffd93d; font-size: 1.1em; font-weight: 600; font-family: 'Courier New', monospace; }
+  .ing-unit { color: #b2bec3; font-size: 0.85em; }
+  .ing-bar { height: 8px; border-radius: 4px; margin-top: 4px; transition: width 0.5s ease; }
+
+  .scale-control { display: flex; align-items: center; gap: 12px; margin: 15px 0; width: 100%; max-width: 500px; background: #1a1a3e; border-radius: 10px; padding: 14px; }
+  .scale-control label { color: #f0c27f; font-size: 0.9em; min-width: 100px; }
+  .scale-control input[type=range] { flex: 1; accent-color: #e67e22; }
+  .scale-val { font-size: 1.5em; color: #ffd93d; font-weight: bold; font-family: 'Courier New', monospace; min-width: 50px; text-align: center; }
+
+  .math-display { background: #0d0d28; border-radius: 10px; padding: 14px; width: 100%; max-width: 500px; margin-top: 10px; font-family: 'Courier New', monospace; }
+  .math-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.85em; }
+  .math-label { color: #888; }
+  .math-formula { color: #74b9ff; }
+  .math-result { color: #00b894; font-weight: 600; }
+
+  .explanation { margin-top: 12px; background: rgba(116, 185, 255, 0.08); border-left: 3px solid #74b9ff; border-radius: 0 8px 8px 0; padding: 11px 14px; font-size: 0.82em; color: #b2bec3; line-height: 1.5; width: 100%; max-width: 500px; }
+  .explanation strong { color: #74b9ff; }
+
+  .challenge-box { margin-top: 12px; background: rgba(253, 203, 110, 0.08); border: 2px dashed #fdcb6e; border-radius: 10px; padding: 14px; width: 100%; max-width: 500px; display: none; }
+  .challenge-box h3 { color: #fdcb6e; font-size: 0.95em; margin-bottom: 6px; }
+  .challenge-box p { color: #dfe6e9; font-size: 0.85em; line-height: 1.4; }
+  .ch-input { display: flex; gap: 8px; margin-top: 8px; }
+  .ch-input input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 2px solid #444; background: #1a1a3e; color: #fff; font-size: 15px; font-family: 'Courier New', monospace; }
+  .ch-input button { padding: 7px 14px; border-radius: 6px; border: none; background: #00b894; color: #fff; font-weight: 600; cursor: pointer; }
+  .ch-fb { margin-top: 6px; font-size: 0.82em; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MathCode Project: Ratio Lab</h1>
+  <div class="sub">Tier 2 — Unit 1: Ratios & Proportional Reasoning (Grades 4-6, Ages 9-11)</div>
+  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students understand ratios and proportional scaling by coding a recipe scaler that multiplies all ingredients by a common factor</div>
+</div>
+
+<div class="main">
+  <div class="code-panel">
+    <div class="ptitle">&#128187; Python Code</div>
+    <div class="code-editor" id="codeEditor"></div>
+    <div class="ctrls">
+      <button class="btn btn-run" onclick="runCode()">&#9654; Run Code</button>
+      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
+    </div>
+  </div>
+
+  <div class="game-panel">
+    <div class="ptitle">&#127859; Recipe Scaler</div>
+
+    <div class="scale-control">
+      <label>Servings:</label>
+      <input type="range" id="servingsSlider" min="1" max="12" value="4" oninput="updateServings()">
+      <div class="scale-val" id="servingsVal">4</div>
+    </div>
+
+    <div class="recipe-card" id="recipeCard">
+      <div class="recipe-title" id="recipeTitle">Chocolate Chip Cookies</div>
+      <div id="ingredientList"></div>
+    </div>
+
+    <div class="math-display" id="mathDisplay"></div>
+
+    <div class="explanation" id="explanation">
+      <strong>How ratios work in code:</strong> A recipe for 4 servings uses specific amounts. To scale it, we calculate a <strong>ratio</strong>: <code>ratio = new_servings / original_servings</code>. Then multiply every ingredient by that ratio. This is proportional reasoning — when one quantity changes, all related quantities change by the same factor. Press <strong>Run Code</strong> and adjust the servings slider!
+    </div>
+
+    <div class="challenge-box" id="challengeBox">
+      <h3>&#127859; Ratio Challenge!</h3>
+      <p id="chText"></p>
+      <div class="ch-input">
+        <input type="number" step="0.1" id="chAnswer" placeholder="Your answer...">
+        <button onclick="checkChallenge()">Check</button>
+      </div>
+      <div class="ch-fb" id="chFb"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const recipe = {
+  name: "Chocolate Chip Cookies",
+  originalServings: 4,
+  ingredients: [
+    { name: "Flour", amount: 2, unit: "cups", emoji: "&#127854;", color: "#f0c27f" },
+    { name: "Sugar", amount: 0.75, unit: "cups", emoji: "&#129383;", color: "#ffeaa7" },
+    { name: "Butter", amount: 0.5, unit: "cups", emoji: "&#129480;", color: "#fdcb6e" },
+    { name: "Eggs", amount: 2, unit: "", emoji: "&#129370;", color: "#fab1a0" },
+    { name: "Choc. Chips", amount: 1.5, unit: "cups", emoji: "&#127851;", color: "#a0522d" },
+    { name: "Vanilla", amount: 1, unit: "tsp", emoji: "&#127862;", color: "#dfe6e9" },
+    { name: "Baking Soda", amount: 0.5, unit: "tsp", emoji: "&#129514;", color: "#81ecec" },
+    { name: "Salt", amount: 0.25, unit: "tsp", emoji: "&#129474;", color: "#b2bec3" },
+  ]
+};
+
+let state = { servings: 4, running: false, currentHL: -1 };
+
+function getCode() {
+  const s = state.servings;
+  const ratio = (s / recipe.originalServings).toFixed(2);
+  return [
+    { parts: [{ t: '# Ratio Lab — Recipe Scaler', c: 'cm' }] },
+    { parts: [] },
+    { parts: [{ t: '# Original recipe (serves 4)', c: 'cm' }] },
+    { parts: [{ t: 'original_servings', c: 'vr' }, { t: ' = ', c: 'op' }, { t: '4', c: 'nm' }] },
+    { parts: [{ t: 'ingredients', c: 'vr' }, { t: ' = {', c: 'op' }] },
+    { parts: [{ t: '    ', c: '' }, { t: '"flour"', c: 'st' }, { t: ': ', c: 'op' }, { t: '2', c: 'nm' }, { t: ',  ', c: '' }, { t: '"sugar"', c: 'st' }, { t: ': ', c: 'op' }, { t: '0.75', c: 'nm' }, { t: ',', c: '' }] },
+    { parts: [{ t: '    ', c: '' }, { t: '"butter"', c: 'st' }, { t: ': ', c: 'op' }, { t: '0.5', c: 'nm' }, { t: ', ', c: '' }, { t: '"eggs"', c: 'st' }, { t: ': ', c: 'op' }, { t: '2', c: 'nm' }, { t: ',', c: '' }] },
+    { parts: [{ t: '    ', c: '' }, { t: '"choc_chips"', c: 'st' }, { t: ': ', c: 'op' }, { t: '1.5', c: 'nm' }, { t: ', ', c: '' }, { t: '"vanilla"', c: 'st' }, { t: ': ', c: 'op' }, { t: '1', c: 'nm' }, { t: ',', c: '' }] },
+    { parts: [{ t: '    ', c: '' }, { t: '"baking_soda"', c: 'st' }, { t: ': ', c: 'op' }, { t: '0.5', c: 'nm' }, { t: ', ', c: '' }, { t: '"salt"', c: 'st' }, { t: ': ', c: 'op' }, { t: '0.25', c: 'nm' }] },
+    { parts: [{ t: '}', c: 'op' }] },
+    { parts: [] },
+    { parts: [{ t: '# How many servings do we want?', c: 'cm' }] },
+    { parts: [{ t: 'new_servings', c: 'vr' }, { t: ' = ', c: 'op' }, { t: String(s), c: 'nm' }] },
+    { parts: [] },
+    { parts: [{ t: '# Calculate the scaling ratio', c: 'cm' }] },
+    { parts: [{ t: 'ratio', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'new_servings', c: 'vr' }, { t: ' / ', c: 'op' }, { t: 'original_servings', c: 'vr' }] },
+    { parts: [{ t: `# ratio = ${s} / 4 = ${ratio}`, c: 'cm' }] },
+    { parts: [] },
+    { parts: [{ t: '# Scale every ingredient by the ratio', c: 'cm' }] },
+    { parts: [{ t: 'for ', c: 'kw' }, { t: 'name, amount', c: 'vr' }, { t: ' in ', c: 'kw' }, { t: 'ingredients.items()', c: 'fn' }, { t: ':', c: '' }] },
+    { parts: [{ t: '    scaled', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'amount', c: 'vr' }, { t: ' * ', c: 'op' }, { t: 'ratio', c: 'vr' }] },
+    { parts: [{ t: '    ', c: '' }, { t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: 'f"', c: 'st' }, { t: '{name}: {amount} x {ratio} = ', c: 'st' }, { t: '{scaled}', c: 'vr' }, { t: '"', c: 'st' }, { t: ')', c: '' }] },
+  ];
+}
+
+function renderCode() {
+  const lines = getCode();
+  const ed = document.getElementById('codeEditor');
+  ed.innerHTML = '';
+  lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line' + (i === state.currentHL ? ' hl' : '');
+    const n = document.createElement('span');
+    n.className = 'ln'; n.textContent = i + 1;
+    div.appendChild(n);
+    const c = document.createElement('span');
+    c.className = 'ct';
+    if (!line.parts || line.parts.length === 0) { c.textContent = ''; }
+    else { line.parts.forEach(p => { const s = document.createElement('span'); s.className = p.c; s.textContent = p.t; c.appendChild(s); }); }
+    div.appendChild(c);
+    ed.appendChild(div);
+  });
+}
+
+function renderIngredients() {
+  const list = document.getElementById('ingredientList');
+  list.innerHTML = '';
+  const ratio = state.servings / recipe.originalServings;
+  const maxScaled = Math.max(...recipe.ingredients.map(ing => ing.amount * ratio));
+
+  recipe.ingredients.forEach(ing => {
+    const scaled = ing.amount * ratio;
+    const div = document.createElement('div');
+    div.className = 'ingredient';
+    div.innerHTML = `
+      <div class="ing-name"><span style="font-size:1.3em">${ing.emoji}</span> ${ing.name}</div>
+      <div class="ing-amount">
+        ${state.running && ratio !== 1 ? `<span class="ing-original">${formatNum(ing.amount)}</span>` : ''}
+        <span class="ing-scaled">${formatNum(state.running ? scaled : ing.amount)}</span>
+        <span class="ing-unit">${ing.unit}</span>
+      </div>
+    `;
+    const bar = document.createElement('div');
+    bar.className = 'ing-bar';
+    bar.style.background = ing.color;
+    bar.style.width = ((state.running ? scaled : ing.amount) / (maxScaled || 1) * 100) + '%';
+    bar.style.opacity = '0.4';
+    div.appendChild(bar);
+    list.appendChild(div);
+  });
+}
+
+function renderMath() {
+  const md = document.getElementById('mathDisplay');
+  if (!state.running) { md.innerHTML = ''; return; }
+  const ratio = state.servings / recipe.originalServings;
+  let html = `<div class="math-row"><span class="math-label">Ratio formula:</span><span class="math-formula">ratio = new / original</span></div>`;
+  html += `<div class="math-row"><span class="math-label">Calculation:</span><span class="math-formula">ratio = ${state.servings} / ${recipe.originalServings} = <strong style="color:#ffd93d">${formatNum(ratio)}</strong></span></div>`;
+  html += `<div style="border-top:1px solid #2a2a5a; margin:6px 0;"></div>`;
+
+  recipe.ingredients.slice(0, 4).forEach(ing => {
+    const scaled = ing.amount * ratio;
+    html += `<div class="math-row"><span class="math-label">${ing.name}:</span><span class="math-formula">${formatNum(ing.amount)} × ${formatNum(ratio)}</span><span class="math-result">= ${formatNum(scaled)} ${ing.unit}</span></div>`;
+  });
+  if (recipe.ingredients.length > 4) html += `<div class="math-row"><span class="math-label" style="color:#555">...and ${recipe.ingredients.length - 4} more</span></div>`;
+  md.innerHTML = html;
+}
+
+function formatNum(n) {
+  if (n === Math.floor(n)) return String(n);
+  return n.toFixed(2).replace(/\.?0+$/, '');
+}
+
+function updateServings() {
+  state.servings = parseInt(document.getElementById('servingsSlider').value);
+  document.getElementById('servingsVal').textContent = state.servings;
+  renderCode();
+  if (state.running) {
+    state.currentHL = 15;
+    renderCode();
+    renderIngredients();
+    renderMath();
+
+    const ratio = state.servings / recipe.originalServings;
+    let msg = '';
+    if (ratio === 1) msg = '<strong>Ratio = 1</strong> means no change! The amounts stay the same as the original recipe.';
+    else if (ratio === 2) msg = '<strong>Ratio = 2</strong> means doubling! Every ingredient is multiplied by 2. This is the simplest scaling.';
+    else if (ratio === 0.5) msg = '<strong>Ratio = 0.5</strong> means halving! Multiplying by 0.5 is the same as dividing by 2. Half recipe, half of everything.';
+    else if (ratio > 1) msg = `<strong>Ratio = ${formatNum(ratio)}</strong> — scaling up! Every ingredient gets ${formatNum(ratio)} times bigger. Notice that ALL ingredients scale by the SAME ratio — that's what keeps the recipe balanced.`;
+    else msg = `<strong>Ratio = ${formatNum(ratio)}</strong> — scaling down! Every ingredient gets smaller by the same factor. The proportions stay identical.`;
+
+    document.getElementById('explanation').innerHTML = msg + ' Try the challenge below!';
+    document.getElementById('challengeBox').style.display = 'block';
+    generateChallenge();
+  }
+}
+
+function runCode() {
+  state.running = true;
+  state.currentHL = 3;
+  renderCode();
+
+  setTimeout(() => {
+    state.currentHL = 12;
+    renderCode();
+    setTimeout(() => {
+      state.currentHL = 15;
+      renderCode();
+      setTimeout(() => {
+        state.currentHL = 20;
+        renderCode();
+        renderIngredients();
+        renderMath();
+        document.getElementById('explanation').innerHTML =
+          '<strong>Code is running!</strong> The ratio is calculated: <code>ratio = ' + state.servings + ' / 4 = ' + formatNum(state.servings / 4) + '</code>. ' +
+          'Then the <code>for</code> loop goes through EVERY ingredient and multiplies it by the same ratio. ' +
+          'This is <strong>proportional reasoning</strong> — when you scale one thing, everything else must scale by the same amount to keep the relationship balanced. ' +
+          'Move the <strong>servings slider</strong> to see the ratio change!';
+        document.getElementById('challengeBox').style.display = 'block';
+        generateChallenge();
+      }, 350);
+    }, 350);
+  }, 350);
+}
+
+function resetAll() {
+  state.running = false;
+  state.servings = 4;
+  state.currentHL = -1;
+  document.getElementById('servingsSlider').value = 4;
+  document.getElementById('servingsVal').textContent = '4';
+  document.getElementById('challengeBox').style.display = 'none';
+  document.getElementById('mathDisplay').innerHTML = '';
+  renderCode();
+  renderIngredients();
+  document.getElementById('explanation').innerHTML =
+    '<strong>How ratios work in code:</strong> A recipe for 4 servings uses specific amounts. To scale it, we calculate a <strong>ratio</strong>: <code>ratio = new_servings / original_servings</code>. Then multiply every ingredient by that ratio. Press <strong>Run Code</strong> and adjust the servings slider!';
+}
+
+let currentCh = null;
+function generateChallenge() {
+  const challenges = [
+    () => {
+      const s = 6; const ing = recipe.ingredients[0];
+      const ans = ing.amount * (s / recipe.originalServings);
+      return { q: `If you change servings to ${s}, how much ${ing.name.toLowerCase()} do you need? (Original: ${formatNum(ing.amount)} ${ing.unit} for 4 servings)`, a: ans, hint: `ratio = ${s}/4 = ${formatNum(s/4)}, then ${formatNum(ing.amount)} × ${formatNum(s/4)} = ${formatNum(ans)}` };
+    },
+    () => {
+      const s = 8; const ing = recipe.ingredients[4];
+      const ans = ing.amount * (s / recipe.originalServings);
+      return { q: `For ${s} servings, how many ${ing.unit} of ${ing.name.toLowerCase()}? (Original: ${formatNum(ing.amount)} for 4)`, a: ans, hint: `ratio = ${s}/4 = ${formatNum(s/4)}, then ${formatNum(ing.amount)} × ${formatNum(s/4)} = ${formatNum(ans)}` };
+    },
+    () => {
+      const s = 2;
+      const ans = recipe.ingredients[3].amount * (s / recipe.originalServings);
+      return { q: `For ${s} servings (half the recipe), how many eggs? (Original: ${recipe.ingredients[3].amount} for 4)`, a: ans, hint: `ratio = ${s}/4 = 0.5, then ${recipe.ingredients[3].amount} × 0.5 = ${formatNum(ans)}` };
+    },
+    () => {
+      return { q: `If the ratio is 3 (triple the recipe), and sugar is originally 0.75 cups, how much sugar do you need?`, a: 2.25, hint: `0.75 × 3 = 2.25 cups` };
+    },
+  ];
+  currentCh = challenges[Math.floor(Math.random() * challenges.length)]();
+  document.getElementById('chText').textContent = currentCh.q;
+  document.getElementById('chAnswer').value = '';
+  document.getElementById('chFb').textContent = '';
+}
+
+function checkChallenge() {
+  const answer = parseFloat(document.getElementById('chAnswer').value);
+  const fb = document.getElementById('chFb');
+  if (isNaN(answer)) { fb.textContent = 'Type a number!'; fb.style.color = '#fdcb6e'; return; }
+  if (Math.abs(answer - currentCh.a) < 0.05) {
+    fb.textContent = 'Correct! ' + currentCh.hint;
+    fb.style.color = '#00b894';
+  } else {
+    fb.textContent = 'Not quite — remember: new amount = original × ratio. ' + currentCh.hint;
+    fb.style.color = '#d63031';
+  }
+}
+
+renderCode();
+renderIngredients();
+</script>
+</body>
+</html>
