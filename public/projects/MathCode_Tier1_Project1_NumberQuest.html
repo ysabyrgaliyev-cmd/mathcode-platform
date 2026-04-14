@@ -1,398 +1,536 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Number Quest — MathCode Tier 1 Project 1</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Quest — MathCode</title>
 <style>
-  :root {
-    --bg:#fff; --ink:#1f2545; --ink-soft:#5a6190; --line:#e3e7f3;
-    --primary:#7c5cff; --primary-2:#5b3df0; --accent:#ffb84d;
-    --good:#34d399; --bad:#f87171; --info:#4cc9f0;
-    --code-bg:#1c2238; --code-ink:#e6e9f5;
-    --kw:#c792ea; --fn:#82aaff; --num:#f78c6c; --str:#c3e88d;
-    --hl:rgba(255,184,77,.18); --hl-line:#ffb84d;
-    --shadow:0 6px 18px rgba(20,24,60,.08);
-  }
-  * { box-sizing: border-box; }
-  html,body { margin:0; padding:0; background:#f5f7fc; color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; }
-  header.proj-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:12px 22px; background:white; border-bottom:1px solid var(--line);
-    position:sticky; top:0; z-index:20;
-  }
-  .proj-title { font-weight:800; font-size:18px; display:flex; align-items:center; gap:8px; }
-  .proj-tools { display:flex; gap:8px; align-items:center; }
-  .step-pill { background:var(--primary); color:white; padding:5px 12px; border-radius:999px; font-size:13px; font-weight:700; }
-  .btn { background:white; color:var(--ink); border:1px solid var(--line); padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px; font-family:inherit; }
-  .btn:hover { background:#f5f7fc; }
-  .btn.primary { background:linear-gradient(135deg,var(--primary),var(--primary-2)); color:white; border:none; }
-  .btn.primary:hover { filter:brightness(1.07); }
-  .btn:disabled { opacity:.45; cursor:not-allowed; }
+:root{
+  --primary:#7c5cff;--primary-2:#5b3df0;--accent:#fbbf24;--good:#34d399;--bad:#f87171;
+  --ink:#1f2545;--ink-soft:#5a6190;--bg:#f5f7fc;--card:#ffffff;--line:#e3e7f3;
+  --code-bg:#1c2238;--code-fg:#e6e9f5;--kw:#c084fc;--fn:#60a5fa;--num:#fbbf24;--str:#86efac;--com:#7a8bb8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.app{max-width:1200px;margin:0 auto;padding:18px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hdr .icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--primary-2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.hdr h1{margin:0;font-size:22px}
+.hdr .sub{color:var(--ink-soft);font-size:13px}
+.hdr .lang{margin-left:auto;background:#eef0fb;color:var(--primary);padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px}
+.shell{display:grid;gap:18px;grid-template-columns:minmax(320px,360px) 1fr}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--line)}
+.lesson .step-no{font-size:11px;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.lesson h2{margin:6px 0 4px;font-size:20px}
+.lesson .sub{color:var(--ink-soft);font-size:13px;margin-bottom:14px}
+.lesson .task{background:#fff8eb;border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;margin-bottom:10px;font-weight:700}
+.lesson .task .ts{font-weight:400;color:var(--ink-soft);font-size:13px;margin-top:4px;display:block}
+.lesson .why{background:#eef0fb;padding:12px 14px;border-radius:8px;font-size:14px;color:var(--ink);margin-bottom:10px;line-height:1.55}
+.lesson .why b{color:var(--primary)}
+.lesson .hint-btn{background:transparent;color:var(--primary);border:1px dashed var(--primary);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;margin-bottom:10px}
+.lesson .hint-box{background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:13px;color:#92400e;margin-bottom:10px;display:none}
+.lesson .hint-box.on{display:block}
+.lesson .nav{display:flex;gap:10px;margin-top:14px;align-items:center}
+.btn{padding:10px 18px;border:1px solid var(--line);background:white;color:var(--ink);border-radius:8px;cursor:pointer;font-weight:700;font-size:14px}
+.btn:hover{background:#f5f7fc}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border:none}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed}
+.dots{display:flex;gap:6px;margin-left:auto}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dot.active{background:var(--primary)}
+.dot.done{background:var(--good)}
+.stage{display:flex;flex-direction:column;gap:14px}
+.stage-visual{background:linear-gradient(180deg,#dbeafe,#a7d8ff);border-radius:14px;padding:24px;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.basket{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:160px;height:80px;background:linear-gradient(180deg,#b8651a,#7a3a07);border-radius:0 0 70px 70px / 0 0 60px 60px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px}
+.banana-pile{display:flex;flex-wrap:wrap;justify-content:center;gap:1px;width:140px;max-height:60px;overflow:hidden}
+.banana{font-size:20px;animation:pop .3s ease-out}
+@keyframes pop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
+.mango{position:absolute;bottom:14px;left:14px;font-size:60px;animation:wiggle 2s infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.counter{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:24px;font-weight:900;font-size:18px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);text-align:center}
+.counter .lbl{font-size:10px;color:var(--ink-soft);font-weight:600;display:block;text-transform:uppercase}
+.flying-banana{position:absolute;font-size:30px;animation:fly 0.7s ease-in forwards;pointer-events:none}
+@keyframes fly{0%{top:-20px;opacity:0}30%{opacity:1}100%{top:160px;opacity:0}}
+.celebration{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;animation:celebrate 1.2s ease-out;pointer-events:none}
+@keyframes celebrate{0%{transform:scale(0) rotate(-180deg)}50%{transform:scale(1.6) rotate(15deg)}100%{transform:scale(1) rotate(0)}}
+.editor{background:var(--code-bg);color:var(--code-fg);border-radius:12px;padding:0;font-family:"SF Mono",Menlo,Monaco,Consolas,monospace;font-size:14px;overflow:hidden}
+.editor-hdr{background:#0f1320;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#8a93b8}
+.editor-hdr .dots-cd{display:flex;gap:5px}
+.editor-hdr .dots-cd span{width:9px;height:9px;border-radius:50%}
+.editor-hdr .dots-cd span:nth-child(1){background:#ff5f57}
+.editor-hdr .dots-cd span:nth-child(2){background:#febc2e}
+.editor-hdr .dots-cd span:nth-child(3){background:#28c840}
+.editor-body{padding:14px 18px;min-height:80px;line-height:1.65}
+.editor-body .line{display:flex;gap:14px;align-items:baseline}
+.editor-body .ln{color:#4a5168;width:18px;text-align:right;user-select:none;flex-shrink:0;font-size:12px}
+.editor-body .code-line{flex:1;white-space:pre-wrap}
+.kw{color:var(--kw)}.fn{color:var(--fn)}.num{color:var(--num)}.str{color:var(--str)}.op{color:#ff79c6}
+.blank{display:inline-block;background:#fbbf24;color:#1c2238;border:0;border-radius:4px;padding:2px 8px;font-family:inherit;font-size:14px;font-weight:700;text-align:center;outline:none;vertical-align:baseline}
+.blank:focus{box-shadow:0 0 0 2px #fff}
+.blank.ok{background:var(--good)}
+.blank.bad{background:var(--bad);color:white}
+.run-row{background:#0f1320;padding:10px 14px;display:flex;gap:10px;align-items:center;border-top:1px solid #2a3148}
+.run-btn{background:var(--good);color:#0a2c1a;border:none;padding:8px 18px;border-radius:8px;font-weight:900;cursor:pointer;font-size:14px}
+.run-btn:hover{background:#10b981;color:white}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;background:#3a4060;color:#7a8bb8}
+.reset-btn{background:transparent;color:#8a93b8;border:1px solid #2a3148;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
+.reset-btn:hover{color:#e6e9f5}
+.console{background:#0a0e18;color:#86efac;padding:10px 14px;font-family:monospace;font-size:13px;min-height:36px;border-top:1px solid #2a3148;max-height:140px;overflow-y:auto}
+.console:empty::after{content:"› (output will appear here when you click Run)";color:#4a5168;font-style:italic}
+.console .out{margin:2px 0;white-space:pre-wrap}
+.console .err{color:var(--bad)}
+.modal-bg{position:fixed;inset:0;background:rgba(31,37,69,.75);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px}
+.modal{background:white;border-radius:16px;max-width:520px;width:100%;padding:30px;text-align:center;box-shadow:0 16px 36px rgba(0,0,0,.3)}
+.modal .ic{font-size:64px;margin-bottom:8px}
+.modal h2{margin:0 0 8px;font-size:24px}
+.modal p{color:var(--ink-soft);font-size:15px;line-height:1.55;margin:0 0 16px}
+.modal .pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0 20px;font-size:12px}
+.modal .pill{background:#eef0fb;color:var(--primary);padding:6px 12px;border-radius:24px;font-weight:700}
+.modal .youwill{background:#fff8eb;border-radius:10px;padding:14px;text-align:left;font-size:14px;margin-bottom:18px}
+.modal .youwill h4{margin:0 0 6px;font-size:13px;color:#92400e;text-transform:uppercase;letter-spacing:.5px}
+.modal .youwill ul{margin:0;padding-left:20px;color:var(--ink)}
+.modal .youwill li{margin:4px 0}
+.summary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border-radius:14px;padding:24px;text-align:center;margin-top:14px}
+.summary .ic{font-size:48px;margin-bottom:6px}
+.summary h2{margin:0 0 8px}
+.summary ul{text-align:left;display:inline-block;margin:10px auto;padding-left:20px}
+.summary li{margin:4px 0}
+.summary .next{background:rgba(255,255,255,.15);padding:10px 14px;border-radius:8px;margin-top:14px;font-size:14px}
+</style></head><body>
 
-  main.proj-main {
-    display:grid; grid-template-columns: minmax(320px, 380px) 1fr; gap:20px;
-    padding:20px; min-height: calc(100vh - 60px);
-  }
-  @media (max-width: 880px) { main.proj-main { grid-template-columns: 1fr; } }
-
-  .lesson { background:white; border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); display:flex; flex-direction:column; max-height: calc(100vh - 100px); overflow:auto; }
-  .lesson h2 { margin:0 0 6px; font-size:20px; }
-  .lesson .sub { color:var(--ink-soft); font-size:13px; margin:0 0 16px; }
-  .task { background:linear-gradient(135deg,#fff8eb,#fff3d6); border:1px solid #f8d795; border-radius:10px; padding:14px 16px; font-size:16px; font-weight:600; margin:0 0 14px; }
-  .task small { display:block; font-weight:500; color:var(--ink-soft); font-size:13px; margin-top:6px; }
-  details.why { margin:0 0 14px; }
-  details.why summary { cursor:pointer; color:var(--primary); font-weight:600; font-size:14px; padding:6px 0; }
-  details.why p { margin:6px 0 0; color:var(--ink-soft); font-size:14px; line-height:1.55; }
-  .check { margin:0 0 14px; padding:10px 14px; border-radius:8px; background:#f5f7fc; font-size:14px; color:var(--ink-soft); display:flex; align-items:center; gap:8px; }
-  .check.done { background:rgba(52,211,153,.13); color:#0f6b46; font-weight:600; }
-  .check.done::before { content:"✓"; color:var(--good); font-weight:900; }
-  .check::before { content:"○"; }
-  .lesson-actions { margin-top:auto; display:flex; gap:8px; padding-top:14px; border-top:1px solid var(--line); }
-  .progress-dots { display:flex; gap:6px; margin:0 0 14px; }
-  .dot { width:12px; height:12px; border-radius:50%; background:var(--line); }
-  .dot.active { background:var(--primary); }
-  .dot.done { background:var(--good); }
-
-  .stage-wrap { display:flex; flex-direction:column; gap:14px; min-width:0; }
-  .stage { background:white; border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:var(--shadow); min-height:340px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
-  .stage h3 { margin:0 0 12px; font-size:14px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
-  .countbox { font-size:64px; font-weight:900; color:var(--primary); text-shadow: 0 2px 6px rgba(124,92,255,.18); }
-  .countlbl { color:var(--ink-soft); font-size:14px; margin-top:4px; }
-  .banana-grid { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:18px 0; max-width: 560px; }
-  .banana { font-size:48px; cursor:pointer; user-select:none; transition: transform .12s, opacity .25s; background:none; border:none; padding:4px; }
-  .banana:hover { transform: scale(1.18) rotate(-8deg); }
-  .banana.collected { opacity:.18; transform: scale(.7) rotate(20deg); pointer-events:none; }
-  .stage .row-controls { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; justify-content:center; }
-  .stage-msg { margin-top:14px; min-height:24px; color:var(--good); font-weight:700; font-size:15px; }
-
-  .code-panel { background:var(--code-bg); border-radius:14px; padding:18px; color:var(--code-ink); font-family: "SF Mono", "Menlo", "Consolas", monospace; font-size:14px; box-shadow:var(--shadow); }
-  .code-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-  .code-head .label { color:#8a93b8; font-size:12px; letter-spacing:.05em; text-transform:uppercase; }
-  .code pre { margin:0; line-height:1.7; }
-  .code-line { display:block; padding:1px 8px; border-radius:4px; transition: background .2s; border-left: 3px solid transparent; }
-  .code-line.hl { background: var(--hl); border-left-color: var(--hl-line); }
-  .code-line .annot { color:#8a93b8; margin-left: 12px; font-style:italic; font-size:12px; }
-  .kw { color:var(--kw); } .fn { color:var(--fn); } .num { color:var(--num); } .str { color:var(--str); } .com { color:#546e7a; font-style:italic; }
-
-  .modal-bg { position:fixed; inset:0; background:rgba(20,24,60,.55); display:flex; align-items:center; justify-content:center; z-index:50; }
-  .modal-card { background:white; padding:34px 36px; border-radius:18px; max-width: 520px; box-shadow: 0 24px 48px rgba(0,0,0,.25); text-align:center; }
-  .modal-card h1 { margin:0 0 12px; font-size:28px; }
-  .modal-card p { margin:0 0 12px; color:var(--ink-soft); font-size:15px; line-height:1.6; }
-  .modal-card .you-will { text-align:left; background:#f5f7fc; border-radius:10px; padding:14px 18px; margin:14px 0; }
-  .modal-card .you-will li { margin:6px 0; color:var(--ink); font-weight:500; }
-
-  .challenge { background:white; border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); margin-top: 14px; }
-  .challenge h3 { margin:0 0 6px; font-size:18px; }
-  .qbox { background:#f5f7fc; border-radius:10px; padding:16px; margin:14px 0; font-size:16px; font-weight:600; }
-  .options { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px; }
-  .opt { padding:14px; background:white; border:2px solid var(--line); border-radius:10px; font-size:16px; font-weight:700; cursor:pointer; transition:all .15s; }
-  .opt:hover { border-color:var(--primary); }
-  .opt.right { background:rgba(52,211,153,.18); border-color:var(--good); color:#0f6b46; }
-  .opt.wrong { background:rgba(248,113,113,.15); border-color:var(--bad); color:#a02828; }
-  .qfeedback { margin-top:10px; min-height:22px; font-weight:600; }
-  .qfeedback.right { color:var(--good); } .qfeedback.wrong { color:var(--bad); }
-
-  .summary-card { text-align:center; padding:32px; }
-  .summary-card .badge { font-size:80px; }
-  .summary-card h2 { font-size:28px; margin:8px 0; }
-  .you-learned { text-align:left; max-width:440px; margin:18px auto; background:#f5f7fc; padding:16px 22px; border-radius:10px; }
-  .you-learned li { margin:6px 0; }
-  .hint-box { margin-top:10px; background:rgba(76,201,240,.12); color:#0a4f70; border:1px solid rgba(76,201,240,.5); border-radius:8px; padding:10px 14px; font-size:14px; }
-</style>
-</head>
-<body>
-
-<header class="proj-header">
-  <div class="proj-title">🐵 Number Quest</div>
-  <div class="proj-tools">
-    <span class="step-pill" id="stepPill">Step 1 of 5</span>
-    <button class="btn" id="btnHint">💡 Hint</button>
-    <button class="btn" id="btnRestart">↻ Restart</button>
-  </div>
-</header>
-
-<div class="modal-bg" id="welcome">
-  <div class="modal-card">
-    <h1>👋 Hi! I'm Mango.</h1>
-    <p>I'm a hungry monkey and I need help counting bananas. Let's count together and learn how a computer counts too!</p>
-    <div class="you-will">
-      <strong>You'll learn:</strong>
+<div id="welcomeModal" class="modal-bg">
+  <div class="modal">
+    <div class="ic">🐵🍌</div>
+    <h2>Welcome to Number Quest!</h2>
+    <p>Mango the Monkey is hungry! Help him collect bananas by writing real Python code.</p>
+    <div class="pills">
+      <div class="pill">⏱ 12 min</div>
+      <div class="pill">📚 Grade 3–5</div>
+      <div class="pill">🐍 Python</div>
+    </div>
+    <div class="youwill">
+      <h4>You will learn to:</h4>
       <ul>
-        <li>🔢 What counting means</li>
-        <li>➕ How to add numbers</li>
-        <li>💻 What a "variable" is in code</li>
-        <li>🔁 What a "loop" does</li>
+        <li>Store numbers in a <b>variable</b></li>
+        <li>Add, count, and update numbers</li>
+        <li>Use a <b>loop</b> to repeat actions</li>
+        <li>Use <b>if</b> to make decisions</li>
       </ul>
     </div>
-    <p style="font-size:13px;">⏱ About 35 minutes · Grades K-3</p>
-    <button class="btn primary" id="btnStart" style="font-size:18px; padding:14px 28px;">Let's start! →</button>
+    <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's start! →</button>
   </div>
 </div>
 
-<main class="proj-main">
-  <aside class="lesson" id="lesson">
-    <div class="progress-dots" id="dots"></div>
-    <h2 id="stepTitle"></h2>
-    <p class="sub" id="stepSub"></p>
-    <div class="task" id="taskBox"></div>
-    <details class="why"><summary>🤔 Why does this matter?</summary><p id="whyText"></p></details>
-    <div class="check" id="checkBox"></div>
-    <div class="hint-box" id="hintBox" style="display:none"></div>
-    <div class="lesson-actions">
-      <button class="btn" id="btnPrev" disabled>← Back</button>
-      <button class="btn primary" id="btnNext" disabled>Next →</button>
+<div class="app">
+  <div class="hdr">
+    <div class="icon">🐵</div>
+    <div>
+      <h1>Number Quest</h1>
+      <div class="sub">Collect bananas by writing Python code</div>
     </div>
-  </aside>
+    <div class="lang">🐍 Python</div>
+  </div>
 
-  <div class="stage-wrap">
-    <div class="stage" id="stage">
-      <h3>Mango's Counter</h3>
-      <div class="countbox" id="countDisplay">0</div>
-      <div class="countlbl">bananas collected</div>
-      <div class="banana-grid" id="bananaGrid"></div>
-      <div class="row-controls" id="stageControls"></div>
-      <div class="stage-msg" id="stageMsg"></div>
-    </div>
-    <div class="code-panel">
-      <div class="code-head">
-        <span class="label">📝 Code (the computer is doing this)</span>
-        <span class="label">Python</span>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="counter"><span class="lbl">🍌 Bananas</span><span id="bananaCount">0</span></div>
+        <div class="mango">🐵</div>
+        <div class="basket"><div class="banana-pile" id="pile"></div></div>
       </div>
-      <pre class="code" id="codeBlock"></pre>
+      <div class="editor">
+        <div class="editor-hdr">
+          <div class="dots-cd"><span></span><span></span><span></span></div>
+          <div class="file">number_quest.py</div>
+        </div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset bananas</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
     </div>
   </div>
-</main>
+</div>
 
 <script>
-const state = { step:1, count:0, totalBananas:12, collected:new Set(), challengeIdx:0 };
+const state = { step: 0, bananas: 0, ranThisStep: false, completed: [] };
 
 const STEPS = [
-  { title:"Step 1: Click a banana", sub:"Let's start by counting one at a time.",
-    task:"👉 Click any banana on the right to add it to your count.",
-    taskSub:"Click 5 bananas total to finish this step.",
-    why:"When you click, you tell the computer \"add one to my count.\" This is exactly how a programmer makes a counter in code. Every video game score uses this same idea!",
-    check:(s)=>`Click 5 bananas to continue (${s.count} / 5)`,
-    isDone:(s)=>s.count>=5,
-    hint:"Just click on any yellow banana 🍌 in the box on the right!",
-    code:[
-      {line:'count = 0', ann:'start at zero'},
-      {line:'count = count + 1', ann:'add 1 each click', highlight:true},
-      {line:'print(count)', ann:'show the number'},
-    ]
-  },
-  { title:"Step 2: Add five at once", sub:"Sometimes we want to add more than one at a time.",
-    task:"👉 Click the \"+5 bananas\" button below the bananas.",
-    taskSub:"Use it 2 times to bring your total to 15 or more.",
-    why:"Instead of clicking 5 times, we tell the computer \"add 5 at once.\" This is how computers do math fast — by adding many things in one step.",
-    check:(s)=>`Total at least 15 (now ${s.count})`,
-    isDone:(s)=>s.count>=15,
-    hint:"Look below the bananas for the orange \"+5 bananas\" button. Click it twice!",
-    code:[
-      {line:'count = 5', ann:'starting at 5'},
-      {line:'count = count + 5', ann:'add 5 in one step', highlight:true},
-      {line:'print(count)', ann:'show new total'},
+  {
+    title: "1. Make a variable",
+    sub: "A variable is a box that holds a number.",
+    task: "🎯 Click ▶ Run code to make a banana counter.",
+    taskSub: "We will create a number called bananas and set it to 0.",
+    why: "In Python, <b>bananas = 0</b> means: \"make a box called bananas and put 0 inside.\" The = sign doesn't mean equals — it means \"put this in here.\"",
+    hint: "Just click the green ▶ Run code button. No typing needed yet!",
+    code: [
+      { txt: "bananas = 0" },
+      { txt: 'print("Mango has", bananas, "bananas!")' }
     ],
-    showControls:['+5']
+    blanks: [],
+    onRun: (vars) => { state.bananas = vars.bananas || 0; renderBananas(); },
+    canAdvance: () => state.ranThisStep === true,
+    advanceMessage: '✓ You ran your first Python program!'
   },
-  { title:"Step 3: Use a loop", sub:"A loop is when the computer repeats a step many times for you.",
-    task:"👉 Click the \"Loop +10\" button.",
-    taskSub:"It will add 1 ten times — that's a loop in action!",
-    why:"A loop says: \"Do this same thing 10 times.\" Instead of you clicking 10 times, the computer does it for you. Loops are everywhere in programming!",
-    check:(s)=>`Use the Loop button (now ${s.count}, need 25+)`,
-    isDone:(s)=>s.count>=25,
-    hint:"Find the purple \"Loop +10\" button. Watch the count jump up by 10!",
-    code:[
-      {line:'for i in range(10):', ann:'do this 10 times', highlight:true},
-      {line:'    count = count + 1', ann:'add 1 each loop'},
-      {line:'print(count)', ann:'show final total'},
+  {
+    title: "2. Add 1 banana",
+    sub: "Use math to grow the number.",
+    task: "🎯 Type 1 in the yellow box, then click ▶ Run.",
+    taskSub: "Click Run a few times — watch bananas grow!",
+    why: "<b>bananas = bananas + 1</b> means: \"take what's in the bananas box, add 1, put it back.\" Each time you click Run, it adds another banana.",
+    hint: "Type the number 1 in the yellow blank.",
+    code: [
+      { txt: "bananas = bananas + ", blank: { idx: 0, width: 50 } },
+      { txt: 'print("Mango grabs a banana! Total:", bananas)' }
     ],
-    showControls:['+5','loop10']
+    blanks: [{ validator: v => v === "1" }],
+    runMode: 'persistBananas',
+    onRun: (vars) => { state.bananas = vars.bananas; renderBananas(); spawnFlyingBanana(); },
+    canAdvance: () => state.bananas >= 3,
+    advanceMessage: '✓ Got 3+ bananas! Time to learn loops.'
   },
-  { title:"Step 4: Make a rule (if-then)", sub:"Computers can make decisions using \"if\" rules.",
-    task:"👉 Get your count to 30 or more.",
-    taskSub:"Use any buttons. When count is 30+, Mango will cheer!",
-    why:"An \"if\" statement is a decision. The computer checks: \"is the count big enough?\" If yes, it does something special. This is how games know when you win!",
-    check:(s)=>`Reach 30 bananas (now ${s.count})`,
-    isDone:(s)=>s.count>=30,
-    hint:"Click \"Loop +10\" again, or click bananas, or use +5. Any way to reach 30!",
-    code:[
-      {line:'if count >= 30:', ann:'is count big enough?', highlight:true},
-      {line:'    print("Mango is happy! 🎉")', ann:'do this if yes'},
-      {line:'else:', ann:'otherwise...'},
-      {line:'    print("Keep going!")', ann:'do this if no'},
+  {
+    title: "3. Use a loop",
+    sub: "Repeat code many times — automatically.",
+    task: "🎯 Type 5 in the yellow box, then click ▶ Run.",
+    taskSub: "Mango will grab 5 bananas with one click!",
+    why: "<b>for i in range(5):</b> means \"do this 5 times.\" The indented line is what gets repeated. Loops save you from clicking Run over and over.",
+    hint: "Put 5 in the blank.",
+    code: [
+      { txt: "bananas = 0" },
+      { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+      { txt: "    bananas = bananas + 1" },
+      { txt: 'print("Total bananas:", bananas)' }
     ],
-    showControls:['+5','loop10']
+    blanks: [{ validator: v => v === "5" }],
+    onRun: (vars) => { state.bananas = vars.bananas; animateLoopBananas(5); },
+    canAdvance: () => state.bananas >= 5,
+    advanceMessage: '✓ 5 bananas in one click! Loops are powerful.'
   },
-  { title:"Step 5: Quick Challenge!", sub:"Show what you learned with 3 questions.",
-    task:"👉 Answer the 3 questions on the right.",
-    taskSub:"Pick the right number for each one.",
-    why:"These questions check what you understand. Don't worry if you miss one — try again until you get it!",
-    check:(s)=>`Answer all 3 questions (${s.challengeIdx} / 3)`,
-    isDone:(s)=>s.challengeIdx>=3,
-    hint:"Read each question carefully. Count in your head if you need to!",
-    code:[
-      {line:'# Try to predict:', ann:'comments help us read code'},
-      {line:'count = 0', ann:'start at zero'},
-      {line:'count = count + 5', ann:'add 5 → count is 5'},
-      {line:'count = count + 5', ann:'add 5 → count is 10'},
-      {line:'print(count)', ann:'what shows?', highlight:true},
+  {
+    title: "4. Make a choice with if",
+    sub: "Tell the computer when to do something.",
+    task: "🎯 Type 10 in the yellow box, then click ▶ Run.",
+    taskSub: "Mango will celebrate when he has enough bananas!",
+    why: "<b>if bananas >= 10:</b> means \"only do this if bananas is 10 or more.\" The computer checks the rule and only runs the indented line when it's true.",
+    hint: "Put 10 in the blank.",
+    code: [
+      { txt: "bananas = ", blank: { idx: 0, width: 50 } },
+      { txt: "if bananas >= 10:" },
+      { txt: '    print("🎉 Mango is full and happy!")' }
     ],
-    showChallenge:true
+    blanks: [{ validator: v => v === "10" }],
+    onRun: (vars) => { state.bananas = vars.bananas; renderBananas(); if (vars.bananas >= 10) celebrate(); },
+    canAdvance: () => state.bananas >= 10,
+    advanceMessage: '✓ Mango is celebrating! You used if.'
   },
+  {
+    title: "5. Final challenge",
+    sub: "Put it all together.",
+    task: "🎯 Fill BOTH yellow boxes: 0 (start) and 7 (loop times).",
+    taskSub: "Then click ▶ Run to win the quest!",
+    why: "You're now writing real Python! Variables, loops, and if-statements are the foundation of every program.",
+    hint: "First blank = 0 (start). Second blank = 7 (loop count).",
+    code: [
+      { txt: "bananas = ", blank: { idx: 0, width: 50 } },
+      { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+      { txt: "    bananas = bananas + 1" },
+      { txt: "if bananas == 7:" },
+      { txt: '    print("🏆 Perfect! Quest complete!")' }
+    ],
+    blanks: [{ validator: v => v === "0" }, { validator: v => v === "7" }],
+    onRun: (vars) => { state.bananas = vars.bananas; animateLoopBananas(7); if (vars.bananas === 7) setTimeout(celebrate, 2400); },
+    canAdvance: () => state.bananas === 7,
+    advanceMessage: '✓ Quest complete! 🏆',
+    isLast: true
+  }
 ];
 
-const CHALLENGES = [
-  { q:"Mango has 0 bananas. He clicks 4 times to add bananas one by one. How many does he have?",
-    options:[3,4,5,8], answer:4, why:"Each click adds 1. 0+1+1+1+1 = 4." },
-  { q:"Count = 7. Then `count = count + 5`. What is count now?",
-    options:[5,7,10,12], answer:12, why:"7 + 5 = 12. The variable updates to the new total." },
-  { q:"A loop runs 6 times: `for i in range(6): count = count + 1`. If count starts at 0, what's the final count?",
-    options:[1,6,7,60], answer:6, why:"The loop runs 6 times, adding 1 each time. 0 + 6 = 6." },
-];
+// ====== Mini Python interpreter ======
+function runPython(code, initialVars) {
+  const out = [];
+  const vars = Object.assign({}, initialVars || {});
+  const lines = code.split('\n').map(l => ({ raw: l, indent: l.match(/^(\s*)/)[1].length, body: l.trim() })).filter(l => l.body && !l.body.startsWith('#'));
 
-const $ = id => document.getElementById(id);
+  function evalExpr(expr) {
+    const keys = Object.keys(vars);
+    const vals = keys.map(k => vars[k]);
+    return Function(...keys, `return (${expr})`)(...vals);
+  }
+
+  function execBlock(startIdx, parentIndent) {
+    let idx = startIdx;
+    while (idx < lines.length && lines[idx].indent > parentIndent) {
+      const line = lines[idx];
+      const body = line.body;
+
+      if (/^print\s*\(/.test(body)) {
+        const inner = body.match(/^print\s*\(([\s\S]*)\)\s*$/)[1];
+        const parts = splitTopLevel(inner);
+        const evaled = parts.map(p => {
+          p = p.trim();
+          if (/^"[^"]*"$/.test(p) || /^'[^']*'$/.test(p)) return p.slice(1, -1);
+          try { return evalExpr(p); } catch { return p; }
+        });
+        out.push(evaled.join(' '));
+        idx++;
+      }
+      else if (/^for\s+(\w+)\s+in\s+range\s*\(\s*(.+?)\s*\)\s*:/.test(body)) {
+        const m = body.match(/^for\s+(\w+)\s+in\s+range\s*\(\s*(.+?)\s*\)\s*:/);
+        const v = m[1], n = evalExpr(m[2]);
+        const loopStart = idx + 1;
+        const loopIndent = line.indent;
+        // find end of loop body
+        let endIdx = loopStart;
+        while (endIdx < lines.length && lines[endIdx].indent > loopIndent) endIdx++;
+        for (let k = 0; k < n; k++) {
+          vars[v] = k;
+          execBlock(loopStart, loopIndent);
+        }
+        idx = endIdx;
+      }
+      else if (/^if\s+(.+?)\s*:/.test(body)) {
+        const cond = body.match(/^if\s+(.+?)\s*:/)[1];
+        const truthy = evalExpr(cond);
+        const blockStart = idx + 1;
+        const blockIndent = line.indent;
+        let endIdx = blockStart;
+        while (endIdx < lines.length && lines[endIdx].indent > blockIndent) endIdx++;
+        if (truthy) execBlock(blockStart, blockIndent);
+        idx = endIdx;
+      }
+      else if (/^(\w+)\s*=\s*(.+)$/.test(body) && !/^(\w+)\s*==/.test(body)) {
+        const m = body.match(/^(\w+)\s*=\s*(.+)$/);
+        vars[m[1]] = evalExpr(m[2]);
+        idx++;
+      }
+      else {
+        idx++;
+      }
+    }
+  }
+  execBlock(0, -1);
+  return { vars, out };
+}
+
+function splitTopLevel(s) {
+  const parts = [];
+  let depth = 0, cur = '', inStr = false, strCh = '';
+  for (const c of s) {
+    if (inStr) { cur += c; if (c === strCh) inStr = false; continue; }
+    if (c === '"' || c === "'") { inStr = true; strCh = c; cur += c; continue; }
+    if (c === '(' || c === '[') depth++;
+    if (c === ')' || c === ']') depth--;
+    if (c === ',' && depth === 0) { parts.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  if (cur) parts.push(cur);
+  return parts;
+}
+
+// ====== Rendering ======
+function renderLesson() {
+  const s = STEPS[state.step];
+  const el = document.getElementById('lesson');
+  const dots = STEPS.map((_, i) => `<div class="dot ${i === state.step ? 'active' : (state.completed[i] ? 'done' : '')}"></div>`).join('');
+  const advanceOk = s.canAdvance();
+  const isLast = s.isLast;
+  el.innerHTML = `
+    <div class="step-no">Step ${state.step + 1} of ${STEPS.length}</div>
+    <h2>${s.title}</h2>
+    <div class="sub">${s.sub}</div>
+    <div class="task">${s.task}<span class="ts">${s.taskSub}</span></div>
+    <div class="why">${s.why}</div>
+    <button class="hint-btn" onclick="document.getElementById('hintBox').classList.toggle('on')">💡 Need a hint?</button>
+    <div class="hint-box" id="hintBox">${s.hint}</div>
+    <div class="nav">
+      ${state.step > 0 ? '<button class="btn" onclick="goPrev()">← Back</button>' : ''}
+      <button class="btn primary" onclick="goNext()" ${advanceOk ? '' : 'disabled'}>${isLast && advanceOk ? '🏆 Finish' : 'Next →'}</button>
+      <div class="dots">${dots}</div>
+    </div>
+    ${advanceOk ? `<div style="background:#dcfce7;color:#166534;padding:8px 12px;border-radius:8px;margin-top:10px;font-size:13px;font-weight:700;text-align:center">${s.advanceMessage}</div>` : ''}
+  `;
+  renderCode();
+}
+
+function renderCode() {
+  const s = STEPS[state.step];
+  const area = document.getElementById('codeArea');
+  let html = '';
+  s.code.forEach((line, i) => {
+    let inner = colorize(line.txt);
+    if (line.blank) {
+      const cur = state['blank_'+line.blank.idx] || '';
+      const valid = s.blanks[line.blank.idx].validator(cur);
+      const cls = cur === '' ? '' : (valid ? 'ok' : 'bad');
+      inner += `<input class="blank ${cls}" id="blank_${line.blank.idx}" style="width:${line.blank.width}px" value="${cur}" oninput="onBlankInput(${line.blank.idx})">`;
+    }
+    if (line.suffix) inner += colorize(line.suffix);
+    html += `<div class="line"><span class="ln">${i+1}</span><span class="code-line">${inner}</span></div>`;
+  });
+  area.innerHTML = html;
+  document.getElementById('runBtn').disabled = !blanksValid();
+}
+
+function colorize(txt) {
+  return escape(txt)
+    .replace(/(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span class="str">$1</span>')
+    .replace(/("[^"]*"|'[^']*')/g, '<span class="str">$1</span>')
+    .replace(/\b(for|in|if|else|elif|while|def|return|True|False|None)\b/g, '<span class="kw">$1</span>')
+    .replace(/\b(print|range|len|input|int|str|float)\b/g, '<span class="fn">$1</span>')
+    .replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
+}
+
+function escape(s) { return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function blanksValid() {
+  const s = STEPS[state.step];
+  if (!s.blanks || !s.blanks.length) return true;
+  return s.blanks.every((b, i) => b.validator(state['blank_'+i] || ''));
+}
+
+window.onBlankInput = function(idx) {
+  const inp = document.getElementById('blank_'+idx);
+  state['blank_'+idx] = inp.value;
+  const s = STEPS[state.step];
+  const valid = s.blanks[idx].validator(inp.value);
+  inp.classList.toggle('ok', valid);
+  inp.classList.toggle('bad', !valid && inp.value.length > 0);
+  document.getElementById('runBtn').disabled = !blanksValid();
+};
+
+function assembleCode() {
+  const s = STEPS[state.step];
+  return s.code.map(line => {
+    let txt = line.txt;
+    if (line.blank) txt += (state['blank_'+line.blank.idx] || '');
+    if (line.suffix) txt += line.suffix;
+    return txt;
+  }).join('\n');
+}
+
+document.getElementById('runBtn').addEventListener('click', () => {
+  const s = STEPS[state.step];
+  const code = assembleCode();
+  const console_ = document.getElementById('console');
+  console_.innerHTML = '';
+  document.getElementById('runStatus').textContent = 'Running...';
+  try {
+    const initial = s.runMode === 'persistBananas' ? { bananas: state.bananas } : {};
+    const { vars, out } = runPython(code, initial);
+    out.forEach(o => {
+      const div = document.createElement('div');
+      div.className = 'out';
+      div.textContent = '› ' + o;
+      console_.appendChild(div);
+    });
+    document.getElementById('runStatus').textContent = '✓ Ran successfully';
+    state.ranThisStep = true;
+    s.onRun(vars);
+    setTimeout(() => renderLesson(), 100);
+  } catch (e) {
+    const div = document.createElement('div');
+    div.className = 'out err';
+    div.textContent = '✗ Error: ' + e.message;
+    console_.appendChild(div);
+    document.getElementById('runStatus').textContent = '✗ Error';
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  state.bananas = 0;
+  state.ranThisStep = false;
+  renderBananas();
+  document.getElementById('console').innerHTML = '';
+  document.getElementById('runStatus').textContent = '';
+  renderLesson();
+});
 
 function renderBananas() {
-  const grid = $('bananaGrid'); grid.innerHTML = '';
-  for (let i=0; i<state.totalBananas; i++) {
-    const b = document.createElement('button');
-    b.className = 'banana' + (state.collected.has(i)?' collected':'');
+  document.getElementById('bananaCount').textContent = state.bananas;
+  const pile = document.getElementById('pile');
+  pile.innerHTML = '';
+  for (let i = 0; i < Math.min(state.bananas, 30); i++) {
+    const b = document.createElement('span');
+    b.className = 'banana';
     b.textContent = '🍌';
-    b.onclick = () => collectOne(i);
-    grid.appendChild(b);
+    pile.appendChild(b);
   }
 }
-function collectOne(i) {
-  if (state.collected.has(i)) return;
-  state.collected.add(i); state.count++;
-  if (state.collected.size === state.totalBananas) setTimeout(()=>{ state.collected.clear(); renderBananas(); }, 300);
-  refresh();
-}
-function add5() { state.count += 5; msg("➕ Added 5!"); refresh(); }
-function loop10() {
-  let i=0; msg("🔁 Loop running...");
-  const id = setInterval(()=>{ state.count++; refresh(); if (++i>=10) { clearInterval(id); msg("✓ Loop done — added 10!"); } }, 80);
-}
-function msg(t) { const m=$('stageMsg'); m.textContent=t; setTimeout(()=>{ if(m.textContent===t) m.textContent=''; }, 3500); }
 
-function renderControls() {
-  const step = STEPS[state.step-1]; const c = $('stageControls'); c.innerHTML='';
-  if (!step.showControls) return;
-  if (step.showControls.includes('+5')) {
-    const b=document.createElement('button'); b.className='btn'; b.textContent='➕ +5 bananas';
-    b.style.background='#fff4d6'; b.style.borderColor='#f8d795'; b.onclick=add5; c.appendChild(b);
-  }
-  if (step.showControls.includes('loop10')) {
-    const b=document.createElement('button'); b.className='btn primary'; b.textContent='🔁 Loop +10';
-    b.onclick=loop10; c.appendChild(b);
-  }
+function spawnFlyingBanana() {
+  const stage = document.getElementById('stage');
+  const fly = document.createElement('div');
+  fly.className = 'flying-banana';
+  fly.textContent = '🍌';
+  fly.style.left = (50 + (Math.random() - 0.5) * 30) + '%';
+  stage.appendChild(fly);
+  setTimeout(() => fly.remove(), 800);
 }
-function colorize(t) {
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\b(for|in|if|else|while|return|range|print|def|and|or|not)\b/g,'<span class="kw">$1</span>')
-    .replace(/\b(\d+)\b/g,'<span class="num">$1</span>')
-    .replace(/("[^"]*")/g,'<span class="str">$1</span>')
-    .replace(/(#[^<]*)$/,'<span class="com">$1</span>');
-}
-function renderCode() {
-  const step = STEPS[state.step-1]; const blk = $('codeBlock'); blk.innerHTML='';
-  for (const c of step.code) {
-    const ln = document.createElement('span');
-    ln.className = 'code-line' + (c.highlight?' hl':'');
-    ln.innerHTML = colorize(c.line) + (c.ann?`<span class="annot"># ${c.ann}</span>`:'');
-    blk.appendChild(ln);
-  }
-}
-function renderDots() {
-  const d = $('dots'); d.innerHTML='';
-  for (let i=1; i<=STEPS.length; i++) {
-    const x=document.createElement('div');
-    x.className='dot' + (i<state.step?' done':i===state.step?' active':'');
-    d.appendChild(x);
-  }
-}
-function renderStep() {
-  const s = STEPS[state.step-1];
-  $('stepPill').textContent = `Step ${state.step} of ${STEPS.length}`;
-  $('stepTitle').textContent = s.title;
-  $('stepSub').textContent = s.sub;
-  $('taskBox').innerHTML = s.task + (s.taskSub?`<small>${s.taskSub}</small>`:'');
-  $('whyText').textContent = s.why;
-  $('hintBox').style.display = 'none';
-  $('btnPrev').disabled = state.step===1;
-  renderDots(); renderControls(); renderCode(); refreshCheck();
-  if (s.showChallenge) showChallenge(); else hideChallenge();
-}
-function refreshCheck() {
-  const s = STEPS[state.step-1]; const box = $('checkBox'); const done = s.isDone(state);
-  box.textContent = done ? '✓ Step complete! Click Next →' : s.check(state);
-  box.className = 'check' + (done?' done':'');
-  $('btnNext').disabled = !done;
-}
-function refresh() { $('countDisplay').textContent = state.count; refreshCheck(); }
-function nextStep() { if (state.step<STEPS.length) { state.step++; renderStep(); } else showSummary(); }
-function prevStep() { if (state.step>1) { state.step--; renderStep(); } }
 
-function showChallenge() {
-  if ($('challengeBox')) return;
-  const wrap = document.querySelector('.stage-wrap');
-  const div = document.createElement('div'); div.id='challengeBox'; div.className='challenge';
-  wrap.appendChild(div); renderChallenge();
-}
-function hideChallenge() { const c=$('challengeBox'); if(c) c.remove(); }
-function renderChallenge() {
-  const div = $('challengeBox'); if (!div) return;
-  if (state.challengeIdx >= CHALLENGES.length) {
-    div.innerHTML = '<h3>🎉 All questions answered!</h3><p>Click Next → to see your summary.</p>'; return;
-  }
-  const q = CHALLENGES[state.challengeIdx];
-  div.innerHTML = `<h3>Question ${state.challengeIdx+1} of ${CHALLENGES.length}</h3>
-    <div class="qbox">${q.q}</div><div class="options"></div><div class="qfeedback" id="qfb"></div>`;
-  const opts = div.querySelector('.options');
-  q.options.forEach(o => {
-    const b=document.createElement('button'); b.className='opt'; b.textContent=o;
-    b.onclick=()=>answer(o,b); opts.appendChild(b);
-  });
-}
-function answer(picked, btn) {
-  const q = CHALLENGES[state.challengeIdx]; const fb = $('qfb');
-  if (picked === q.answer) {
-    btn.classList.add('right'); fb.className='qfeedback right';
-    fb.textContent = '✓ Correct! ' + q.why;
-    state.challengeIdx++; setTimeout(renderChallenge, 1300); refreshCheck();
-  } else {
-    btn.classList.add('wrong'); fb.className='qfeedback wrong';
-    fb.textContent = '✗ Try again. Hint: ' + q.why;
+function animateLoopBananas(n) {
+  state.bananas = 0;
+  renderBananas();
+  for (let i = 0; i < n; i++) {
+    setTimeout(() => {
+      state.bananas++;
+      renderBananas();
+      spawnFlyingBanana();
+    }, 200 + i * 280);
   }
 }
+
+function celebrate() {
+  const stage = document.getElementById('stage');
+  const c = document.createElement('div');
+  c.className = 'celebration';
+  c.textContent = '🎉';
+  stage.appendChild(c);
+  setTimeout(() => c.remove(), 1300);
+}
+
+window.goNext = function() {
+  state.completed[state.step] = true;
+  if (STEPS[state.step].isLast) { showSummary(); return; }
+  state.step++;
+  state.ranThisStep = false;
+  document.getElementById('console').innerHTML = '';
+  document.getElementById('runStatus').textContent = '';
+  if (STEPS[state.step].runMode !== 'persistBananas') {
+    state.bananas = 0;
+    renderBananas();
+  }
+  renderLesson();
+};
+
+window.goPrev = function() {
+  if (state.step > 0) state.step--;
+  state.ranThisStep = false;
+  renderLesson();
+};
+
 function showSummary() {
-  document.querySelector('main.proj-main').innerHTML = `<div></div>
-    <div class="stage" style="grid-column:1/-1;flex-direction:column;">
-      <div class="summary-card">
-        <div class="badge">🏆</div>
-        <h2>Great work! Project complete.</h2>
-        <p style="color:var(--ink-soft);">You finished Number Quest. Here's what you learned:</p>
-        <ul class="you-learned">
-          <li>🔢 You used a <b>variable</b> called <code>count</code></li>
-          <li>➕ You added numbers in code</li>
-          <li>🔁 You used a <b>loop</b> to repeat work 10 times</li>
-          <li>🔀 You wrote an <b>if-statement</b> to make a decision</li>
-        </ul>
-        <p style="color:var(--ink-soft);margin:14px 0;">🎯 Up next: <b>Fraction Feast</b> — slice pizzas to learn fractions!</p>
-        <button class="btn primary" onclick="location.reload()">Restart project</button>
-      </div></div>`;
-  $('stepPill').textContent = `Done!`;
+  document.querySelector('.shell').style.display = 'none';
+  const summary = document.createElement('div');
+  summary.className = 'summary';
+  summary.innerHTML = `
+    <div class="ic">🏆</div>
+    <h2>Quest Complete!</h2>
+    <p>You wrote real Python code and helped Mango collect bananas.</p>
+    <ul>
+      <li>You used a <b>variable</b> to store numbers</li>
+      <li>You did <b>math</b> on your variable</li>
+      <li>You used a <b>loop</b> to repeat code</li>
+      <li>You used <b>if</b> to make a decision</li>
+    </ul>
+    <div class="next">Next up: <b>Fraction Feast</b> — slice pizzas with code!</div>
+  `;
+  document.querySelector('.app').appendChild(summary);
 }
 
-$('btnStart').onclick = ()=> $('welcome').style.display='none';
-$('btnNext').onclick = nextStep;
-$('btnPrev').onclick = prevStep;
-$('btnRestart').onclick = ()=> location.reload();
-$('btnHint').onclick = ()=> { const s=STEPS[state.step-1]; const hb=$('hintBox'); hb.textContent='💡 '+(s.hint||'Just keep trying!'); hb.style.display='block'; };
-
-renderBananas(); renderStep(); refresh();
+renderLesson();
+renderBananas();
 </script>
-</body>
-</html>
+</body></html>
