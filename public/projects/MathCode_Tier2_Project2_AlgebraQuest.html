@@ -1,296 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 2 — Algebra Quest: Equation Solver</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Algebra Quest — MathCode</title>
+<link rel="stylesheet" href="/css/project-shared.css">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f2e;color:#fff;min-height:100vh}
-  .header{background:linear-gradient(135deg,#1a1a4e,#2d1b69);padding:18px 28px;border-bottom:3px solid #6c5ce7}
-  .header h1{font-size:1.5em;color:#a29bfe}.header .sub{font-size:.85em;color:#74b9ff;margin-top:4px}
-  .header .meta{font-size:.72em;color:#888;margin-top:6px}
-  .main{display:flex;min-height:calc(100vh - 95px)}
-  .code-panel{width:44%;background:#1a1a3e;padding:18px;border-right:2px solid #333;display:flex;flex-direction:column}
-  .game-panel{width:56%;padding:18px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
-  .ptitle{font-size:1em;color:#ffd93d;margin-bottom:10px}
-  .code-editor{flex:1;background:#0d0d28;border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:12.5px;overflow-y:auto}
-  .code-line{display:flex;margin-bottom:1px;min-height:19px;align-items:center}
-  .ln{color:#555;width:28px;text-align:right;margin-right:10px;font-size:11px;flex-shrink:0}
-  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
-  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
-  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
-  .hl{background:rgba(108,92,231,.12);border-left:3px solid #6c5ce7;margin-left:-14px;padding-left:11px}
-  .ctrls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-  .btn{padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-  .btn-run{background:#00b894;color:#fff}.btn-run:hover{background:#00a381}
-  .btn-new{background:#6c5ce7;color:#fff}.btn-new:hover{background:#5a4bd1}
-  .btn-reset{background:#d63031;color:#fff}
-  .eq-display{background:#0d0d28;border-radius:14px;padding:24px;width:100%;max-width:500px;text-align:center;margin:10px 0}
-  .eq-text{font-size:2em;font-family:'Courier New',monospace;color:#a29bfe;letter-spacing:2px}
-  .eq-goal{font-size:.85em;color:#888;margin-top:8px}
-  .steps-area{width:100%;max-width:500px;margin-top:10px}
-  .step{background:#1a1a3e;border-radius:8px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;animation:slideIn .3s ease}
-  @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
-  .step-num{background:#6c5ce7;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;font-weight:700;flex-shrink:0}
-  .step-desc{flex:1;font-size:.85em;color:#dfe6e9}
-  .step-eq{font-family:'Courier New',monospace;color:#ffd93d;font-size:.9em;font-weight:600}
-  .action-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0;width:100%;max-width:500px}
-  .act-btn{padding:10px 16px;border:2px solid #444;border-radius:8px;background:#1a1a3e;color:#fff;font-size:.9em;cursor:pointer;transition:all .2s;font-family:'Courier New',monospace}
-  .act-btn:hover{border-color:#6c5ce7;background:rgba(108,92,231,.1)}
-  .act-btn.correct{border-color:#00b894;background:rgba(0,184,148,.15)}
-  .act-btn.wrong{border-color:#d63031;background:rgba(214,48,49,.15)}
-  .explanation{margin-top:12px;background:rgba(116,185,255,.08);border-left:3px solid #74b9ff;border-radius:0 8px 8px 0;padding:11px 14px;font-size:.82em;color:#b2bec3;line-height:1.5;width:100%;max-width:500px}
-  .explanation strong{color:#74b9ff}
-  .score-bar{display:flex;gap:15px;align-items:center;margin:8px 0;font-size:.9em}
-  .score-bar .label{color:#888}.score-bar .val{color:#ffd93d;font-weight:700;font-size:1.2em}
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>MathCode Project: Algebra Quest</h1>
-  <div class="sub">Tier 2 — Unit 3: Pre-Algebra & Equations (Grades 5-7, Ages 10-12)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students solve equations step-by-step by performing inverse operations, understanding that equality means both sides must stay balanced</div>
-</div>
-<div class="main">
-  <div class="code-panel">
-    <div class="ptitle">&#128187; Python Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="ctrls">
-      <button class="btn btn-run" onclick="runCode()">&#9654; Run Code</button>
-      <button class="btn btn-new" onclick="newEquation()">&#9733; New Equation</button>
-      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
-    </div>
-  </div>
-  <div class="game-panel">
-    <div class="ptitle">&#9878; Equation Solver</div>
-    <div class="score-bar">
-      <span class="label">Solved:</span><span class="val" id="scoreVal">0</span>
-      <span class="label">Streak:</span><span class="val" id="streakVal">0</span>
-    </div>
-    <div class="eq-display">
-      <div class="eq-text" id="eqText">3x + 5 = 20</div>
-      <div class="eq-goal" id="eqGoal">Goal: find the value of x</div>
-    </div>
-    <div class="action-btns" id="actionBtns"></div>
-    <div class="steps-area" id="stepsArea"></div>
-    <div class="explanation" id="explanation">
-      <strong>How equations work in code:</strong> An equation is like a balance scale — both sides must be equal. To solve for <code>x</code>, we undo operations one at a time using <strong>inverse operations</strong> (subtract undoes add, divide undoes multiply). Each step, we do the SAME thing to BOTH sides. Press <strong>Run Code</strong> to start!
-    </div>
-  </div>
-</div>
+  .scale { display:flex; flex-direction:column; align-items:center; margin:20px 0; }
+  .beam { display:flex; gap:60px; align-items:flex-end; transform-origin:center bottom; transition:transform .4s; }
+  .beam.tilt-l { transform: rotate(-8deg); }
+  .beam.tilt-r { transform: rotate(8deg); }
+  .pan { background:#f5f7fc; border:2px solid var(--line); padding:14px; border-radius:10px;
+    min-width:140px; min-height:80px; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:6px; }
+  .x-block { background:linear-gradient(135deg,var(--primary),var(--primary-2)); color:white;
+    padding:8px 16px; border-radius:8px; font-weight:900; font-size:24px; box-shadow:0 4px 8px rgba(124,92,255,.3); }
+  .num-block { background:#fff8eb; border:2px solid #f8d795; padding:8px 14px; border-radius:8px; font-weight:800; font-size:20px; color:#8a5a0e; }
+  .fulcrum { width:0; height:0; border-left:30px solid transparent; border-right:30px solid transparent;
+    border-bottom:50px solid #5a6190; }
+  .equation { font-size:32px; font-weight:900; color:var(--primary); text-align:center; margin:14px 0; }
+</style></head><body>
+<script src="/js/project-framework.js"></script>
 <script>
-let eq = { a: 3, b: 5, result: 20, x: 5 };
-let steps = [];
-let currentStep = 0;
-let solved = false;
-let score = 0, streak = 0;
-let currentHL = -1;
+const cstate = { sub3Done: false, div2Done: false, eq2Solved: '', eq2Correct: false, finalGuess: '', finalCorrect: false };
+// Step 1 puzzle: x + 3 = 8  →  subtract 3 from both sides → x = 5
+// Step 2 puzzle: 2x = 10     →  divide both sides by 2  → x = 5
+// Step 3 puzzle: 3x + 1 = 10 →  subtract 1, divide by 3 → x = 3
 
-function generateEquation() {
-  const x = Math.floor(Math.random() * 12) + 2;
-  const a = Math.floor(Math.random() * 8) + 2;
-  const types = ['ax+b=c', 'ax-b=c', 'b+ax=c'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  let b, result, display, solveSteps;
-
-  if (type === 'ax+b=c') {
-    b = Math.floor(Math.random() * 15) + 1;
-    result = a * x + b;
-    display = `${a}x + ${b} = ${result}`;
-    solveSteps = [
-      { action: `Subtract ${b} from both sides`, correct: `sub_${b}`, eq: `${a}x = ${result - b}`, explain: `${a}x + ${b} - ${b} = ${result} - ${b}` },
-      { action: `Divide both sides by ${a}`, correct: `div_${a}`, eq: `x = ${(result - b) / a}`, explain: `${a}x / ${a} = ${result - b} / ${a}` }
-    ];
-  } else if (type === 'ax-b=c') {
-    b = Math.floor(Math.random() * 10) + 1;
-    result = a * x - b;
-    display = `${a}x - ${b} = ${result}`;
-    solveSteps = [
-      { action: `Add ${b} to both sides`, correct: `add_${b}`, eq: `${a}x = ${result + b}`, explain: `${a}x - ${b} + ${b} = ${result} + ${b}` },
-      { action: `Divide both sides by ${a}`, correct: `div_${a}`, eq: `x = ${(result + b) / a}`, explain: `${a}x / ${a} = ${result + b} / ${a}` }
-    ];
-  } else {
-    b = Math.floor(Math.random() * 15) + 1;
-    result = b + a * x;
-    display = `${b} + ${a}x = ${result}`;
-    solveSteps = [
-      { action: `Subtract ${b} from both sides`, correct: `sub_${b}`, eq: `${a}x = ${result - b}`, explain: `${b} + ${a}x - ${b} = ${result} - ${b}` },
-      { action: `Divide both sides by ${a}`, correct: `div_${a}`, eq: `x = ${(result - b) / a}`, explain: `${a}x / ${a} = ${result - b} / ${a}` }
-    ];
+function refreshStage() {
+  const stage = MC.$('stage'); if (!stage) return;
+  const step = MC.state.step;
+  if (step === 1) {
+    stage.innerHTML = `<h3>⚖️ The puzzle: x = ?</h3>
+      <div class="equation">x + 3 = 8</div>
+      <div class="scale">
+        <div class="beam">
+          <div class="pan"><div class="x-block">x</div><div class="num-block">+ 3</div></div>
+          <div class="pan"><div class="num-block">8</div></div>
+        </div>
+        <div class="fulcrum"></div>
+      </div>
+      <div class="stage-msg">An equation is a balance scale. Both sides are equal. We need to find what x is.</div>`;
+    cstate.sawIntro = true; MC.refresh();
   }
-
-  eq = { a, b, result, x, display, type, solveSteps };
-  steps = [];
-  currentStep = 0;
-  solved = false;
-}
-
-function getCode() {
-  const lines = [
-    { parts: [{ t: '# Algebra Quest — Equation Solver', c: 'cm' }] },
-    { parts: [] },
-    { parts: [{ t: '# The equation to solve', c: 'cm' }] },
-    { parts: [{ t: 'equation', c: 'vr' }, { t: ' = ', c: 'op' }, { t: `"${eq.display}"`, c: 'st' }] },
-    { parts: [] },
-    { parts: [{ t: '# Python can solve it directly:', c: 'cm' }] },
-    { parts: [{ t: '# But we want to understand HOW', c: 'cm' }] },
-    { parts: [] },
-    { parts: [{ t: '# Step-by-step solving:', c: 'cm' }] },
-    { parts: [{ t: '# Rule: do the SAME thing to BOTH sides', c: 'cm' }] },
-    { parts: [] },
-  ];
-
-  steps.forEach((step, i) => {
-    lines.push({ parts: [{ t: `# Step ${i + 1}: ${step.action}`, c: 'cm' }] });
-    lines.push({ parts: [{ t: `# ${step.explain}`, c: 'cm' }] });
-    lines.push({ parts: [{ t: '# Result: ', c: 'cm' }, { t: step.eq, c: 'vr' }] });
-    lines.push({ parts: [] });
-  });
-
-  if (solved) {
-    lines.push({ parts: [{ t: 'x', c: 'vr' }, { t: ' = ', c: 'op' }, { t: String(eq.x), c: 'nm' }] });
-    lines.push({ parts: [] });
-    lines.push({ parts: [{ t: '# Verify: plug x back in', c: 'cm' }] });
-    let verify = '';
-    if (eq.type === 'ax+b=c') verify = `${eq.a} * ${eq.x} + ${eq.b} = ${eq.a * eq.x + eq.b}`;
-    else if (eq.type === 'ax-b=c') verify = `${eq.a} * ${eq.x} - ${eq.b} = ${eq.a * eq.x - eq.b}`;
-    else verify = `${eq.b} + ${eq.a} * ${eq.x} = ${eq.b + eq.a * eq.x}`;
-    lines.push({ parts: [{ t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: `f"Check: ${verify}"`, c: 'st' }, { t: ')', c: '' }] });
-    lines.push({ parts: [{ t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: `"${eq.result} = ${eq.result} ✓ Correct!"`, c: 'st' }, { t: ')', c: '' }] });
+  else if (step === 2) {
+    stage.innerHTML = `<h3>➖ Subtract 3 from both sides</h3>
+      <div class="equation">${cstate.sub3Done ? 'x = 5' : 'x + 3 - 3 = 8 - 3'}</div>
+      <div class="scale">
+        <div class="beam">
+          <div class="pan">${cstate.sub3Done ? '<div class="x-block">x</div>' : '<div class="x-block">x</div><div class="num-block">+ 3</div>'}</div>
+          <div class="pan"><div class="num-block">${cstate.sub3Done ? '5' : '8'}</div></div>
+        </div>
+        <div class="fulcrum"></div>
+      </div>
+      <div class="row-controls">
+        <button class="btn primary" id="subBtn" ${cstate.sub3Done?'disabled':''}>➖ Take 3 off both sides</button>
+      </div>
+      <div class="stage-msg">${cstate.sub3Done ? '✓ Solved! x = 5. Whatever you do to one side, do to the other.' : 'Click the button to take 3 off both pans (keeps the scale balanced).'}</div>`;
+    MC.$('subBtn').onclick = () => { cstate.sub3Done = true; refreshStage(); MC.refresh(); };
   }
-  return lines;
-}
-
-function renderCode() {
-  const lines = getCode();
-  const ed = document.getElementById('codeEditor');
-  ed.innerHTML = '';
-  lines.forEach((line, i) => {
-    const div = document.createElement('div');
-    div.className = 'code-line' + (i === currentHL ? ' hl' : '');
-    const n = document.createElement('span'); n.className = 'ln'; n.textContent = i + 1;
-    div.appendChild(n);
-    const c = document.createElement('span'); c.className = 'ct';
-    if (!line.parts || line.parts.length === 0) c.textContent = '';
-    else line.parts.forEach(p => { const s = document.createElement('span'); s.className = p.c; s.textContent = p.t; c.appendChild(s); });
-    div.appendChild(c);
-    ed.appendChild(div);
-  });
-}
-
-function renderActions() {
-  const container = document.getElementById('actionBtns');
-  container.innerHTML = '';
-  if (solved || currentStep >= eq.solveSteps.length) return;
-
-  const step = eq.solveSteps[currentStep];
-  const val = parseInt(step.correct.split('_')[1]);
-  const options = [];
-
-  // Correct option
-  options.push({ label: step.action, value: step.correct });
-  // Wrong options
-  const ops = ['Add', 'Subtract', 'Multiply by', 'Divide by'];
-  const vals = [val, val + 2, eq.a, eq.b].filter((v, i, a) => a.indexOf(v) === i);
-  for (let op of ops) {
-    for (let v of vals) {
-      const label = `${op} ${v} ${op === 'Multiply by' || op === 'Divide by' ? 'on' : 'from'} both sides`;
-      const key = `${op.toLowerCase().replace(/ /g, '_')}_${v}`;
-      if (key !== step.correct && options.length < 4) {
-        options.push({ label: `${op} ${v}`, value: key });
-      }
-    }
+  else if (step === 3) {
+    stage.innerHTML = `<h3>➗ Divide both sides by 2</h3>
+      <div class="equation">${cstate.div2Done ? 'x = 5' : '2x = 10'}</div>
+      <div class="scale">
+        <div class="beam">
+          <div class="pan">${cstate.div2Done ? '<div class="x-block">x</div>' : '<div class="x-block">x</div><div class="x-block">x</div>'}</div>
+          <div class="pan"><div class="num-block">${cstate.div2Done ? '5' : '10'}</div></div>
+        </div>
+        <div class="fulcrum"></div>
+      </div>
+      <div class="row-controls">
+        <button class="btn primary" id="divBtn" ${cstate.div2Done?'disabled':''}>➗ Split both sides in half</button>
+      </div>
+      <div class="stage-msg">${cstate.div2Done ? '✓ x = 5. When two x\'s equal 10, one x equals 5.' : 'There are two x\'s on the left. Click to split both sides by 2.'}</div>`;
+    MC.$('divBtn').onclick = () => { cstate.div2Done = true; refreshStage(); MC.refresh(); };
   }
-
-  options.sort(() => Math.random() - 0.5).slice(0, 4).forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'act-btn';
-    btn.textContent = opt.label;
-    btn.onclick = () => handleAction(btn, opt.value, step);
-    container.appendChild(btn);
-  });
-}
-
-function handleAction(btn, value, step) {
-  if (value === step.correct) {
-    btn.classList.add('correct');
-    steps.push(step);
-    currentStep++;
-
-    const stepDiv = document.createElement('div');
-    stepDiv.className = 'step';
-    stepDiv.innerHTML = `<div class="step-num">${steps.length}</div><div class="step-desc">${step.action}<br><span style="color:#546e7a;font-size:.8em">${step.explain}</span></div><div class="step-eq">${step.eq}</div>`;
-    document.getElementById('stepsArea').appendChild(stepDiv);
-
-    document.getElementById('eqText').textContent = step.eq;
-
-    if (currentStep >= eq.solveSteps.length) {
-      solved = true;
-      score++;
-      streak++;
-      document.getElementById('scoreVal').textContent = score;
-      document.getElementById('streakVal').textContent = streak;
-      document.getElementById('explanation').innerHTML =
-        `<strong>Solved! x = ${eq.x}</strong> The code verifies by plugging x back into the original equation. ` +
-        `This is how programmers debug: <code>assert</code> that the answer is correct. ` +
-        `Each step used an <strong>inverse operation</strong> — subtract undoes add, divide undoes multiply. ` +
-        `The key rule: whatever you do to one side, you MUST do to the other side. Press <strong>New Equation</strong>!`;
-      renderActions();
-    } else {
-      document.getElementById('explanation').innerHTML =
-        `<strong>Correct!</strong> ${step.action}. Now the equation is <code>${step.eq}</code>. ` +
-        `What's the next step to isolate x?`;
-      setTimeout(() => renderActions(), 300);
-    }
-    renderCode();
-  } else {
-    btn.classList.add('wrong');
-    streak = 0;
-    document.getElementById('streakVal').textContent = 0;
-    document.getElementById('explanation').innerHTML =
-      `<strong>Not quite!</strong> Think about what operation is "trapping" x. If something is being added to x's side, we subtract it. If x is being multiplied, we divide. We always undo the OUTERMOST operation first.`;
+  else if (step === 4) {
+    stage.innerHTML = `<h3>🧩 Two-step puzzle: 3x + 1 = 10</h3>
+      <div class="equation">3x + 1 = 10</div>
+      <p style="text-align:center;color:var(--ink-soft)">Step 1: subtract 1 → 3x = 9<br>Step 2: divide by 3 → x = ?</p>
+      <div style="display:flex;gap:14px;justify-content:center;margin:14px 0">
+        <input type="number" id="finalGuess" placeholder="x = ?" value="${cstate.finalGuess}"
+          style="padding:10px;font-size:22px;width:120px;text-align:center;border:2px solid var(--line);border-radius:8px">
+        <button class="btn primary" id="checkF">Check</button>
+      </div>
+      <div class="stage-msg ${cstate.finalCorrect?'':cstate.finalGuess?'bad':''}" id="msg">${cstate.finalCorrect ? '✓ Correct! x = 3. Two steps: undo +1, then undo ×3.' : cstate.finalGuess ? '✗ Try again. 3x = 9, so x = 9/3.' : 'Enter your answer.'}</div>`;
+    MC.$('checkF').onclick = () => {
+      cstate.finalGuess = MC.$('finalGuess').value;
+      cstate.finalCorrect = +cstate.finalGuess === 3;
+      refreshStage(); MC.refresh();
+    };
+  }
+  else if (step === 5) {
+    stage.innerHTML = `<h3>🏆 Algebra Quiz</h3><div class="stage-msg">Answer the questions to finish.</div>`;
   }
 }
 
-function runCode() {
-  currentHL = 3;
-  renderCode();
-  setTimeout(() => {
-    currentHL = 8;
-    renderCode();
-    renderActions();
-    document.getElementById('explanation').innerHTML =
-      `<strong>Equation loaded:</strong> <code>${eq.display}</code>. Your goal: isolate x. ` +
-      `Choose the correct first step below. Remember: undo operations from the outside in, and do the SAME thing to BOTH sides!`;
-  }, 400);
-}
+const STEPS = [
+  { title: '1. The mystery of x',
+    sub: 'An equation is a balance scale.',
+    task: '🎯 Look at the puzzle: x + 3 = 8. What is x?',
+    taskSub: 'Click Next to learn how to solve it.',
+    why: 'In algebra, x is just a placeholder for a number we don\'t know yet. The equation tells us a clue: x plus 3 equals 8. Our job is to find x.',
+    hint: 'Think: what number plus 3 equals 8?',
+    isDone: () => cstate.sawIntro === true,
+    check: () => 'Click Next to solve it.',
+    code: [
+      { line: '# Solve: x + 3 = 8' },
+      { line: '# Think of x as a mystery number.' },
+      { line: 'x = "?"', highlight: true },
+    ]
+  },
+  { title: '2. Undo with subtraction',
+    sub: 'Take 3 off BOTH sides.',
+    task: '🎯 Click the button to subtract 3 from both pans.',
+    taskSub: 'The scale stays balanced if you do the same thing to both sides.',
+    why: 'To get x alone, we need to "undo" the +3. Subtraction undoes addition. As long as we subtract from BOTH sides, the equation stays true.',
+    hint: 'Click "Take 3 off both sides".',
+    isDone: () => cstate.sub3Done === true,
+    check: () => cstate.sub3Done ? '' : 'Click the orange button.',
+    code: [
+      { line: 'x + 3 = 8' },
+      { line: 'x + 3 - 3 = 8 - 3', highlight: true, ann: 'subtract 3 from both sides' },
+      { line: 'x = 5' },
+    ]
+  },
+  { title: '3. Undo with division',
+    sub: 'Two x\'s equal 10. So one x = ?',
+    task: '🎯 Click the button to split both sides by 2.',
+    taskSub: 'Division undoes multiplication.',
+    why: 'When you have 2x (which means 2 times x), divide both sides by 2 to get just x. Same rule: do the same thing to both sides.',
+    hint: 'Click "Split both sides in half".',
+    isDone: () => cstate.div2Done === true,
+    check: () => cstate.div2Done ? '' : 'Click the orange button.',
+    code: [
+      { line: '2 * x = 10' },
+      { line: '2 * x / 2 = 10 / 2', highlight: true, ann: 'divide both sides by 2' },
+      { line: 'x = 5' },
+    ]
+  },
+  { title: '4. Two-step solving',
+    sub: 'First undo addition. Then undo multiplication.',
+    task: '🎯 Solve 3x + 1 = 10. Type the value of x.',
+    taskSub: 'Step 1: subtract 1 from both sides. Step 2: divide by 3.',
+    why: 'Real equations often need 2 or more steps. Always undo addition/subtraction first, then multiplication/division. This is called the "order of operations" — in reverse.',
+    hint: '3x + 1 = 10 → 3x = 9 → x = 9 ÷ 3 = ?',
+    isDone: () => cstate.finalCorrect === true,
+    check: () => cstate.finalCorrect ? '' : 'Type the answer and click Check.',
+    code: [
+      { line: '3*x + 1 = 10' },
+      { line: '3*x = 10 - 1', highlight: true, ann: 'undo +1' },
+      { line: '3*x = 9' },
+      { line: 'x = 9 / 3', highlight: true, ann: 'undo ×3' },
+      { line: 'x = 3' },
+    ]
+  },
+  { title: '5. Test your skills',
+    sub: 'Solve the equations below.',
+    task: '🎯 Answer all 4 questions to complete the project.',
+    taskSub: '',
+    why: 'You just learned the foundation of all algebra: balance and inverse operations. With these two ideas you can solve any linear equation.',
+    hint: 'Always do the same thing to both sides.',
+    isDone: (s) => s.challengeIdx >= 4,
+    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
+    showChallenge: true,
+    code: [
+      { line: 'print("🎉 Algebra unlocked!")' },
+    ]
+  }
+];
 
-function newEquation() {
-  generateEquation();
-  document.getElementById('stepsArea').innerHTML = '';
-  document.getElementById('eqText').textContent = eq.display;
-  currentHL = -1;
-  renderCode();
-  renderActions();
-  document.getElementById('explanation').innerHTML = `<strong>New equation:</strong> <code>${eq.display}</code>. Press <strong>Run Code</strong> to start solving!`;
-}
+const CHALLENGES = [
+  { q: 'Solve: x + 7 = 12',
+    options: ['5','19','7','12'], answer: '5',
+    why: '12 - 7 = 5.' },
+  { q: 'Solve: 4x = 20',
+    options: ['5','24','16','80'], answer: '5',
+    why: '20 ÷ 4 = 5.' },
+  { q: 'Solve: 2x + 3 = 11',
+    options: ['4','7','5','8'], answer: '4',
+    why: 'First subtract 3: 2x = 8. Then divide by 2: x = 4.' },
+  { q: 'Why must we do the same thing to BOTH sides of an equation?',
+    options: ['To keep the scale balanced','It looks nicer','Computers like it','Because of pi'],
+    answer: 'To keep the scale balanced',
+    why: 'An equation is a balance. Change one side without the other and the equality breaks.' },
+];
 
-function resetAll() {
-  score = 0; streak = 0;
-  document.getElementById('scoreVal').textContent = 0;
-  document.getElementById('streakVal').textContent = 0;
-  generateEquation();
-  document.getElementById('stepsArea').innerHTML = '';
-  document.getElementById('eqText').textContent = eq.display;
-  document.getElementById('actionBtns').innerHTML = '';
-  currentHL = -1;
-  renderCode();
-  document.getElementById('explanation').innerHTML = '<strong>How equations work in code:</strong> An equation is like a balance scale — both sides must be equal. To solve for <code>x</code>, we undo operations using <strong>inverse operations</strong>. Press <strong>Run Code</strong> to start!';
-}
+const PROJECT = {
+  title: 'Algebra Quest', icon: '⚖️', language: 'Python',
+  welcomeIcon: '⚖️', welcomeTitle: 'Welcome to Algebra Quest!',
+  welcomeBody: "x looks scary, but it's just a placeholder for a number we don't know. We'll use a balance scale to solve mystery equations and find what x is worth.",
+  youWill: ['What x means in algebra','Inverse operations (undo with the opposite)','One-step and two-step equations','Why both sides must stay equal'],
+  duration: '12–15 min', gradeBand: 'Grade 6–7',
+  youLearned: ['x is a placeholder for an unknown number','Equations are balance scales','Subtraction undoes addition','Division undoes multiplication','Always do the same thing to both sides'],
+  upNext: 'Next: Coordinate Plotter — putting points on a graph!'
+};
 
-generateEquation();
-renderCode();
-</script>
-</body>
-</html>
+MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
+refreshStage();
+</script></body></html>

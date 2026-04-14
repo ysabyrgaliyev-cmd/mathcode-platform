@@ -1,559 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 3 — Calculus Slope Explorer</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculus Explorer — MathCode</title>
+<link rel="stylesheet" href="/css/project-shared.css">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a1e;color:#fff;min-height:100vh}
-  .header{background:linear-gradient(135deg,#0d0d30,#1a0a3e);padding:16px 24px;border-bottom:3px solid #e74c3c}
-  .header h1{font-size:1.4em;color:#ff6b6b}.header .sub{font-size:.82em;color:#74b9ff;margin-top:3px}
-  .header .meta{font-size:.7em;color:#666;margin-top:5px}
-  .main{display:flex;min-height:calc(100vh - 85px)}
-  .code-panel{width:44%;background:#121230;padding:16px;border-right:2px solid #222;display:flex;flex-direction:column}
-  .game-panel{width:56%;padding:16px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
-  .ptitle{font-size:.95em;color:#ffd93d;margin-bottom:8px}
-  .code-editor{flex:1;background:#080818;border-radius:8px;padding:12px;font-family:'Fira Code','Courier New',monospace;font-size:12px;overflow-y:auto}
-  .code-line{display:flex;margin-bottom:0;min-height:18px;align-items:center}
-  .code-line.hl{background:rgba(231,76,60,.12);border-left:2px solid #e74c3c}
-  .ln{color:#444;width:26px;text-align:right;margin-right:8px;font-size:10px;flex-shrink:0}
-  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
-  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
-  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
-  .ctrls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-  .btn{padding:8px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
-  .btn-run{background:#e74c3c;color:#fff}.btn-run:hover{background:#c0392b}
-  .btn-tan{background:#9b59b6;color:#fff}.btn-tan:hover{background:#8e44ad}
-  .btn-area{background:#27ae60;color:#fff}.btn-area:hover{background:#219a52}
-  .btn-reset{background:#555;color:#fff}.btn-reset:hover{background:#666}
-  canvas{border-radius:8px;border:1px solid #222;cursor:crosshair}
-  .controls{width:100%;max-width:500px;margin:8px 0}
-  .func-btns{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
-  .fb{padding:6px 12px;border:1px solid #333;border-radius:6px;background:#121230;color:#ddd;font-size:.75em;cursor:pointer;font-family:'Courier New',monospace}
-  .fb:hover{border-color:#e74c3c;background:rgba(231,76,60,.1)}
-  .fb.active{border-color:#e74c3c;background:rgba(231,76,60,.25);color:#ff6b6b}
-  .ctrl-group{background:#121230;border-radius:8px;padding:10px 14px;margin:6px 0}
-  .ctrl-row{display:flex;align-items:center;gap:10px;margin:5px 0}
-  .ctrl-label{font-size:.78em;color:#74b9ff;width:80px;flex-shrink:0}
-  .ctrl-val{font-size:.82em;color:#ffd93d;font-family:'Courier New',monospace;width:60px;text-align:right;flex-shrink:0}
-  input[type="range"]{flex:1;accent-color:#e74c3c;height:6px}
-  .analysis{background:#121230;border-radius:8px;padding:12px;width:100%;max-width:500px;margin-top:8px;font-size:.8em}
-  .a-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1a1a3a}
-  .a-row:last-child{border:none}.a-l{color:#666}.a-v{color:#ffd93d;font-family:'Courier New',monospace}
-  .mode-btns{display:flex;gap:5px;margin:6px 0}
-  .mode-btn{padding:6px 14px;border:1px solid #333;border-radius:6px;background:#121230;color:#ddd;font-size:.78em;cursor:pointer}
-  .mode-btn:hover{border-color:#3498db}.mode-btn.active{border-color:#3498db;background:rgba(52,152,219,.2);color:#74b9ff}
-  .explanation{margin-top:8px;background:rgba(116,185,255,.06);border-left:3px solid #74b9ff;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;color:#999;line-height:1.5;width:100%;max-width:500px}
-  .explanation strong{color:#74b9ff}
-  .challenge{margin-top:10px;background:rgba(231,76,60,.06);border-left:3px solid #e74c3c;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;width:100%;max-width:500px}
-  .challenge h3{color:#ff6b6b;font-size:1em;margin-bottom:6px}
-  .ch-q{color:#ddd;margin:6px 0}
-  .ch-opts{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0}
-  .ch-opt{padding:5px 12px;border:1px solid #333;border-radius:5px;background:#121230;color:#ddd;font-size:.9em;cursor:pointer}
-  .ch-opt:hover{border-color:#e74c3c}.ch-opt.correct{border-color:#27ae60;background:rgba(39,174,96,.2);color:#2ecc71}
-  .ch-opt.wrong{border-color:#e74c3c;background:rgba(231,76,60,.2);color:#e74c3c}
-  .ch-feedback{font-size:.9em;margin-top:5px;min-height:18px}
-  .score-bar{display:flex;gap:12px;align-items:center;margin-top:4px}
-  .score-bar span{font-size:.75em;color:#666}.score-bar .sv{color:#ffd93d}
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>MathCode Project: Calculus Slope Explorer</h1>
-  <div class="sub">Tier 3 — Unit 4: Introduction to Calculus (Grades 11-12, Ages 16-18)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students discover the derivative as the slope of the tangent line, visualize instantaneous rate of change, and explore area under curves through Riemann sums</div>
-</div>
-<div class="main">
-  <div class="code-panel">
-    <div class="ptitle">&#128187; Python Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="ctrls">
-      <button class="btn btn-run" onclick="plotFunction()">&#9654; Plot</button>
-      <button class="btn btn-tan" onclick="toggleTangent()">&#8599; Tangent Line</button>
-      <button class="btn btn-area" onclick="toggleArea()">&#9632; Area (Riemann)</button>
-      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
-    </div>
-  </div>
-  <div class="game-panel">
-    <div class="ptitle">&#128202; Calculus Visualizer</div>
-    <div class="func-btns">
-      <button class="fb active" onclick="setFunc('x2')" id="fbX2">x²</button>
-      <button class="fb" onclick="setFunc('x3')" id="fbX3">x³ − 3x</button>
-      <button class="fb" onclick="setFunc('sin')" id="fbSin">sin(x)</button>
-      <button class="fb" onclick="setFunc('ex')" id="fbEx">eˣ</button>
-      <button class="fb" onclick="setFunc('ln')" id="fbLn">ln(x)</button>
-      <button class="fb" onclick="setFunc('sqrt')" id="fbSqrt">√x</button>
-      <button class="fb" onclick="setFunc('1x')" id="fb1x">1/x</button>
-    </div>
-    <canvas id="calcCanvas" width="480" height="320" onmousemove="onCanvasMove(event)" onmouseleave="onCanvasLeave()"></canvas>
-    <div class="controls">
-      <div class="mode-btns">
-        <button class="mode-btn active" onclick="setMode('tangent')" id="modeTan">Tangent / Derivative</button>
-        <button class="mode-btn" onclick="setMode('riemann')" id="modeRie">Riemann Sums</button>
-      </div>
-      <div class="ctrl-group" id="tangentCtrls">
-        <div class="ctrl-row">
-          <span class="ctrl-label">Point x₀</span>
-          <input type="range" id="slX0" min="-4" max="4" step="0.05" value="1" oninput="updateX0()">
-          <span class="ctrl-val" id="valX0">1.00</span>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">h (Δx)</span>
-          <input type="range" id="slH" min="0.01" max="2" step="0.01" value="1" oninput="updateH()">
-          <span class="ctrl-val" id="valH">1.00</span>
-        </div>
-      </div>
-      <div class="ctrl-group" id="riemannCtrls" style="display:none">
-        <div class="ctrl-row">
-          <span class="ctrl-label">Left bound (a)</span>
-          <input type="range" id="slA" min="-3" max="3" step="0.1" value="0" oninput="updateRiemann()">
-          <span class="ctrl-val" id="valA">0.0</span>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">Right bound (b)</span>
-          <input type="range" id="slRB" min="-3" max="5" step="0.1" value="3" oninput="updateRiemann()">
-          <span class="ctrl-val" id="valRB">3.0</span>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">Rectangles (n)</span>
-          <input type="range" id="slN" min="1" max="100" step="1" value="5" oninput="updateRiemann()">
-          <span class="ctrl-val" id="valN">5</span>
-        </div>
-        <div class="mode-btns" style="margin-top:4px">
-          <button class="mode-btn active" onclick="setRiemannType('left')" id="rLeft">Left</button>
-          <button class="mode-btn" onclick="setRiemannType('right')" id="rRight">Right</button>
-          <button class="mode-btn" onclick="setRiemannType('mid')" id="rMid">Midpoint</button>
-        </div>
-      </div>
-    </div>
-    <div class="analysis" id="analysisPanel"></div>
-    <div class="explanation" id="explanationPanel">
-      <strong>The Derivative:</strong> The slope of the tangent line at a point measures how fast f(x) is changing — this is the <strong>instantaneous rate of change</strong>.<br><br>
-      <strong>From Secant to Tangent:</strong> The secant line through (x₀, f(x₀)) and (x₀+h, f(x₀+h)) has slope [f(x₀+h) − f(x₀)] / h. As h → 0, this secant approaches the tangent. The limit is f'(x₀).<br><br>
-      <strong>Try it:</strong> Drag the h slider toward 0 and watch the secant line become the tangent line!
-    </div>
-    <div class="challenge" id="challengePanel"></div>
-  </div>
-</div>
+  .calc-svg { background:#fafbff; border-radius:10px; }
+  .sl { background:#f5f7fc; padding:10px 14px; border-radius:8px; }
+  .sl label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
+  .sl b { color:var(--primary); font-size:18px; }
+  .controls { display:grid; gap:10px; grid-template-columns:1fr 1fr; max-width:380px; margin:14px auto 0; }
+</style></head><body>
+<script src="/js/project-framework.js"></script>
 <script>
-const canvas = document.getElementById('calcCanvas');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-const xMin = -5, xMax = 5, yMin = -4, yMax = 6;
-const pad = {l:0,r:0,t:0,b:0};
+const cstate = { x0: 1, slices: 4, sawCar: false, sawSlope: false, sawArea: false };
 
-let currentFunc = 'x2';
-let mode = 'tangent';
-let x0 = 1, h = 1;
-let rA = 0, rB = 3, rN = 5, rType = 'left';
-let showTangent = true, showArea = false;
-let hoverX = null;
-let score = 0, total = 0, currentQ = null;
-
-const funcs = {
-  x2:   {f: x => x*x,          df: x => 2*x,            label: 'x²',        dlabel: "2x",      intF: x => x**3/3},
-  x3:   {f: x => x**3 - 3*x,   df: x => 3*x*x - 3,     label: 'x³ − 3x',   dlabel: "3x² − 3", intF: x => x**4/4 - 3*x**2/2},
-  sin:  {f: x => Math.sin(x),   df: x => Math.cos(x),    label: 'sin(x)',     dlabel: "cos(x)",   intF: x => -Math.cos(x)},
-  ex:   {f: x => Math.exp(x),   df: x => Math.exp(x),    label: 'eˣ',        dlabel: "eˣ",       intF: x => Math.exp(x)},
-  ln:   {f: x => x>0?Math.log(x):NaN, df: x => x>0?1/x:NaN, label: 'ln(x)', dlabel: "1/x",      intF: x => x>0?x*Math.log(x)-x:NaN},
-  sqrt: {f: x => x>=0?Math.sqrt(x):NaN, df: x => x>0?1/(2*Math.sqrt(x)):NaN, label: '√x', dlabel: "1/(2√x)", intF: x => x>=0?2*x*Math.sqrt(x)/3:NaN},
-  '1x': {f: x => x!==0?1/x:NaN, df: x => x!==0?-1/(x*x):NaN, label: '1/x', dlabel: "-1/x²", intF: x => x>0?Math.log(x):NaN}
-};
-
-function toPixelX(x) { return (x - xMin) / (xMax - xMin) * W; }
-function toPixelY(y) { return H - (y - yMin) / (yMax - yMin) * H; }
-function toMathX(px) { return xMin + px / W * (xMax - xMin); }
-
-function setFunc(name) {
-  currentFunc = name;
-  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
-  let id = 'fb' + name.charAt(0).toUpperCase() + name.slice(1);
-  let el = document.getElementById(id);
-  if(el) el.classList.add('active');
-  draw();
-}
-
-function setMode(m) {
-  mode = m;
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  if(m === 'tangent') {
-    document.getElementById('modeTan').classList.add('active');
-    document.getElementById('tangentCtrls').style.display = '';
-    document.getElementById('riemannCtrls').style.display = 'none';
-    document.getElementById('explanationPanel').innerHTML = `
-      <strong>The Derivative:</strong> The slope of the tangent line at a point measures the <strong>instantaneous rate of change</strong>.<br><br>
-      <strong>From Secant to Tangent:</strong> Slope = [f(x₀+h) − f(x₀)] / h. As h → 0, this becomes f'(x₀).<br><br>
-      <strong>Try it:</strong> Drag h toward 0 and watch the secant become the tangent!`;
-  } else {
-    document.getElementById('modeRie').classList.add('active');
-    document.getElementById('tangentCtrls').style.display = 'none';
-    document.getElementById('riemannCtrls').style.display = '';
-    document.getElementById('explanationPanel').innerHTML = `
-      <strong>Riemann Sums:</strong> We approximate the area under f(x) from a to b by dividing into n rectangles.<br><br>
-      <strong>Left/Right/Midpoint:</strong> Each method samples f(x) at a different point in each sub-interval. As n → ∞, all three converge to the exact integral ∫f(x)dx.<br><br>
-      <strong>Try it:</strong> Increase n and watch the approximation approach the true area!`;
+function plotParabola(extra = '') {
+  const W = 320, H = 280, cx = W/2, cy = H - 30, scale = 26;
+  const f = x => 0.5 * x * x;
+  let pts = [];
+  for (let px = 0; px <= W; px += 2) {
+    const x = (px - cx) / scale;
+    const y = f(x);
+    const py = cy - y * scale;
+    if (py < 0 || py > H) continue;
+    pts.push([px, py]);
   }
-  draw();
-}
-
-function setRiemannType(t) {
-  rType = t;
-  document.querySelectorAll('#riemannCtrls .mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('r' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
-  draw();
-}
-
-function updateX0() {
-  x0 = parseFloat(document.getElementById('slX0').value);
-  document.getElementById('valX0').textContent = x0.toFixed(2);
-  draw();
-}
-
-function updateH() {
-  h = parseFloat(document.getElementById('slH').value);
-  document.getElementById('valH').textContent = h.toFixed(2);
-  draw();
-}
-
-function updateRiemann() {
-  rA = parseFloat(document.getElementById('slA').value);
-  rB = parseFloat(document.getElementById('slRB').value);
-  rN = parseInt(document.getElementById('slN').value);
-  document.getElementById('valA').textContent = rA.toFixed(1);
-  document.getElementById('valRB').textContent = rB.toFixed(1);
-  document.getElementById('valN').textContent = rN;
-  draw();
-}
-
-function draw() {
-  ctx.fillStyle = '#080818'; ctx.fillRect(0, 0, W, H);
-  drawGrid();
-  if(mode === 'riemann') drawRiemann();
-  drawFunction();
-  if(mode === 'tangent') drawTangentSecant();
-  if(hoverX !== null) drawHoverInfo();
-  updateAnalysis();
-  updateCode();
-}
-
-function drawGrid() {
-  ctx.strokeStyle = '#1a1a3a'; ctx.lineWidth = 0.5;
-  for(let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
-    let px = toPixelX(gx);
-    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  let g = '';
+  for (let i = -5; i <= 5; i++) {
+    g += `<line x1="${cx+i*scale}" y1="0" x2="${cx+i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
   }
-  for(let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
-    let py = toPixelY(gy);
-    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
-  }
-  // Axes
-  ctx.strokeStyle = '#444'; ctx.lineWidth = 1.5;
-  let zY = toPixelY(0); ctx.beginPath(); ctx.moveTo(0, zY); ctx.lineTo(W, zY); ctx.stroke();
-  let zX = toPixelX(0); ctx.beginPath(); ctx.moveTo(zX, 0); ctx.lineTo(zX, H); ctx.stroke();
-  // Labels
-  ctx.fillStyle = '#444'; ctx.font = '9px monospace';
-  for(let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
-    if(gx === 0) continue;
-    ctx.fillText(gx, toPixelX(gx) + 2, zY + 12);
-  }
-  for(let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
-    if(gy === 0) continue;
-    ctx.fillText(gy, zX + 4, toPixelY(gy) - 3);
-  }
+  for (let i = 0; i <= 8; i++) g += `<line x1="0" y1="${cy-i*scale}" x2="${W}" y2="${cy-i*scale}" stroke="#e8ecf6"/>`;
+  g += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
+  g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
+  return `<svg class="calc-svg" viewBox="0 0 ${W} ${H}" width="320" height="280">${g}<path d="${path}" fill="none" stroke="#7c5cff" stroke-width="3"/>${extra}</svg>`;
 }
 
-function drawFunction() {
-  let fn = funcs[currentFunc].f;
-  ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  let started = false;
-  for(let px = 0; px <= W; px++) {
-    let x = toMathX(px);
-    let y = fn(x);
-    if(isNaN(y) || !isFinite(y) || Math.abs(y) > 20) { started = false; continue; }
-    let py = toPixelY(y);
-    if(!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+function refreshStage() {
+  const stage = MC.$('stage'); if (!stage) return;
+  const step = MC.state.step;
+  if (step === 1) {
+    stage.innerHTML = `<h3>🚗 Speed = how fast position changes</h3>
+      <p style="text-align:center;font-size:15px;max-width:340px">A car drives 60 miles in 1 hour. Its speed is 60 mph.<br><br>
+      Now: a car's position changes following y = x². How fast is it moving at any time?<br><br>
+      That's what calculus answers — the <b style="color:var(--primary)">derivative</b>.</p>
+      <div class="row-controls">
+        <button class="btn primary" id="ackBtn" ${cstate.sawCar?'disabled':''}>Got it!</button>
+      </div>
+      <div class="stage-msg">${cstate.sawCar ? '✓ Click Next.' : 'Click "Got it!".'}</div>`;
+    MC.$('ackBtn').onclick = () => { cstate.sawCar = true; refreshStage(); MC.refresh(); };
   }
-  ctx.stroke();
-}
-
-function drawTangentSecant() {
-  let fn = funcs[currentFunc];
-  let y0 = fn.f(x0);
-  if(isNaN(y0)) return;
-  let y0h = fn.f(x0 + h);
-  let slope_secant = (y0h - y0) / h;
-  let slope_tangent = fn.df(x0);
-
-  // Point on curve
-  ctx.beginPath(); ctx.arc(toPixelX(x0), toPixelY(y0), 5, 0, Math.PI*2);
-  ctx.fillStyle = '#ffd93d'; ctx.fill();
-
-  // Second point for secant
-  if(!isNaN(y0h) && h > 0.05) {
-    ctx.beginPath(); ctx.arc(toPixelX(x0+h), toPixelY(y0h), 4, 0, Math.PI*2);
-    ctx.fillStyle = '#74b9ff'; ctx.fill();
-
-    // Secant line
-    ctx.strokeStyle = 'rgba(116,185,255,0.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-    let sx1 = xMin, sy1 = y0 + slope_secant * (sx1 - x0);
-    let sx2 = xMax, sy2 = y0 + slope_secant * (sx2 - x0);
-    ctx.beginPath(); ctx.moveTo(toPixelX(sx1), toPixelY(sy1)); ctx.lineTo(toPixelX(sx2), toPixelY(sy2)); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Delta markers
-    ctx.strokeStyle = 'rgba(116,185,255,0.4)'; ctx.lineWidth = 1;
-    // Horizontal Δx
-    ctx.beginPath(); ctx.moveTo(toPixelX(x0), toPixelY(y0)); ctx.lineTo(toPixelX(x0+h), toPixelY(y0)); ctx.stroke();
-    // Vertical Δy
-    ctx.beginPath(); ctx.moveTo(toPixelX(x0+h), toPixelY(y0)); ctx.lineTo(toPixelX(x0+h), toPixelY(y0h)); ctx.stroke();
-    ctx.fillStyle = '#74b9ff'; ctx.font = '10px sans-serif';
-    ctx.fillText('Δx=' + h.toFixed(2), toPixelX(x0 + h/2) - 15, toPixelY(y0) + 15);
-    let dy = y0h - y0;
-    ctx.fillText('Δy=' + dy.toFixed(2), toPixelX(x0+h) + 5, toPixelY((y0+y0h)/2));
+  else if (step === 2) {
+    const W = 320, H = 280, cx = W/2, cy = H - 30, scale = 26;
+    const f = x => 0.5*x*x;
+    const fp = x => x; // derivative of 0.5x² = x
+    const x0 = cstate.x0;
+    const y0 = f(x0);
+    const slope = fp(x0);
+    const px0 = cx + x0*scale, py0 = cy - y0*scale;
+    // tangent line: y - y0 = slope*(x - x0)
+    const t = 1.5;
+    const x1 = x0 - t, y1 = y0 - slope*t;
+    const x2 = x0 + t, y2 = y0 + slope*t;
+    const tangent = `<line x1="${cx+x1*scale}" y1="${cy-y1*scale}" x2="${cx+x2*scale}" y2="${cy-y2*scale}" stroke="#fbbf24" stroke-width="3"/>
+      <circle cx="${px0}" cy="${py0}" r="6" fill="#fbbf24"/>`;
+    stage.innerHTML = `<h3>📏 Slope at one point = derivative</h3>
+      ${plotParabola(tangent)}
+      <div class="controls">
+        <div class="sl"><label>x = <b>${x0.toFixed(1)}</b></label>
+          <input type="range" min="-3" max="3" step="0.1" value="${x0}" id="xSld" style="width:100%"></div>
+        <div class="sl"><label>slope = <b>${slope.toFixed(2)}</b></label></div>
+      </div>
+      <div class="stage-msg">${cstate.sawSlope ? '✓ The yellow tangent line shows the slope at this point. Slope changes as x changes!' : 'Move the slider — see the slope (derivative) change.'}</div>`;
+    MC.$('xSld').oninput = (e) => { cstate.x0 = +e.target.value; cstate.sawSlope = true; refreshStage(); MC.refresh(); };
   }
-
-  // Tangent line (always shown)
-  if(!isNaN(slope_tangent) && isFinite(slope_tangent)) {
-    ctx.strokeStyle = '#ffd93d'; ctx.lineWidth = 2;
-    let tx1 = xMin, ty1 = y0 + slope_tangent * (tx1 - x0);
-    let tx2 = xMax, ty2 = y0 + slope_tangent * (tx2 - x0);
-    ctx.beginPath(); ctx.moveTo(toPixelX(tx1), toPixelY(ty1)); ctx.lineTo(toPixelX(tx2), toPixelY(ty2)); ctx.stroke();
-  }
-
-  // Label
-  ctx.fillStyle = '#ffd93d'; ctx.font = '10px sans-serif';
-  ctx.fillText(`f'(${x0.toFixed(1)}) = ${slope_tangent.toFixed(3)}`, toPixelX(x0) + 10, toPixelY(y0) - 10);
-  if(h > 0.05) {
-    ctx.fillStyle = '#74b9ff';
-    ctx.fillText(`secant slope = ${slope_secant.toFixed(3)}`, toPixelX(x0) + 10, toPixelY(y0) - 25);
-  }
-}
-
-function drawRiemann() {
-  let fn = funcs[currentFunc].f;
-  if(rA >= rB) return;
-  let dx = (rB - rA) / rN;
-  let sum = 0;
-  for(let i = 0; i < rN; i++) {
-    let left = rA + i * dx;
-    let sampleX;
-    if(rType === 'left') sampleX = left;
-    else if(rType === 'right') sampleX = left + dx;
-    else sampleX = left + dx / 2;
-    let fy = fn(sampleX);
-    if(isNaN(fy) || !isFinite(fy)) continue;
-    sum += fy * dx;
-    let px1 = toPixelX(left), px2 = toPixelX(left + dx);
-    let py0 = toPixelY(0), pyF = toPixelY(fy);
-    ctx.fillStyle = fy >= 0 ? 'rgba(39,174,96,0.25)' : 'rgba(231,76,60,0.25)';
-    ctx.fillRect(px1, Math.min(py0, pyF), px2 - px1, Math.abs(pyF - py0));
-    ctx.strokeStyle = fy >= 0 ? 'rgba(39,174,96,0.6)' : 'rgba(231,76,60,0.6)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(px1, Math.min(py0, pyF), px2 - px1, Math.abs(pyF - py0));
-  }
-}
-
-function drawHoverInfo() {
-  let fn = funcs[currentFunc];
-  let y = fn.f(hoverX);
-  let dy = fn.df(hoverX);
-  if(isNaN(y) || !isFinite(y)) return;
-  let px = toPixelX(hoverX), py = toPixelY(y);
-  // Crosshair
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
-  // Dot
-  ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2);
-  ctx.fillStyle = '#fff'; ctx.fill();
-  // Info
-  ctx.fillStyle = 'rgba(8,8,24,0.85)';
-  ctx.fillRect(px + 8, py - 30, 130, 28);
-  ctx.fillStyle = '#ddd'; ctx.font = '10px monospace';
-  ctx.fillText(`(${hoverX.toFixed(2)}, ${y.toFixed(2)})`, px + 12, py - 18);
-  if(!isNaN(dy) && isFinite(dy)) ctx.fillText(`f'=${dy.toFixed(3)}`, px + 12, py - 6);
-}
-
-function onCanvasMove(e) {
-  let rect = canvas.getBoundingClientRect();
-  let px = e.clientX - rect.left;
-  hoverX = toMathX(px);
-  draw();
-}
-
-function onCanvasLeave() { hoverX = null; draw(); }
-
-function plotFunction() { draw(); }
-function toggleTangent() { showTangent = !showTangent; setMode('tangent'); }
-function toggleArea() { showArea = !showArea; setMode('riemann'); }
-
-function resetAll() {
-  currentFunc = 'x2'; x0 = 1; h = 1; rA = 0; rB = 3; rN = 5; rType = 'left'; mode = 'tangent';
-  document.getElementById('slX0').value = 1; document.getElementById('slH').value = 1;
-  document.getElementById('slA').value = 0; document.getElementById('slRB').value = 3; document.getElementById('slN').value = 5;
-  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
-  document.getElementById('fbX2').classList.add('active');
-  setMode('tangent');
-  setRiemannType('left');
-  updateX0(); updateH();
-}
-
-function updateAnalysis() {
-  let fn = funcs[currentFunc];
-  let panel = document.getElementById('analysisPanel');
-  if(mode === 'tangent') {
-    let y0 = fn.f(x0);
-    let slope_t = fn.df(x0);
-    let slope_s = h > 0.01 ? ((fn.f(x0+h) - y0) / h) : slope_t;
-    let error = Math.abs(slope_s - slope_t);
-    panel.innerHTML = `
-      <div class="a-row"><span class="a-l">f(x)</span><span class="a-v">${fn.label}</span></div>
-      <div class="a-row"><span class="a-l">f'(x)</span><span class="a-v">${fn.dlabel}</span></div>
-      <div class="a-row"><span class="a-l">Point x₀</span><span class="a-v">${x0.toFixed(2)}</span></div>
-      <div class="a-row"><span class="a-l">f(x₀)</span><span class="a-v">${isNaN(y0)?'undefined':y0.toFixed(4)}</span></div>
-      <div class="a-row"><span class="a-l">f'(x₀) exact</span><span class="a-v">${isNaN(slope_t)?'undefined':slope_t.toFixed(4)}</span></div>
-      <div class="a-row"><span class="a-l">Secant slope (h=${h.toFixed(2)})</span><span class="a-v">${isNaN(slope_s)?'undefined':slope_s.toFixed(4)}</span></div>
-      <div class="a-row"><span class="a-l">|Error|</span><span class="a-v">${isNaN(error)?'—':error.toFixed(6)}</span></div>
-      <div class="a-row"><span class="a-l">Tangent eq.</span><span class="a-v">y = ${slope_t.toFixed(2)}(x − ${x0.toFixed(2)}) + ${y0.toFixed(2)}</span></div>`;
-  } else {
-    let fn_f = fn.f;
-    if(rA >= rB) { panel.innerHTML = '<div class="a-row"><span class="a-l">Error</span><span class="a-v">a must be less than b</span></div>'; return; }
-    let dx = (rB - rA) / rN;
-    let sum = 0;
-    for(let i = 0; i < rN; i++) {
-      let sX;
-      if(rType === 'left') sX = rA + i * dx;
-      else if(rType === 'right') sX = rA + (i+1) * dx;
-      else sX = rA + (i + 0.5) * dx;
-      let fy = fn_f(sX);
-      if(!isNaN(fy) && isFinite(fy)) sum += fy * dx;
+  else if (step === 3) {
+    // area under y = 0.5x² from 0 to 2 using rectangles
+    const W = 320, H = 280, cx = 30, cy = H - 30, scale = 30;
+    const f = x => 0.5*x*x;
+    const a = 0, b = 2;
+    const n = cstate.slices;
+    const dx = (b - a) / n;
+    let rects = '';
+    let area = 0;
+    for (let i = 0; i < n; i++) {
+      const xi = a + i*dx;
+      const h = f(xi + dx/2); // midpoint
+      area += h * dx;
+      const px = cx + xi*scale, pw = dx*scale, ph = h*scale;
+      rects += `<rect x="${px}" y="${cy - ph}" width="${pw}" height="${ph}" fill="#7c5cff44" stroke="#7c5cff"/>`;
     }
-    let exact = fn.intF(rB) - fn.intF(rA);
-    let err = Math.abs(sum - exact);
-    panel.innerHTML = `
-      <div class="a-row"><span class="a-l">f(x)</span><span class="a-v">${fn.label}</span></div>
-      <div class="a-row"><span class="a-l">Interval [a, b]</span><span class="a-v">[${rA.toFixed(1)}, ${rB.toFixed(1)}]</span></div>
-      <div class="a-row"><span class="a-l">Rectangles (n)</span><span class="a-v">${rN}</span></div>
-      <div class="a-row"><span class="a-l">Δx</span><span class="a-v">${dx.toFixed(4)}</span></div>
-      <div class="a-row"><span class="a-l">Method</span><span class="a-v">${rType} Riemann</span></div>
-      <div class="a-row"><span class="a-l">Riemann sum</span><span class="a-v">${sum.toFixed(6)}</span></div>
-      <div class="a-row"><span class="a-l">Exact integral</span><span class="a-v">${isNaN(exact)?'undefined':exact.toFixed(6)}</span></div>
-      <div class="a-row"><span class="a-l">|Error|</span><span class="a-v">${isNaN(err)?'—':err.toFixed(6)}</span></div>`;
+    // curve
+    let pts = [];
+    for (let px = cx; px <= cx + 4*scale; px += 2) {
+      const x = (px - cx) / scale;
+      pts.push([px, cy - f(x)*scale]);
+    }
+    const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    let g = '';
+    for (let i = 0; i <= 4; i++) g += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
+    g += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
+    g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
+    stage.innerHTML = `<h3>🌊 Area under curve = integral</h3>
+      <svg class="calc-svg" viewBox="0 0 ${W} ${H}" width="320" height="280">${g}${rects}<path d="${path}" fill="none" stroke="#1f2545" stroke-width="3"/></svg>
+      <div class="controls">
+        <div class="sl"><label>slices = <b>${n}</b></label>
+          <input type="range" min="2" max="40" value="${n}" id="slSld" style="width:100%"></div>
+        <div class="sl"><label>estimated area = <b>${area.toFixed(3)}</b></label></div>
+      </div>
+      <div class="stage-msg">${cstate.sawArea ? '✓ More slices = better estimate. The TRUE area = 1.333 (= 4/3). This is integration!' : `Drag the slider up. Watch the area get more accurate.`}</div>`;
+    MC.$('slSld').oninput = (e) => { cstate.slices = +e.target.value; if (cstate.slices >= 20) cstate.sawArea = true; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 4) {
+    stage.innerHTML = `<h3>🧠 The two big ideas of calculus</h3>
+      <div style="max-width:340px;margin:0 auto;font-size:15px;line-height:1.7">
+        <p><b style="color:var(--primary)">Derivative</b> = how fast a function changes (the slope at a point).<br>
+        Real life: speed, growth rate, marginal cost.</p>
+        <p><b style="color:var(--accent)">Integral</b> = total accumulated amount (area under the curve).<br>
+        Real life: distance traveled, total revenue, water in a tank.</p>
+        <p style="background:#f5f7fc;padding:14px;border-radius:10px;margin-top:14px">
+        <b>Fundamental Theorem of Calculus:</b><br>
+        Derivative and integral are <b>opposites</b> — one undoes the other!
+        </p>
+      </div>
+      <div class="row-controls">
+        <button class="btn primary" id="ackBtn">I understand!</button>
+      </div>`;
+    MC.$('ackBtn').onclick = () => { cstate.sawIdeas = true; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 5) {
+    stage.innerHTML = `<h3>🏆 Calculus Quiz</h3><div class="stage-msg">Final challenge!</div>`;
   }
 }
 
-function updateCode() {
-  let fn = funcs[currentFunc];
-  const ed = document.getElementById('codeEditor');
-  let lines;
-  if(mode === 'tangent') {
-    lines = [
-      {t:[{c:'import',s:'kw'},{c:' numpy ',s:'vr'},{c:'as',s:'kw'},{c:' np',s:'vr'}]},
-      {t:[{c:'import',s:'kw'},{c:' matplotlib.pyplot ',s:'vr'},{c:'as',s:'kw'},{c:' plt',s:'vr'}]},
-      {t:[]},
-      {t:[{c:'# Define function and its derivative',s:'cm'}]},
-      {t:[{c:'def',s:'kw'},{c:' f',s:'fn'},{c:'(',s:'op'},{c:'x',s:'vr'},{c:'):',s:'op'}]},
-      {t:[{c:'    ',s:''},{c:'return',s:'kw'},{c:' ' + fn.label.replace('eˣ','np.exp(x)').replace('ln(x)','np.log(x)').replace('√x','np.sqrt(x)').replace('1/x','1/x').replace('x²','x**2').replace('x³ − 3x','x**3 - 3*x').replace('sin(x)','np.sin(x)'),s:'vr'}],hl:true},
-      {t:[]},
-      {t:[{c:'def',s:'kw'},{c:' df',s:'fn'},{c:'(',s:'op'},{c:'x',s:'vr'},{c:'):',s:'op'}]},
-      {t:[{c:'    ',s:''},{c:'return',s:'kw'},{c:' ' + fn.dlabel.replace('eˣ','np.exp(x)').replace('cos(x)','np.cos(x)').replace('1/x','1/x').replace('1/(2√x)','1/(2*np.sqrt(x))').replace('-1/x²','-1/x**2'),s:'vr'}],hl:true},
-      {t:[]},
-      {t:[{c:'# Point of tangency',s:'cm'}]},
-      {t:[{c:'x0',s:'vr'},{c:' = ',s:'op'},{c:x0.toFixed(2),s:'nm'}],hl:true},
-      {t:[{c:'h',s:'vr'},{c:' = ',s:'op'},{c:h.toFixed(2),s:'nm'}],hl:true},
-      {t:[]},
-      {t:[{c:'# Secant slope (difference quotient)',s:'cm'}]},
-      {t:[{c:'secant_slope',s:'vr'},{c:' = ',s:'op'},{c:'(',s:'op'},{c:'f',s:'fn'},{c:'(',s:'op'},{c:'x0',s:'vr'},{c:' + ',s:'op'},{c:'h',s:'vr'},{c:')',s:'op'},{c:' - ',s:'op'},{c:'f',s:'fn'},{c:'(',s:'op'},{c:'x0',s:'vr'},{c:')',s:'op'},{c:')',s:'op'},{c:' / ',s:'op'},{c:'h',s:'vr'}],hl:true},
-      {t:[]},
-      {t:[{c:'# Tangent slope (exact derivative)',s:'cm'}]},
-      {t:[{c:'tangent_slope',s:'vr'},{c:' = ',s:'op'},{c:'df',s:'fn'},{c:'(',s:'op'},{c:'x0',s:'vr'},{c:')',s:'op'}],hl:true},
-      {t:[]},
-      {t:[{c:'# As h → 0, secant_slope → tangent_slope',s:'cm'}]},
-      {t:[{c:'print',s:'fn'},{c:'(',s:'op'},{c:`f"Secant: {secant_slope:.4f}"`,s:'st'},{c:')',s:'op'}]},
-      {t:[{c:'print',s:'fn'},{c:'(',s:'op'},{c:`f"Tangent: {tangent_slope:.4f}"`,s:'st'},{c:')',s:'op'}]},
-    ];
-  } else {
-    let fExpr = fn.label.replace('eˣ','np.exp(x)').replace('ln(x)','np.log(x)').replace('√x','np.sqrt(x)').replace('1/x','1/x').replace('x²','x**2').replace('x³ − 3x','x**3 - 3*x').replace('sin(x)','np.sin(x)');
-    lines = [
-      {t:[{c:'import',s:'kw'},{c:' numpy ',s:'vr'},{c:'as',s:'kw'},{c:' np',s:'vr'}]},
-      {t:[]},
-      {t:[{c:'def',s:'kw'},{c:' f',s:'fn'},{c:'(',s:'op'},{c:'x',s:'vr'},{c:'):',s:'op'}]},
-      {t:[{c:'    ',s:''},{c:'return',s:'kw'},{c:' ' + fExpr,s:'vr'}],hl:true},
-      {t:[]},
-      {t:[{c:'# Riemann sum parameters',s:'cm'}]},
-      {t:[{c:'a',s:'vr'},{c:', ',s:'op'},{c:'b',s:'vr'},{c:' = ',s:'op'},{c:rA.toFixed(1),s:'nm'},{c:', ',s:'op'},{c:rB.toFixed(1),s:'nm'}],hl:true},
-      {t:[{c:'n',s:'vr'},{c:' = ',s:'op'},{c:rN.toString(),s:'nm'}],hl:true},
-      {t:[{c:'dx',s:'vr'},{c:' = ',s:'op'},{c:'(',s:'op'},{c:'b',s:'vr'},{c:' - ',s:'op'},{c:'a',s:'vr'},{c:')',s:'op'},{c:' / ',s:'op'},{c:'n',s:'vr'}],hl:true},
-      {t:[]},
-      {t:[{c:'# Compute ' + rType + ' Riemann sum',s:'cm'}]},
-      {t:[{c:'total',s:'vr'},{c:' = ',s:'op'},{c:'0',s:'nm'}]},
-      {t:[{c:'for',s:'kw'},{c:' i ',s:'vr'},{c:'in',s:'kw'},{c:' ',s:''},{c:'range',s:'fn'},{c:'(',s:'op'},{c:'n',s:'vr'},{c:')',s:'op'},{c:':',s:'op'}]},
-      {t:[{c:'    ',s:''},{c:'x_i',s:'vr'},{c:' = ',s:'op'},{c:'a',s:'vr'},{c:' + ',s:'op'},{c:rType==='left'?'i':rType==='right'?'(i+1)':'(i + 0.5)',s:'nm'},{c:' * ',s:'op'},{c:'dx',s:'vr'}],hl:true},
-      {t:[{c:'    ',s:''},{c:'total',s:'vr'},{c:' += ',s:'op'},{c:'f',s:'fn'},{c:'(',s:'op'},{c:'x_i',s:'vr'},{c:')',s:'op'},{c:' * ',s:'op'},{c:'dx',s:'vr'}],hl:true},
-      {t:[]},
-      {t:[{c:'print',s:'fn'},{c:'(',s:'op'},{c:'f"Riemann sum ({n} rects): {total:.6f}"',s:'st'},{c:')',s:'op'}]},
-      {t:[{c:'# As n → ∞, sum → exact integral',s:'cm'}]},
-    ];
+const STEPS = [
+  { title: '1. Why calculus?',
+    sub: 'It answers "how fast?" and "how much?"',
+    task: '🎯 Read the example, then click "Got it!"',
+    taskSub: '',
+    why: 'Calculus was invented (by Newton and Leibniz) to describe motion. Whenever something is changing, calculus measures HOW it changes (derivative) or accumulates how much TOTAL changed (integral).',
+    hint: 'Click the orange button.',
+    isDone: () => cstate.sawCar === true,
+    check: () => cstate.sawCar ? '' : 'Click "Got it!".',
+    code: [
+      { line: '# Calculus = math of change' },
+      { line: 'derivative  = "how fast"', highlight: true },
+      { line: 'integral    = "how much"' },
+    ]
+  },
+  { title: '2. The derivative',
+    sub: 'Slope of the curve at a point.',
+    task: '🎯 Move the slider — see how the slope changes.',
+    taskSub: 'The yellow line shows the tangent at x.',
+    why: 'A curve doesn\'t have ONE slope — it changes at every point. The derivative is a NEW function that gives the slope at any x. For y = ½x², the derivative is y\' = x.',
+    hint: 'Drag the slider.',
+    isDone: () => cstate.sawSlope === true,
+    check: () => cstate.sawSlope ? '' : 'Move the slider.',
+    code: [
+      { line: 'def f(x):  return 0.5 * x**2' },
+      { line: 'def df(x): return x', highlight: true, ann: 'derivative' },
+      { line: 'slope_at_2 = df(2)', ann: 'returns 2' },
+    ]
+  },
+  { title: '3. The integral',
+    sub: 'Area under the curve.',
+    task: '🎯 Drag the slices slider to 20 or more.',
+    taskSub: 'Watch the rectangles approximate the curve area.',
+    why: 'To find the total distance from a speed graph, calculate the area underneath. We approximate it with rectangles (this is called a "Riemann sum"). More rectangles = closer to the true integral.',
+    hint: 'Drag slices to 20 or higher.',
+    isDone: () => cstate.slices >= 20,
+    check: () => `Slices: ${cstate.slices} (need 20 or more).`,
+    code: [
+      { line: 'a, b, n = 0, 2, 100' },
+      { line: 'dx = (b - a) / n' },
+      { line: 'area = 0' },
+      { line: 'for i in range(n):', highlight: true },
+      { line: '    x = a + (i+0.5)*dx' },
+      { line: '    area += f(x) * dx' },
+    ]
+  },
+  { title: '4. Two big ideas',
+    sub: 'Derivative ↔ Integral.',
+    task: '🎯 Read both definitions, then click "I understand!"',
+    taskSub: '',
+    why: 'The Fundamental Theorem of Calculus says derivative and integral are opposite operations — like + and -, or × and ÷. If you integrate then differentiate, you get back the original.',
+    hint: 'Click the orange button.',
+    isDone: () => cstate.sawIdeas === true,
+    check: () => cstate.sawIdeas ? '' : 'Click the button.',
+    code: [
+      { line: '# d/dx and ∫ are inverse operations' },
+      { line: 'integral_of_derivative = original', highlight: true },
+    ]
+  },
+  { title: '5. Calculus quiz',
+    sub: 'You made it!',
+    task: '🎯 Answer all 4 questions to finish.',
+    taskSub: '',
+    why: 'You just touched the foundation of physics, engineering, economics, and machine learning.',
+    hint: 'Derivative = slope. Integral = area.',
+    isDone: (s) => s.challengeIdx >= 4,
+    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
+    showChallenge: true,
+    code: [
+      { line: 'print("🧮 Calculus complete!")' },
+    ]
   }
-  ed.innerHTML = lines.map((l,i) => {
-    let cls = l.hl ? ' hl' : '';
-    let inner = l.t.map(p => `<span class="${p.s}">${p.c}</span>`).join('');
-    return `<div class="code-line${cls}"><span class="ln">${i+1}</span><span class="ct">${inner || '&nbsp;'}</span></div>`;
-  }).join('');
-}
-
-// Challenges
-const challenges = [
-  {q: "What is the derivative of x³?", opts: ['3x²','x²','3x','x³'], ans: 0, expl: 'Power rule: d/dx(xⁿ) = nxⁿ⁻¹. So d/dx(x³) = 3x².'},
-  {q: "The derivative of sin(x) is:", opts: ['cos(x)','-cos(x)','sin(x)','-sin(x)'], ans: 0, expl: 'd/dx[sin(x)] = cos(x)'},
-  {q: "If f'(x₀) = 0, what does this mean geometrically?", opts: ['Horizontal tangent','Vertical tangent','No tangent','Slope = 1'], ans: 0, expl: 'f\'(x₀) = 0 means the tangent line is horizontal — a potential max, min, or inflection point.'},
-  {q: "The derivative of eˣ is:", opts: ['eˣ','xeˣ⁻¹','1/x','ln(x)'], ans: 0, expl: 'eˣ is its own derivative — the only function with this property!'},
-  {q: "As h → 0 in the difference quotient, you get:", opts: ['The derivative','The integral','The limit','The secant'], ans: 0, expl: 'f\'(x) = lim(h→0) [f(x+h) − f(x)] / h. This limit IS the derivative.'},
-  {q: "∫x² dx from 0 to 3 equals:", opts: ['9','27','6','3'], ans: 0, expl: '∫x² dx = x³/3. From 0 to 3: 3³/3 − 0³/3 = 27/3 = 9.'},
-  {q: "More Riemann rectangles means:", opts: ['Better approximation','Worse approximation','Same approximation','Faster computation'], ans: 0, expl: 'As n → ∞, Riemann sums converge to the exact integral value.'},
-  {q: "The derivative of ln(x) is:", opts: ['1/x','x','ln(x)/x','eˣ'], ans: 0, expl: 'd/dx[ln(x)] = 1/x for x > 0'}
 ];
 
-function loadChallenge() {
-  let idx = Math.floor(Math.random() * challenges.length);
-  currentQ = challenges[idx];
-  let shuffled = [...currentQ.opts];
-  let correctVal = currentQ.opts[currentQ.ans];
-  for(let i = shuffled.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i+1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  currentQ._shuffled = shuffled;
-  currentQ._correctIdx = shuffled.indexOf(correctVal);
-  document.getElementById('challengePanel').innerHTML = `<h3>&#127891; Calculus Challenge</h3>
-    <div class="ch-q">${currentQ.q}</div>
-    <div class="ch-opts">${shuffled.map((o,i) => `<div class="ch-opt" onclick="checkAnswer(${i})">${o}</div>`).join('')}</div>
-    <div class="ch-feedback" id="chFeedback"></div>
-    <div class="score-bar"><span>Score: <span class="sv">${score}/${total}</span></span>
-    <span style="cursor:pointer;color:#74b9ff" onclick="loadChallenge()">Next →</span></div>`;
-}
+const CHALLENGES = [
+  { q: 'The derivative measures:',
+    options: ['Rate of change','Total area','Average','Probability'], answer: 'Rate of change',
+    why: 'Derivative = slope = how fast the function is changing.' },
+  { q: 'The integral measures:',
+    options: ['Total area under curve','Highest point','Lowest point','Slope'], answer: 'Total area under curve',
+    why: 'Integral accumulates area = total amount.' },
+  { q: 'If position is f(t), what does the derivative f\'(t) represent?',
+    options: ['Speed (velocity)','Distance','Time','Mass'], answer: 'Speed (velocity)',
+    why: 'Speed = how fast position is changing = derivative of position.' },
+  { q: 'In a Riemann sum, what happens as we use MORE rectangles?',
+    options: ['Estimate gets more accurate','Less accurate','No change','Becomes negative'], answer: 'Estimate gets more accurate',
+    why: 'Thinner rectangles fit the curve better → closer to true area.' },
+];
 
-function checkAnswer(i) {
-  total++;
-  const fb = document.getElementById('chFeedback');
-  const opts = document.querySelectorAll('.ch-opt');
-  opts.forEach(o => o.style.pointerEvents = 'none');
-  if(i === currentQ._correctIdx) {
-    score++;
-    opts[i].classList.add('correct');
-    fb.innerHTML = `<span style="color:#2ecc71">✓ Correct! ${currentQ.expl}</span>`;
-  } else {
-    opts[i].classList.add('wrong');
-    opts[currentQ._correctIdx].classList.add('correct');
-    fb.innerHTML = `<span style="color:#e74c3c">✗ ${currentQ.expl}</span>`;
-  }
-  document.querySelector('.score-bar .sv').textContent = `${score}/${total}`;
-}
+const PROJECT = {
+  title: 'Calculus Explorer', icon: '🧮', language: 'Python',
+  welcomeIcon: '🧮', welcomeTitle: 'Welcome to Calculus Explorer!',
+  welcomeBody: "Calculus is the math of change. We'll explore the two big ideas — derivatives (how fast?) and integrals (how much?) — using interactive graphs.",
+  youWill: ['What a derivative is (slope at a point)','What an integral is (area under curve)','How to approximate area with rectangles','The Fundamental Theorem of Calculus'],
+  duration: '15 min', gradeBand: 'Grade 11–12',
+  youLearned: ['Calculus = math of change','Derivative = instantaneous rate of change','Integral = accumulated total','Derivative and integral are inverse operations'],
+  upNext: '🎉 You finished MathCode! Time to build your own projects.'
+};
 
-// Init
-draw();
-loadChallenge();
-</script>
-</body>
-</html>
+MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
+refreshStage();
+</script></body></html>

@@ -1,276 +1,213 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 2 — Probability Lab: Simulation Engine</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Probability Lab — MathCode</title>
+<link rel="stylesheet" href="/css/project-shared.css">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f2e;color:#fff;min-height:100vh}
-  .header{background:linear-gradient(135deg,#1a1a4e,#2d1b69);padding:18px 28px;border-bottom:3px solid #fd79a8}
-  .header h1{font-size:1.5em;color:#fab1a0}.header .sub{font-size:.85em;color:#74b9ff;margin-top:4px}
-  .header .meta{font-size:.72em;color:#888;margin-top:6px}
-  .main{display:flex;min-height:calc(100vh - 95px)}
-  .code-panel{width:42%;background:#1a1a3e;padding:18px;border-right:2px solid #333;display:flex;flex-direction:column}
-  .game-panel{width:58%;padding:18px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
-  .ptitle{font-size:1em;color:#ffd93d;margin-bottom:10px}
-  .code-editor{flex:1;background:#0d0d28;border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:12px;overflow-y:auto}
-  .code-line{display:flex;margin-bottom:1px;min-height:18px;align-items:center}
-  .ln{color:#555;width:28px;text-align:right;margin-right:10px;font-size:11px;flex-shrink:0}
-  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
-  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
-  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
-  .hl{background:rgba(253,121,168,.12);border-left:3px solid #fd79a8;margin-left:-14px;padding-left:11px}
-  .ctrls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-  .btn{padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-  .btn-run{background:#00b894;color:#fff}.btn-x10{background:#fd79a8;color:#fff}.btn-x100{background:#e17055;color:#fff}
-  .btn-reset{background:#d63031;color:#fff}
-
-  .sim-area{background:#141432;border-radius:12px;padding:20px;width:100%;max-width:500px;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}
-  .die{width:60px;height:60px;background:#1a1a3e;border:2px solid #fd79a8;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2em;animation:roll .3s ease}
-  @keyframes roll{0%{transform:rotate(0)}50%{transform:rotate(180deg) scale(1.1)}100%{transform:rotate(360deg)}}
-  .coin{width:65px;height:65px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8em;animation:flip .4s ease;font-weight:700}
-  @keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(180deg)}100%{transform:rotateY(360deg)}}
-  .coin.heads{background:#ffd93d;color:#2d3436;border:3px solid #f9ca24}
-  .coin.tails{background:#636e72;color:#fff;border:3px solid #b2bec3}
-
-  .chart-area{width:100%;max-width:500px;margin-top:12px}
-  .chart-bar-row{display:flex;align-items:center;gap:8px;margin:3px 0}
-  .chart-label{min-width:30px;text-align:right;font-size:.8em;color:#888;font-family:'Courier New',monospace}
-  .chart-bar-bg{flex:1;height:22px;background:#1a1a3e;border-radius:4px;overflow:hidden;position:relative}
-  .chart-bar{height:100%;border-radius:4px;transition:width .3s ease;position:relative}
-  .chart-bar span{position:absolute;right:6px;top:2px;font-size:.7em;color:#fff;font-weight:600}
-  .chart-count{min-width:40px;font-size:.8em;color:#ffd93d;font-family:'Courier New',monospace}
-
-  .stats-panel{background:#1a1a3e;border-radius:10px;padding:12px;width:100%;max-width:500px;margin-top:10px;display:flex;flex-wrap:wrap;gap:15px;justify-content:center}
-  .stat{text-align:center}.stat-val{font-size:1.4em;font-weight:700;color:#ffd93d;font-family:'Courier New',monospace}.stat-label{font-size:.7em;color:#888}
-
-  .mode-tabs{display:flex;gap:6px;margin:10px 0}
-  .mt{padding:8px 14px;border:2px solid #444;border-radius:8px;background:#1a1a3e;color:#fff;font-size:.8em;cursor:pointer;transition:all .2s}
-  .mt:hover{border-color:#fd79a8}.mt.active{border-color:#fd79a8;background:rgba(253,121,168,.12)}
-
-  .explanation{margin-top:10px;background:rgba(116,185,255,.08);border-left:3px solid #74b9ff;border-radius:0 8px 8px 0;padding:11px 14px;font-size:.82em;color:#b2bec3;line-height:1.5;width:100%;max-width:500px}
-  .explanation strong{color:#74b9ff}
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>MathCode Project: Probability Lab</h1>
-  <div class="sub">Tier 2 — Unit 6: Probability & Simulation (Grades 5-7, Ages 10-12)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students discover probability through simulation — running experiments thousands of times to see that experimental results converge to theoretical predictions</div>
-</div>
-<div class="main">
-  <div class="code-panel">
-    <div class="ptitle">&#128187; Python Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="ctrls">
-      <button class="btn btn-run" onclick="simulate(1)">&#9654; Run Once</button>
-      <button class="btn btn-x10" onclick="simulate(10)">&#215;10</button>
-      <button class="btn btn-x100" onclick="simulate(100)">&#215;100</button>
-      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
-    </div>
-  </div>
-  <div class="game-panel">
-    <div class="ptitle">&#127922; Probability Simulator</div>
-    <div class="mode-tabs">
-      <button class="mt active" onclick="setMode('coin',this)">&#129689; Coin Flip</button>
-      <button class="mt" onclick="setMode('die',this)">&#127922; Dice Roll</button>
-      <button class="mt" onclick="setMode('two_dice',this)">&#127922;&#127922; Two Dice</button>
-    </div>
-    <div class="sim-area" id="simArea"><span style="color:#555;font-style:italic">Press Run to start simulating!</span></div>
-    <div class="stats-panel" id="statsPanel"></div>
-    <div class="chart-area" id="chartArea"></div>
-    <div class="explanation" id="explanation">
-      <strong>How probability works in code:</strong> Instead of calculating probability with formulas, we can <strong>simulate</strong> thousands of experiments using <code>random</code>. The code flips a coin or rolls dice over and over, counting the results. As you run more trials, the experimental probability gets closer and closer to the theoretical probability. This is called the <strong>Law of Large Numbers</strong>. Try it!
-    </div>
-  </div>
-</div>
+  .die { width:90px; height:90px; background:white; border:3px solid var(--ink); border-radius:14px;
+    display:flex; align-items:center; justify-content:center; font-size:48px; font-weight:900; color:var(--ink);
+    box-shadow:0 6px 14px rgba(0,0,0,.15); margin:14px auto; }
+  .coin { width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#ffd27a,#f4a830);
+    border:3px solid #b8651a; display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-weight:900; color:#5a3000; margin:14px auto; }
+  .bar-chart { display:flex; gap:10px; align-items:flex-end; height:120px; margin:14px auto; max-width:300px; justify-content:center; }
+  .bar { width:36px; background:linear-gradient(180deg,var(--primary),var(--primary-2));
+    border-radius:6px 6px 0 0; position:relative; min-height:4px; }
+  .bar .lbl { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%);
+    font-size:12px; font-weight:700; }
+  .bar .ct { position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+    font-size:12px; color:var(--primary); font-weight:800; }
+</style></head><body>
+<script src="/js/project-framework.js"></script>
 <script>
-let mode = 'coin';
-let results = {};
-let totalTrials = 0;
-const dieColors = ['#e17055','#00b894','#6c5ce7','#fdcb6e','#74b9ff','#fd79a8'];
+const cstate = { coinFlips: { H:0, T:0 }, dieRolls: [], totalRolls: 0, sawTheory: false, lastRoll: 0 };
 
-function setMode(m, btn) {
-  document.querySelectorAll('.mt').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  mode = m;
-  resetAll();
-}
+const dieFaces = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
-function getOutcomes() {
-  if (mode === 'coin') return ['Heads', 'Tails'];
-  if (mode === 'die') return ['1','2','3','4','5','6'];
-  if (mode === 'two_dice') return ['2','3','4','5','6','7','8','9','10','11','12'];
-}
-
-function getTheoretical(outcome) {
-  if (mode === 'coin') return 0.5;
-  if (mode === 'die') return 1/6;
-  if (mode === 'two_dice') {
-    const n = parseInt(outcome);
-    const ways = n <= 7 ? n - 1 : 13 - n;
-    return ways / 36;
-  }
-}
-
-function runOneTrial() {
-  if (mode === 'coin') {
-    return Math.random() < 0.5 ? 'Heads' : 'Tails';
-  } else if (mode === 'die') {
-    return String(Math.floor(Math.random() * 6) + 1);
-  } else {
-    const d1 = Math.floor(Math.random() * 6) + 1;
-    const d2 = Math.floor(Math.random() * 6) + 1;
-    return String(d1 + d2);
-  }
-}
-
-function simulate(n) {
-  const outcomes = getOutcomes();
-  if (totalTrials === 0) outcomes.forEach(o => results[o] = 0);
-
-  let lastResult = '';
-  for (let i = 0; i < n; i++) {
-    const r = runOneTrial();
-    results[r] = (results[r] || 0) + 1;
-    totalTrials++;
-    lastResult = r;
-  }
-
-  // Show last result visually
-  const area = document.getElementById('simArea');
-  if (n === 1) {
-    if (mode === 'coin') {
-      area.innerHTML = `<div class="coin ${lastResult.toLowerCase()}">${lastResult === 'Heads' ? 'H' : 'T'}</div>`;
-    } else if (mode === 'die') {
-      area.innerHTML = `<div class="die">${getDieFace(parseInt(lastResult))}</div>`;
-    } else {
-      const sum = parseInt(lastResult);
-      // Find a valid split
-      let d1 = Math.min(sum - 1, 6);
-      let d2 = sum - d1;
-      if (d2 < 1) { d2 = 1; d1 = sum - 1; }
-      area.innerHTML = `<div class="die">${getDieFace(d1)}</div><span style="color:#888;font-size:1.5em">+</span><div class="die">${getDieFace(d2)}</div><span style="color:#ffd93d;font-size:1.5em;margin-left:8px">= ${sum}</span>`;
-    }
-  } else {
-    area.innerHTML = `<span style="color:#ffd93d;font-size:1.2em;font-weight:600">${n} trials completed! (${totalTrials} total)</span>`;
-  }
-
-  renderChart();
-  renderStats();
-  renderCode();
-
-  const msg = totalTrials < 10
-    ? `<strong>${totalTrials} trial${totalTrials > 1 ? 's' : ''} so far.</strong> The results might look uneven — that's normal with small samples! Run more trials to see the pattern emerge.`
-    : totalTrials < 100
-    ? `<strong>${totalTrials} trials.</strong> You might start seeing a pattern. But the bars aren't perfectly even yet. In probability, we need LOTS of data to see the true pattern. Keep going!`
-    : `<strong>${totalTrials} trials!</strong> Notice how the experimental percentages are getting closer to the theoretical probability. This is the <strong>Law of Large Numbers</strong> — the more trials you run, the closer your results get to the mathematical prediction. With infinite trials, they'd match exactly!`;
-  document.getElementById('explanation').innerHTML = msg;
-}
-
-function getDieFace(n) {
-  const faces = ['', '\u2680', '\u2681', '\u2682', '\u2683', '\u2684', '\u2685'];
-  return faces[n] || n;
-}
-
-function renderChart() {
-  const outcomes = getOutcomes();
-  const maxCount = Math.max(...outcomes.map(o => results[o] || 0), 1);
-  const container = document.getElementById('chartArea');
-  container.innerHTML = '';
-
-  outcomes.forEach((o, i) => {
-    const count = results[o] || 0;
-    const pct = totalTrials > 0 ? (count / totalTrials * 100).toFixed(1) : '0.0';
-    const theoretical = (getTheoretical(o) * 100).toFixed(1);
-    const barWidth = totalTrials > 0 ? (count / maxCount * 100) : 0;
-    const color = mode === 'coin' ? (o === 'Heads' ? '#ffd93d' : '#636e72') :
-      mode === 'die' ? dieColors[i] : `hsl(${(parseInt(o) - 2) * 33}, 70%, 60%)`;
-
-    const row = document.createElement('div');
-    row.className = 'chart-bar-row';
-    row.innerHTML = `
-      <span class="chart-label">${o}</span>
-      <div class="chart-bar-bg">
-        <div class="chart-bar" style="width:${barWidth}%;background:${color}"><span>${pct}%</span></div>
+function refreshStage() {
+  const stage = MC.$('stage'); if (!stage) return;
+  const step = MC.state.step;
+  if (step === 1) {
+    stage.innerHTML = `<h3>🪙 The coin: 50% heads, 50% tails</h3>
+      <div class="coin">${cstate.lastFlip || '?'}</div>
+      <div class="kv">
+        <div class="pair"><b>${cstate.coinFlips.H}</b><span>heads</span></div>
+        <div class="pair"><b>${cstate.coinFlips.T}</b><span>tails</span></div>
+        <div class="pair"><b>${cstate.coinFlips.H + cstate.coinFlips.T}</b><span>total flips</span></div>
       </div>
-      <span class="chart-count">${count} <span style="color:#555;font-size:.8em">(${theoretical}%)</span></span>
-    `;
-    container.appendChild(row);
-  });
+      <div class="row-controls">
+        <button class="btn primary" id="flipBtn">🪙 Flip 1 coin</button>
+        <button class="btn" id="flip10">⚡ Flip 10 coins</button>
+        <button class="btn" id="resetCoin">↻ Reset</button>
+      </div>
+      <div class="stage-msg">${cstate.coinFlips.H + cstate.coinFlips.T >= 10 ? `✓ ${cstate.coinFlips.H + cstate.coinFlips.T} flips: ${cstate.coinFlips.H} heads (${Math.round(100*cstate.coinFlips.H/(cstate.coinFlips.H+cstate.coinFlips.T))}%). Theory says 50%.` : 'Flip 10 or more times to see if heads ≈ 50%.'}</div>`;
+    MC.$('flipBtn').onclick = () => doFlip(1);
+    MC.$('flip10').onclick = () => doFlip(10);
+    MC.$('resetCoin').onclick = () => { cstate.coinFlips = {H:0,T:0}; cstate.lastFlip=''; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 2) {
+    stage.innerHTML = `<h3>🎲 Rolling a die</h3>
+      <div class="die">${dieFaces[cstate.lastRoll] || '?'}</div>
+      <div class="stage-msg">A die has 6 sides. The chance of any one number = 1 out of 6, or about 16.7%.</div>
+      <div class="kv">
+        <div class="pair"><b>1/6</b><span>P(any number)</span></div>
+        <div class="pair"><b>≈16.7%</b><span>chance</span></div>
+      </div>
+      <div class="row-controls">
+        <button class="btn primary" id="roll1">🎲 Roll once</button>
+      </div>
+      <div class="stage-msg">${cstate.lastRoll ? `✓ Rolled: ${cstate.lastRoll}.` : 'Click to roll.'}</div>`;
+    MC.$('roll1').onclick = () => { cstate.lastRoll = 1 + Math.floor(Math.random()*6); refreshStage(); MC.refresh(); };
+  }
+  else if (step === 3) {
+    const counts = [0,0,0,0,0,0];
+    cstate.dieRolls.forEach(r => counts[r-1]++);
+    const max = Math.max(1, ...counts);
+    stage.innerHTML = `<h3>🎲 Roll many times — see the pattern</h3>
+      <div class="bar-chart">
+        ${counts.map((c,i) => `<div class="bar" style="height:${(c/max)*110}px"><span class="ct">${c}</span><span class="lbl">${i+1}</span></div>`).join('')}
+      </div>
+      <div style="text-align:center;margin-top:30px;font-weight:700">Total rolls: ${cstate.totalRolls}</div>
+      <div class="row-controls">
+        <button class="btn primary" id="roll10">🎲 Roll 10</button>
+        <button class="btn" id="roll100">⚡ Roll 100</button>
+        <button class="btn" id="resetD">↻ Reset</button>
+      </div>
+      <div class="stage-msg">${cstate.totalRolls >= 60 ? '✓ With many rolls, all 6 numbers come up about equally — that\'s the law of large numbers!' : 'Roll at least 60 times to see the pattern.'}</div>`;
+    MC.$('roll10').onclick = () => doRolls(10);
+    MC.$('roll100').onclick = () => doRolls(100);
+    MC.$('resetD').onclick = () => { cstate.dieRolls = []; cstate.totalRolls = 0; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 4) {
+    stage.innerHTML = `<h3>🎯 Theoretical vs experimental probability</h3>
+      <p style="text-align:center;font-size:15px;max-width:340px">
+        <b>Theoretical:</b> what math predicts (1/6 ≈ 16.7%).<br><br>
+        <b>Experimental:</b> what actually happened in your rolls.<br><br>
+        With more rolls, experimental gets CLOSER to theoretical.
+      </p>
+      <div class="row-controls">
+        <button class="btn primary" id="ackBtn" ${cstate.sawTheory?'disabled':''}>Got it!</button>
+      </div>
+      <div class="stage-msg">${cstate.sawTheory ? '✓ Click Next.' : 'Click "Got it!" when ready.'}</div>`;
+    MC.$('ackBtn').onclick = () => { cstate.sawTheory = true; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 5) {
+    stage.innerHTML = `<h3>🏆 Probability Quiz</h3><div class="stage-msg">Answer the questions below.</div>`;
+  }
+  function doFlip(n) {
+    for (let i=0;i<n;i++) {
+      const r = Math.random() < 0.5 ? 'H' : 'T';
+      cstate.coinFlips[r]++;
+      cstate.lastFlip = r === 'H' ? '👑' : '🌙';
+    }
+    refreshStage(); MC.refresh();
+  }
+  function doRolls(n) {
+    for (let i=0;i<n;i++) cstate.dieRolls.push(1 + Math.floor(Math.random()*6));
+    cstate.totalRolls += n;
+    refreshStage(); MC.refresh();
+  }
 }
 
-function renderStats() {
-  const panel = document.getElementById('statsPanel');
-  const outcomes = getOutcomes();
-  let maxO = outcomes[0], maxC = 0;
-  outcomes.forEach(o => { if ((results[o] || 0) > maxC) { maxC = results[o] || 0; maxO = o; } });
+const STEPS = [
+  { title: '1. Flip a coin',
+    sub: '50/50 chance — but does it always work out?',
+    task: '🎯 Flip the coin 10 or more times.',
+    taskSub: 'See if heads comes up exactly half.',
+    why: 'Probability is the chance something happens. A fair coin has a 50% chance of heads. But if you flip just 4 times, you could get all heads! Probability shows up over MANY tries.',
+    hint: 'Click "Flip 10 coins".',
+    isDone: () => (cstate.coinFlips.H + cstate.coinFlips.T) >= 10,
+    check: () => `Flips: ${cstate.coinFlips.H + cstate.coinFlips.T} (need 10).`,
+    code: [
+      { line: 'import random' },
+      { line: 'flip = random.choice(["H","T"])', highlight: true },
+      { line: 'print(flip)' },
+    ]
+  },
+  { title: '2. Meet the die',
+    sub: '6 sides, equal chance for each.',
+    task: '🎯 Roll the die once.',
+    taskSub: 'You should get a number from 1 to 6.',
+    why: 'A standard die has 6 sides. The chance of any specific number = 1 out of 6 = 1/6 ≈ 16.7%. Each roll is independent (the die has no memory).',
+    hint: 'Click "Roll once".',
+    isDone: () => cstate.lastRoll > 0,
+    check: () => cstate.lastRoll > 0 ? '' : 'Click "Roll once".',
+    code: [
+      { line: 'import random' },
+      { line: 'roll = random.randint(1, 6)', highlight: true, ann: 'random number 1 to 6' },
+      { line: 'print(roll)' },
+    ]
+  },
+  { title: '3. Roll many times',
+    sub: 'The pattern emerges with lots of rolls.',
+    task: '🎯 Roll the die 60 or more times.',
+    taskSub: 'Watch the bars even out.',
+    why: 'The "law of large numbers" says: the more times you try a random event, the closer the results match theory. 6 rolls might be all 1\'s. 600 rolls will give about 100 of each number.',
+    hint: 'Click "Roll 100".',
+    isDone: () => cstate.totalRolls >= 60,
+    check: () => `Rolls: ${cstate.totalRolls} (need 60).`,
+    code: [
+      { line: 'counts = [0]*6' },
+      { line: 'for i in range(100):', highlight: true },
+      { line: '    r = random.randint(1, 6)' },
+      { line: '    counts[r-1] += 1' },
+      { line: 'print(counts)' },
+    ]
+  },
+  { title: '4. Theory vs experiment',
+    sub: 'Math vs reality.',
+    task: '🎯 Read the explanation, then click "Got it!"',
+    taskSub: '',
+    why: 'Theoretical probability is calculated (1/6 for a die). Experimental probability is what you actually observed. They should match closely with many trials. Casinos and insurance companies live off this.',
+    hint: 'Click the orange button.',
+    isDone: () => cstate.sawTheory === true,
+    check: () => cstate.sawTheory ? '' : 'Click "Got it!".',
+    code: [
+      { line: 'theoretical = 1/6', highlight: true, ann: '≈ 0.167' },
+      { line: 'experimental = counts[0] / 100' },
+      { line: 'print(theoretical, experimental)' },
+    ]
+  },
+  { title: '5. Test your knowledge',
+    sub: 'Answer the questions to finish.',
+    task: '🎯 Complete all 4 questions.',
+    taskSub: '',
+    why: 'Probability runs your weather forecast, your insurance, and your favorite games. Now you know how it works.',
+    hint: 'Count the favorable outcomes ÷ total possible.',
+    isDone: (s) => s.challengeIdx >= 4,
+    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
+    showChallenge: true,
+    code: [
+      { line: 'print("🎲 Probability pro!")' },
+    ]
+  }
+];
 
-  panel.innerHTML = `
-    <div class="stat"><div class="stat-val">${totalTrials}</div><div class="stat-label">Total Trials</div></div>
-    <div class="stat"><div class="stat-val">${maxO}</div><div class="stat-label">Most Frequent</div></div>
-    <div class="stat"><div class="stat-val">${totalTrials > 0 ? (maxC / totalTrials * 100).toFixed(1) + '%' : '—'}</div><div class="stat-label">Highest %</div></div>
-    <div class="stat"><div class="stat-val">${(getTheoretical(maxO) * 100).toFixed(1)}%</div><div class="stat-label">Theoretical</div></div>
-  `;
-}
+const CHALLENGES = [
+  { q: 'You flip a fair coin 100 times. About how many heads?',
+    options: ['About 50','Exactly 50','100','25'], answer: 'About 50',
+    why: '50% chance × 100 flips ≈ 50 heads (rarely exactly 50).' },
+  { q: 'Probability of rolling a 4 on a die?',
+    options: ['1/6','1/4','4/6','1/2'], answer: '1/6',
+    why: 'One favorable side out of 6 sides.' },
+  { q: 'A bag has 3 red, 2 blue marbles. Probability of drawing red?',
+    options: ['3/5','2/5','3/2','1/5'], answer: '3/5',
+    why: '3 red out of 5 total marbles.' },
+  { q: 'You roll a die 6 times and never get a 3. The 7th roll must be 3?',
+    options: ['No — each roll is independent','Yes — it\'s overdue','Yes — 1/6 means every 6 rolls','No — never possible'],
+    answer: 'No — each roll is independent',
+    why: 'The die has no memory. Each roll is still 1/6.' },
+];
 
-function getCode() {
-  const exp = mode === 'coin' ? 'random.choice(["Heads", "Tails"])' :
-    mode === 'die' ? 'random.randint(1, 6)' : 'random.randint(1,6) + random.randint(1,6)';
-  const theo = mode === 'coin' ? '1/2 = 50%' : mode === 'die' ? '1/6 = 16.7% each' : '6/36 = 16.7% for 7 (most likely)';
-  return [
-    { parts: [{ t: '# Probability Lab — Simulation Engine', c: 'cm' }] },
-    { parts: [{ t: 'import ', c: 'kw' }, { t: 'random', c: 'fn' }] },
-    { parts: [] },
-    { parts: [{ t: '# Set up experiment', c: 'cm' }] },
-    { parts: [{ t: 'trials', c: 'vr' }, { t: ' = ', c: 'op' }, { t: String(totalTrials || 1000), c: 'nm' }] },
-    { parts: [{ t: 'results', c: 'vr' }, { t: ' = ', c: 'op' }, { t: '{}', c: '' }] },
-    { parts: [] },
-    { parts: [{ t: '# Run the simulation', c: 'cm' }] },
-    { parts: [{ t: 'for ', c: 'kw' }, { t: 'i', c: 'vr' }, { t: ' in ', c: 'kw' }, { t: 'range', c: 'fn' }, { t: '(trials):', c: '' }] },
-    { parts: [{ t: '    outcome', c: 'vr' }, { t: ' = ', c: 'op' }, { t: exp, c: 'fn' }] },
-    { parts: [{ t: '    results[outcome]', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'results.', c: 'vr' }, { t: 'get', c: 'fn' }, { t: '(outcome, 0)', c: '' }, { t: ' + ', c: 'op' }, { t: '1', c: 'nm' }] },
-    { parts: [] },
-    { parts: [{ t: '# Calculate experimental probability', c: 'cm' }] },
-    { parts: [{ t: 'for ', c: 'kw' }, { t: 'outcome, count', c: 'vr' }, { t: ' in ', c: 'kw' }, { t: 'results.items():', c: 'fn' }] },
-    { parts: [{ t: '    probability', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'count', c: 'vr' }, { t: ' / ', c: 'op' }, { t: 'trials', c: 'vr' }] },
-    { parts: [{ t: '    ', c: '' }, { t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: 'f"{outcome}: {probability:.1%}"', c: 'st' }, { t: ')', c: '' }] },
-    { parts: [] },
-    { parts: [{ t: `# Theoretical probability: ${theo}`, c: 'cm' }] },
-    { parts: [{ t: '# As trials increase, experimental → theoretical', c: 'cm' }] },
-    { parts: [{ t: '# This is the Law of Large Numbers!', c: 'cm' }] },
-  ];
-}
+const PROJECT = {
+  title: 'Probability Lab', icon: '🎲', language: 'Python',
+  welcomeIcon: '🎲', welcomeTitle: 'Welcome to Probability Lab!',
+  welcomeBody: "Probability is the math of chance. We'll flip coins, roll dice, and discover why your results match theory only after MANY tries.",
+  youWill: ['What probability means','Coin flips and dice rolls','Theoretical vs experimental probability','The law of large numbers'],
+  duration: '12–15 min', gradeBand: 'Grade 6–8',
+  youLearned: ['Probability = favorable outcomes ÷ total outcomes','Each event is independent (no memory)','Small samples are noisy','Theoretical probability comes true with enough trials'],
+  upNext: 'Tier 2 complete! Up next: Function Lab — graphing equations.'
+};
 
-function renderCode() {
-  const lines = getCode();
-  const ed = document.getElementById('codeEditor');
-  ed.innerHTML = '';
-  lines.forEach((line, i) => {
-    const div = document.createElement('div');
-    div.className = 'code-line';
-    const n = document.createElement('span'); n.className = 'ln'; n.textContent = i + 1;
-    div.appendChild(n);
-    const c = document.createElement('span'); c.className = 'ct';
-    if (!line.parts || !line.parts.length) c.textContent = '';
-    else line.parts.forEach(p => { const s = document.createElement('span'); s.className = p.c; s.textContent = p.t; c.appendChild(s); });
-    div.appendChild(c);
-    ed.appendChild(div);
-  });
-}
-
-function resetAll() {
-  results = {};
-  totalTrials = 0;
-  document.getElementById('simArea').innerHTML = '<span style="color:#555;font-style:italic">Press Run to start simulating!</span>';
-  document.getElementById('chartArea').innerHTML = '';
-  document.getElementById('statsPanel').innerHTML = '';
-  renderCode();
-  document.getElementById('explanation').innerHTML = '<strong>How probability works in code:</strong> Instead of formulas, we <strong>simulate</strong> thousands of experiments using <code>random</code>. Run trials and watch the experimental probability converge to the theoretical prediction. This is the <strong>Law of Large Numbers</strong>!';
-}
-
-renderCode();
-</script>
-</body>
-</html>
+MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
+refreshStage();
+</script></body></html>

@@ -1,497 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 1 — Pattern Machine: Sequences & Loops</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pattern Machine — MathCode</title>
+<link rel="stylesheet" href="/css/project-shared.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
-
-  .header { background: linear-gradient(135deg, #1a1a4e, #2d1b69); padding: 20px 30px; border-bottom: 3px solid #a29bfe; }
-  .header h1 { font-size: 1.6em; color: #d4c4fb; }
-  .header .subtitle { font-size: 0.9em; color: #74b9ff; margin-top: 4px; }
-  .header .meta { font-size: 0.75em; color: #888; margin-top: 8px; }
-
-  .main { display: flex; min-height: calc(100vh - 100px); }
-  .code-panel { width: 42%; background: #1e1e3f; padding: 20px; border-right: 2px solid #333; display: flex; flex-direction: column; }
-  .game-panel { width: 58%; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-
-  .panel-title { font-size: 1.1em; color: #ffd93d; margin-bottom: 10px; }
-
-  .code-editor { flex: 1; background: #0d0d2b; border-radius: 10px; padding: 15px; font-family: 'Courier New', monospace; font-size: 13px; overflow-y: auto; }
-  .code-line { display: flex; margin-bottom: 2px; min-height: 20px; align-items: center; }
-  .line-num { color: #555; width: 30px; text-align: right; margin-right: 12px; font-size: 12px; flex-shrink: 0; }
-  .code-text .keyword { color: #c792ea; }
-  .code-text .function { color: #82aaff; }
-  .code-text .string { color: #c3e88d; }
-  .code-text .number { color: #f78c6c; }
-  .code-text .comment { color: #546e7a; font-style: italic; }
-  .code-text .variable { color: #ffcb6b; }
-  .code-text .operator { color: #89ddff; }
-  .highlight-line { background: rgba(162, 155, 254, 0.15); border-left: 3px solid #a29bfe; margin-left: -15px; padding-left: 12px; }
-
-  .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-run { background: #00b894; color: #fff; }
-  .btn-run:hover { background: #00a381; }
-  .btn-next { background: #a29bfe; color: #fff; }
-  .btn-next:hover { background: #8c83e8; }
-  .btn-reset { background: #d63031; color: #fff; }
-  .btn-reset:hover { background: #c02020; }
-
-  .pattern-display { background: #141432; border-radius: 15px; border: 2px solid #333; width: 100%; max-width: 520px; min-height: 100px; padding: 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
-  .pattern-item { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8em; transition: all 0.3s ease; animation: popIn 0.3s ease; }
-  @keyframes popIn {
-    0% { transform: scale(0); opacity: 0; }
-    70% { transform: scale(1.2); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .pattern-item.question { background: rgba(255,255,255,0.1); border: 2px dashed #a29bfe; font-size: 1.5em; color: #a29bfe; cursor: pointer; }
-  .pattern-item.question:hover { background: rgba(162, 155, 254, 0.2); }
-
-  .mode-tabs { display: flex; gap: 6px; margin: 15px 0; }
-  .mode-tab { padding: 8px 16px; border: 2px solid #444; border-radius: 8px; background: #1e1e3f; color: #fff; font-size: 13px; cursor: pointer; transition: all 0.2s; }
-  .mode-tab:hover { border-color: #a29bfe; }
-  .mode-tab.active { border-color: #a29bfe; background: rgba(162, 155, 254, 0.15); }
-
-  .rule-display { background: #1e1e3f; border-radius: 12px; padding: 15px; width: 100%; max-width: 520px; margin-top: 10px; }
-  .rule-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
-  .rule-label { font-size: 0.85em; color: #888; min-width: 90px; }
-  .rule-value { font-size: 1em; color: #ffd93d; font-family: 'Courier New', monospace; }
-
-  .explanation { margin-top: 12px; background: rgba(116, 185, 255, 0.1); border-left: 3px solid #74b9ff; border-radius: 0 8px 8px 0; padding: 12px 15px; font-size: 0.85em; color: #b2bec3; line-height: 1.5; width: 100%; max-width: 520px; }
-  .explanation strong { color: #74b9ff; }
-  .explanation code { background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px; }
-
-  .answer-options { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 520px; }
-  .answer-btn { padding: 10px 18px; border: 2px solid #444; border-radius: 10px; background: #1e1e3f; font-size: 1.3em; cursor: pointer; transition: all 0.2s; min-width: 55px; text-align: center; }
-  .answer-btn:hover { border-color: #a29bfe; transform: scale(1.05); }
-  .answer-btn.correct { border-color: #00b894; background: rgba(0, 184, 148, 0.2); animation: pulse 0.5s ease; }
-  .answer-btn.wrong { border-color: #d63031; background: rgba(214, 48, 49, 0.2); }
-  @keyframes pulse { 50% { transform: scale(1.15); } }
-
-  .score-bar { display: flex; align-items: center; gap: 15px; margin: 10px 0; width: 100%; max-width: 520px; }
-  .score-bar .label { font-size: 0.85em; color: #888; }
-  .score-bar .stars { font-size: 1.3em; letter-spacing: 3px; }
-  .streak-text { font-size: 0.85em; color: #a29bfe; }
-</style>
-</head>
-<body>
-
-<div class="header">
-  <h1>MathCode Project: Pattern Machine</h1>
-  <div class="subtitle">Tier 1 — Unit 3: Patterns & Sequences (Grades K-3, Ages 5-8)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students recognize, extend, and create patterns by understanding how loops and rules generate sequences</div>
-</div>
-
-<div class="main">
-  <div class="code-panel">
-    <div class="panel-title">&#128187; Your Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="controls">
-      <button class="btn btn-run" onclick="runPattern()">&#9654; Run Pattern</button>
-      <button class="btn btn-next" onclick="nextChallenge()">&#9654;&#9654; Next Challenge</button>
-      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
-    </div>
-  </div>
-
-  <div class="game-panel">
-    <div class="panel-title">&#127912; Pattern Lab</div>
-
-    <div class="mode-tabs">
-      <button class="mode-tab active" onclick="setMode('shape', this)">Shape Patterns</button>
-      <button class="mode-tab" onclick="setMode('number', this)">Number Patterns</button>
-      <button class="mode-tab" onclick="setMode('color', this)">Color Patterns</button>
-      <button class="mode-tab" onclick="setMode('mixed', this)">Mixed</button>
-    </div>
-
-    <div class="score-bar">
-      <span class="label">Score:</span>
-      <span class="stars" id="stars"></span>
-      <span class="streak-text" id="streakText"></span>
-    </div>
-
-    <div class="pattern-display" id="patternDisplay"></div>
-
-    <div class="answer-options" id="answerOptions"></div>
-
-    <div class="rule-display">
-      <div class="rule-row"><span class="rule-label">Pattern Rule:</span><span class="rule-value" id="ruleText">—</span></div>
-      <div class="rule-row"><span class="rule-label">Loop Count:</span><span class="rule-value" id="loopText">—</span></div>
-      <div class="rule-row"><span class="rule-label">Sequence:</span><span class="rule-value" id="seqText">—</span></div>
-    </div>
-
-    <div class="explanation" id="explanation">
-      <strong>How patterns work in code:</strong> Every pattern follows a <strong>rule</strong>. A loop repeats the rule to make the pattern grow. Pick a mode and press <strong>Run Pattern</strong> to see a pattern, then figure out what comes next! The code shows you the rule the computer is using.
-    </div>
-  </div>
-</div>
-
+  .seq { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:14px 0; }
+  .num-card { background:linear-gradient(135deg,#7c5cff,#5b3df0); color:white; min-width:60px; padding:18px 14px;
+    border-radius:10px; font-size:24px; font-weight:900; box-shadow:0 4px 10px rgba(124,92,255,.3); }
+  .num-card.q { background:#fbbf24; color:#1f2545; }
+  .num-card.guess { background:white; border:3px dashed var(--primary); color:var(--primary); }
+  .rule-display { background:#f5f7fc; padding:12px 18px; border-radius:10px; margin-top:10px;
+    font-size:18px; font-weight:700; color:var(--primary); }
+  .input-row { display:flex; gap:10px; align-items:center; justify-content:center; margin-top:14px; }
+  .input-row input { padding:10px; font-size:18px; width:100px; text-align:center;
+    border:2px solid var(--line); border-radius:8px; }
+</style></head><body>
+<script src="/js/project-framework.js"></script>
 <script>
-const SHAPES = ['&#9679;', '&#9650;', '&#9632;', '&#9830;', '&#9733;', '&#9829;'];
-const COLORS = ['#e17055', '#00b894', '#6c5ce7', '#fdcb6e', '#74b9ff', '#fd79a8'];
-const COLOR_NAMES = ['red', 'green', 'purple', 'yellow', 'blue', 'pink'];
+const cstate = { addCount: 0, mulCount: 0, guessVal: '', guessCorrect: false, customStart: 1, customStep: 3 };
 
-let gameState = {
-  mode: 'shape',
-  pattern: [],
-  rule: [],
-  answer: null,
-  options: [],
-  score: 0,
-  streak: 0,
-  currentHL: -1,
-  revealed: false,
+function showSeq(arr, mark) {
+  return `<div class="seq">${arr.map((n,i) => `<div class="num-card ${mark === i ? 'q' : ''}">${n}</div>`).join('')}</div>`;
+}
+
+function refreshStage() {
+  const stage = MC.$('stage'); if (!stage) return;
+  const step = MC.state.step;
+  if (step === 1) {
+    const s = [2, 4, 6, 8, 10];
+    stage.innerHTML = `<h3>🔢 Counting by 2s</h3>
+      ${showSeq(s)}
+      <div class="rule-display">Rule: add 2 each time</div>
+      <div class="row-controls">
+        <button class="btn primary" id="genBtn">▶ Generate next number</button>
+      </div>
+      <div class="stage-msg">${cstate.addCount > 0 ? `Generated ${cstate.addCount} number${cstate.addCount===1?'':'s'}: ${[10+2, 14, 16, 18, 20].slice(0, cstate.addCount).join(', ')}` : 'Click the button to keep the pattern going.'}</div>`;
+    MC.$('genBtn').onclick = () => { if (cstate.addCount < 5) cstate.addCount++; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 2) {
+    const s = [3, 6, 12, 24, 48];
+    stage.innerHTML = `<h3>✖️ Doubling pattern</h3>
+      ${showSeq(s)}
+      <div class="rule-display">Rule: multiply by 2 each time</div>
+      <div class="row-controls">
+        <button class="btn primary" id="genBtn2">▶ Generate next</button>
+      </div>
+      <div class="stage-msg">${cstate.mulCount > 0 ? `Generated: ${[96, 192, 384].slice(0, cstate.mulCount).join(', ')} — see how fast it grows!` : 'Click to see what comes next.'}</div>`;
+    MC.$('genBtn2').onclick = () => { if (cstate.mulCount < 3) cstate.mulCount++; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 3) {
+    const s = [5, 10, 15, 20, '?'];
+    stage.innerHTML = `<h3>🤔 What comes next?</h3>
+      ${showSeq(s, 4)}
+      <div class="rule-display">Find the rule, then type the next number.</div>
+      <div class="input-row">
+        <input type="number" id="guess" placeholder="?" value="${cstate.guessVal}">
+        <button class="btn primary" id="checkGuess">Check</button>
+      </div>
+      <div class="stage-msg ${cstate.guessCorrect ? '' : (cstate.guessVal && !cstate.guessCorrect ? 'bad':'')}" id="msg">${cstate.guessCorrect ? '✓ Correct! The rule was "add 5 each time", so 20 + 5 = 25.' : (cstate.guessVal ? 'Not quite — look at the difference between numbers.' : 'Type your answer and click Check.')}</div>`;
+    MC.$('checkGuess').onclick = () => {
+      cstate.guessVal = MC.$('guess').value;
+      cstate.guessCorrect = +cstate.guessVal === 25;
+      refreshStage(); MC.refresh();
+    };
+  }
+  else if (step === 4) {
+    const arr = [];
+    let v = cstate.customStart;
+    for (let i = 0; i < 6; i++) { arr.push(v); v += cstate.customStep; }
+    stage.innerHTML = `<h3>🎨 Build your own pattern</h3>
+      ${showSeq(arr)}
+      <div class="rule-display">Start at ${cstate.customStart}, add ${cstate.customStep} each time</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:380px;margin:14px 0;">
+        <div style="background:#f5f7fc;padding:10px;border-radius:8px">
+          <label style="display:block;font-size:12px;color:var(--ink-soft)">Start: <b style="color:var(--primary)">${cstate.customStart}</b></label>
+          <input type="range" min="1" max="20" value="${cstate.customStart}" id="startSld" style="width:100%">
+        </div>
+        <div style="background:#f5f7fc;padding:10px;border-radius:8px">
+          <label style="display:block;font-size:12px;color:var(--ink-soft)">Step: <b style="color:var(--primary)">${cstate.customStep}</b></label>
+          <input type="range" min="1" max="10" value="${cstate.customStep}" id="stepSld" style="width:100%">
+        </div>
+      </div>
+      <div class="stage-msg">${cstate.customStep !== 3 || cstate.customStart !== 1 ? '✓ Great! You changed the pattern.' : 'Move the sliders to change the pattern.'}</div>`;
+    MC.$('startSld').oninput = (e) => { cstate.customStart = +e.target.value; refreshStage(); MC.refresh(); };
+    MC.$('stepSld').oninput = (e) => { cstate.customStep = +e.target.value; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 5) {
+    stage.innerHTML = `<h3>🏆 Pattern Master Quiz</h3>
+      <div class="stage-msg">Answer the questions below to finish.</div>`;
+  }
+}
+
+const STEPS = [
+  { title: '1. Adding patterns',
+    sub: 'Same number added each time.',
+    task: '🎯 Generate the next 5 numbers in the "+2" pattern.',
+    taskSub: 'Click the "Generate next" button 5 times.',
+    why: 'A pattern (or sequence) is a list where each number follows a rule. The simplest rule: add the same amount each time. This is called an "arithmetic" sequence.',
+    hint: 'Click the orange "Generate next number" button 5 times.',
+    isDone: () => cstate.addCount >= 5,
+    check: () => `Generated ${cstate.addCount} of 5.`,
+    code: [
+      { line: 'n = 2' },
+      { line: 'while n <= 20:', highlight: true },
+      { line: '    print(n)' },
+      { line: '    n = n + 2', ann: 'add 2 each time', highlight: true },
+    ]
+  },
+  { title: '2. Multiplying patterns',
+    sub: 'Multiply by the same number — explosion!',
+    task: '🎯 Generate the next 3 numbers in the "×2" pattern.',
+    taskSub: 'Click "Generate next" 3 times.',
+    why: 'When you multiply by a number each step (instead of adding), the values grow really fast. This is called a "geometric" sequence — like 1, 2, 4, 8, 16. It\'s how virus outbreaks and bank interest work!',
+    hint: 'Click the button 3 times.',
+    isDone: () => cstate.mulCount >= 3,
+    check: () => `Generated ${cstate.mulCount} of 3.`,
+    code: [
+      { line: 'n = 3' },
+      { line: 'for i in range(5):' },
+      { line: '    print(n)' },
+      { line: '    n = n * 2', highlight: true, ann: 'double it' },
+    ]
+  },
+  { title: '3. Find the missing number',
+    sub: 'Look at differences between numbers.',
+    task: '🎯 What number comes after 5, 10, 15, 20?',
+    taskSub: 'Type your answer in the box and click Check.',
+    why: 'To find a pattern, look at how each number changes. 5 → 10 (added 5). 10 → 15 (added 5). The rule is "add 5". So next is 20 + 5 = 25.',
+    hint: 'The difference between each pair is 5. So 20 + 5 = ?',
+    isDone: () => cstate.guessCorrect === true,
+    check: () => cstate.guessCorrect ? '' : 'Type the next number and click Check.',
+    code: [
+      { line: 'numbers = [5, 10, 15, 20]' },
+      { line: 'step = numbers[1] - numbers[0]', highlight: true, ann: '10 - 5 = 5' },
+      { line: 'next_num = numbers[-1] + step' },
+      { line: 'print(next_num)', ann: '25' },
+    ]
+  },
+  { title: '4. Build your own',
+    sub: 'Pick a start and a step.',
+    task: '🎯 Move both sliders to change the pattern.',
+    taskSub: 'Try different starts and steps.',
+    why: 'Every "add a fixed amount" pattern is described by two numbers: where it starts, and what you add. With these two, you can build any arithmetic sequence in the universe.',
+    hint: 'Drag the "Start" slider, then drag the "Step" slider.',
+    isDone: () => cstate.customStart !== 1 || cstate.customStep !== 3,
+    check: () => 'Move at least one slider to change the pattern.',
+    code: [
+      { line: `start = ${cstate.customStart}`, highlight: true },
+      { line: `step = ${cstate.customStep}`, highlight: true },
+      { line: 'n = start' },
+      { line: 'for i in range(6):' },
+      { line: '    print(n)' },
+      { line: '    n = n + step' },
+    ]
+  },
+  { title: '5. Pattern quiz',
+    sub: 'Test what you learned.',
+    task: '🎯 Answer all 4 questions to complete the project.',
+    taskSub: '',
+    why: 'Patterns are everywhere in math: counting, multiplication tables, exponential growth, even music and art.',
+    hint: 'Look for the difference (or ratio) between consecutive numbers.',
+    isDone: (s) => s.challengeIdx >= 4,
+    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
+    showChallenge: true,
+    code: [
+      { line: 'print("🏆 Pattern Master!")' },
+    ]
+  }
+];
+
+const CHALLENGES = [
+  { q: 'What comes next? 3, 6, 9, 12, ___',
+    options: ['15','13','24','18'], answer: '15',
+    why: 'Add 3 each time. 12 + 3 = 15.' },
+  { q: 'What comes next? 1, 2, 4, 8, ___',
+    options: ['16','10','12','9'], answer: '16',
+    why: 'Multiply by 2 each time. 8 × 2 = 16.' },
+  { q: 'What is the rule for 7, 14, 21, 28?',
+    options: ['Add 7','Multiply by 2','Add 14','Subtract 7'], answer: 'Add 7',
+    why: '14 - 7 = 7. 21 - 14 = 7. The pattern adds 7.' },
+  { q: 'You see: 100, 50, 25. What is the rule?',
+    options: ['Divide by 2','Subtract 50','Subtract 25','Multiply by 2'], answer: 'Divide by 2',
+    why: '100/2 = 50. 50/2 = 25. The rule divides by 2.' },
+];
+
+const PROJECT = {
+  title: 'Pattern Machine', icon: '🔢', language: 'Python',
+  welcomeIcon: '🔢', welcomeTitle: 'Welcome to Pattern Machine!',
+  welcomeBody: "Patterns are everywhere — in counting, music, even nature. We'll discover the rules that make number sequences work, and use code to build infinite patterns.",
+  youWill: ['What a number sequence is','Adding patterns vs multiplying patterns','How to find the next number','How to build any pattern with code'],
+  duration: '10–12 min', gradeBand: 'Grade 3–5',
+  youLearned: ['Sequences follow a rule','Add the same amount = arithmetic','Multiply the same amount = geometric','Two numbers (start, step) describe any add-pattern'],
+  upNext: 'Tier 1 complete! Up next: Ratio Lab — recipe scaling.'
 };
 
-function setMode(mode, btn) {
-  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  gameState.mode = mode;
-  resetAll();
-}
-
-function generatePattern() {
-  const mode = gameState.mode;
-  let rule = [];
-  let fullPattern = [];
-  let ruleDesc = '';
-  let answer, options;
-
-  if (mode === 'shape') {
-    const ruleLen = 2 + Math.floor(Math.random() * 2); // 2-3 items in rule
-    const shapePool = SHAPES.slice().sort(() => Math.random() - 0.5);
-    for (let i = 0; i < ruleLen; i++) {
-      rule.push({ shape: shapePool[i], color: COLORS[i] });
-    }
-    const repeats = 2 + Math.floor(Math.random() * 2);
-    for (let r = 0; r < repeats; r++) {
-      rule.forEach(item => fullPattern.push({ ...item }));
-    }
-    // Add partial next cycle
-    const partialLen = Math.floor(Math.random() * (ruleLen - 1)) + 1;
-    for (let i = 0; i < partialLen; i++) {
-      fullPattern.push({ ...rule[i] });
-    }
-    // The answer is the next item
-    answer = { ...rule[partialLen % ruleLen] };
-    // Generate wrong options
-    const wrongShapes = shapePool.filter(s => s !== answer.shape).slice(0, 3);
-    options = [answer, ...wrongShapes.map((s, i) => ({ shape: s, color: COLORS[(i + 3) % COLORS.length] }))];
-    ruleDesc = `repeat [${rule.map(r => r.shape).join(', ')}]`;
-
-  } else if (mode === 'number') {
-    const types = ['add', 'multiply', 'alternate'];
-    const type = types[Math.floor(Math.random() * types.length)];
-
-    if (type === 'add') {
-      const start = Math.floor(Math.random() * 5) + 1;
-      const step = Math.floor(Math.random() * 5) + 1;
-      for (let i = 0; i < 6; i++) {
-        fullPattern.push({ num: start + step * i });
-      }
-      answer = { num: start + step * 6 };
-      ruleDesc = `start at ${start}, add ${step} each time`;
-      rule = [{ text: `+${step}` }];
-    } else if (type === 'multiply') {
-      const start = Math.floor(Math.random() * 3) + 1;
-      const mult = 2;
-      let val = start;
-      for (let i = 0; i < 5; i++) {
-        fullPattern.push({ num: val });
-        val *= mult;
-      }
-      answer = { num: val };
-      ruleDesc = `start at ${start}, multiply by ${mult}`;
-      rule = [{ text: `\u00D7${mult}` }];
-    } else {
-      const a = Math.floor(Math.random() * 5) + 1;
-      const b = Math.floor(Math.random() * 5) + 6;
-      for (let i = 0; i < 6; i++) {
-        fullPattern.push({ num: i % 2 === 0 ? a : b });
-      }
-      answer = { num: a }; // next in alternation
-      ruleDesc = `alternate ${a} and ${b}`;
-      rule = [{ text: `${a}, ${b}` }];
-    }
-
-    // Number options
-    const wrongNums = new Set();
-    wrongNums.add(answer.num);
-    while (wrongNums.size < 4) {
-      wrongNums.add(answer.num + Math.floor(Math.random() * 10) - 5 || answer.num + 1);
-    }
-    options = Array.from(wrongNums).map(n => ({ num: n })).sort(() => Math.random() - 0.5);
-
-  } else if (mode === 'color') {
-    const ruleLen = 2 + Math.floor(Math.random() * 2);
-    const colorPool = COLORS.slice().sort(() => Math.random() - 0.5);
-    for (let i = 0; i < ruleLen; i++) {
-      rule.push({ color: colorPool[i], colorName: COLOR_NAMES[COLORS.indexOf(colorPool[i])] });
-    }
-    const repeats = 3;
-    for (let r = 0; r < repeats; r++) {
-      rule.forEach(item => fullPattern.push({ ...item, shape: '&#9632;' }));
-    }
-    const partial = Math.floor(Math.random() * (ruleLen - 1)) + 1;
-    for (let i = 0; i < partial; i++) {
-      fullPattern.push({ ...rule[i], shape: '&#9632;' });
-    }
-    answer = { ...rule[partial % ruleLen], shape: '&#9632;' };
-    options = COLORS.slice(0, 4).map(c => ({ color: c, shape: '&#9632;' }));
-    if (!options.find(o => o.color === answer.color)) options[0] = answer;
-    options.sort(() => Math.random() - 0.5);
-    ruleDesc = `repeat colors [${rule.map(r => r.colorName || '?').join(', ')}]`;
-
-  } else { // mixed
-    // Randomly pick one of the above
-    const pick = ['shape', 'number', 'color'][Math.floor(Math.random() * 3)];
-    gameState.mode = pick;
-    generatePattern();
-    gameState.mode = 'mixed';
-    return;
-  }
-
-  gameState.pattern = fullPattern;
-  gameState.rule = rule;
-  gameState.answer = answer;
-  gameState.options = options;
-  gameState.revealed = false;
-}
-
-function getCodeLines() {
-  const mode = gameState.mode === 'mixed' ? 'pattern' : gameState.mode;
-  const ruleText = document.getElementById('ruleText')?.textContent || '—';
-
-  return [
-    { parts: [{ text: '# Pattern Machine — Find the Rule!', cls: 'comment' }] },
-    { parts: [] },
-    { parts: [{ text: '# Define the pattern rule', cls: 'comment' }] },
-    { parts: [{ text: 'rule', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: `[${gameState.rule.map(r => r.shape || r.text || r.colorName || '?').join(', ')}]`, cls: 'string' }] },
-    { parts: [] },
-    { parts: [{ text: '# Use a loop to repeat the rule', cls: 'comment' }] },
-    { parts: [{ text: 'pattern', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '[]', cls: '' }] },
-    { parts: [{ text: 'for ', cls: 'keyword' }, { text: 'i', cls: 'variable' }, { text: ' in ', cls: 'keyword' }, { text: 'range', cls: 'function' }, { text: `(${gameState.pattern.length}):`, cls: '' }] },
-    { parts: [{ text: '    position', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: 'i', cls: 'variable' }, { text: ' % ', cls: 'operator' }, { text: 'len', cls: 'function' }, { text: '(rule)', cls: '' }] },
-    { parts: [{ text: '    # % means "remainder" — it cycles!', cls: 'comment' }] },
-    { parts: [{ text: '    pattern', cls: 'variable' }, { text: '.', cls: '' }, { text: 'add', cls: 'function' }, { text: '(rule[position])', cls: '' }] },
-    { parts: [] },
-    { parts: [{ text: '# Show the pattern', cls: 'comment' }] },
-    { parts: [{ text: 'show_pattern', cls: 'function' }, { text: '(pattern)', cls: '' }] },
-    { parts: [] },
-    { parts: [{ text: '# What comes next?', cls: 'comment' }] },
-    { parts: [{ text: 'next_position', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: String(gameState.pattern.length), cls: 'number' }, { text: ' % ', cls: 'operator' }, { text: 'len', cls: 'function' }, { text: '(rule)', cls: '' }] },
-    { parts: [{ text: 'answer', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: 'rule[next_position]', cls: '' }] },
-    { parts: [{ text: `# answer = rule[${gameState.pattern.length % Math.max(1, gameState.rule.length)}]`, cls: 'comment' }] },
-  ];
-}
-
-function renderCode() {
-  const lines = getCodeLines();
-  const editor = document.getElementById('codeEditor');
-  editor.innerHTML = '';
-  lines.forEach((line, i) => {
-    const div = document.createElement('div');
-    div.className = 'code-line' + (i === gameState.currentHL ? ' highlight-line' : '');
-    const num = document.createElement('span');
-    num.className = 'line-num';
-    num.textContent = i + 1;
-    div.appendChild(num);
-    const code = document.createElement('span');
-    code.className = 'code-text';
-    if (!line.parts || line.parts.length === 0) {
-      code.textContent = '';
-    } else {
-      line.parts.forEach(p => {
-        const s = document.createElement('span');
-        s.className = p.cls;
-        s.textContent = p.text;
-        code.appendChild(s);
-      });
-    }
-    div.appendChild(code);
-    editor.appendChild(div);
-  });
-}
-
-function renderPattern() {
-  const display = document.getElementById('patternDisplay');
-  display.innerHTML = '';
-
-  gameState.pattern.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'pattern-item';
-    if (item.num !== undefined) {
-      div.textContent = item.num;
-      div.style.background = COLORS[i % COLORS.length] + '33';
-      div.style.color = COLORS[i % COLORS.length];
-      div.style.border = `2px solid ${COLORS[i % COLORS.length]}44`;
-      div.style.fontSize = '1.3em';
-      div.style.fontWeight = 'bold';
-      div.style.fontFamily = "'Courier New', monospace";
-    } else {
-      div.innerHTML = item.shape;
-      div.style.color = item.color || '#fff';
-      div.style.background = (item.color || '#fff') + '22';
-    }
-    div.style.animationDelay = (i * 0.08) + 's';
-    display.appendChild(div);
-  });
-
-  // Add question mark
-  const q = document.createElement('div');
-  q.className = 'pattern-item question';
-  q.textContent = '?';
-  q.style.animationDelay = (gameState.pattern.length * 0.08) + 's';
-  display.appendChild(q);
-}
-
-function renderOptions() {
-  const container = document.getElementById('answerOptions');
-  container.innerHTML = '';
-
-  gameState.options.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'answer-btn';
-    if (opt.num !== undefined) {
-      btn.textContent = opt.num;
-      btn.style.color = '#ffd93d';
-      btn.style.fontFamily = "'Courier New', monospace";
-    } else {
-      btn.innerHTML = opt.shape || '&#9632;';
-      btn.style.color = opt.color || '#fff';
-    }
-    btn.onclick = () => checkAnswer(btn, opt, i);
-    container.appendChild(btn);
-  });
-}
-
-function checkAnswer(btn, opt, index) {
-  if (gameState.revealed) return;
-
-  const isCorrect = gameState.answer.num !== undefined
-    ? opt.num === gameState.answer.num
-    : (opt.shape === gameState.answer.shape && opt.color === gameState.answer.color) ||
-      (gameState.answer.color && opt.color === gameState.answer.color);
-
-  if (isCorrect) {
-    btn.classList.add('correct');
-    gameState.score++;
-    gameState.streak++;
-    gameState.revealed = true;
-    gameState.currentHL = 17;
-    renderCode();
-
-    // Replace question mark with answer
-    const display = document.getElementById('patternDisplay');
-    const qMark = display.querySelector('.question');
-    if (qMark) {
-      qMark.classList.remove('question');
-      if (gameState.answer.num !== undefined) {
-        qMark.textContent = gameState.answer.num;
-        qMark.style.background = '#00b89433';
-        qMark.style.color = '#00b894';
-        qMark.style.border = '2px solid #00b894';
-        qMark.style.fontSize = '1.3em';
-        qMark.style.fontWeight = 'bold';
-      } else {
-        qMark.innerHTML = gameState.answer.shape;
-        qMark.style.color = gameState.answer.color;
-        qMark.style.background = '#00b89422';
-        qMark.style.border = '2px solid #00b894';
-      }
-    }
-
-    const ruleLen = gameState.rule.length;
-    const pos = gameState.pattern.length % ruleLen;
-    document.getElementById('explanation').innerHTML =
-      `<strong>Correct!</strong> The pattern rule repeats every ${ruleLen} items. ` +
-      `Position ${gameState.pattern.length + 1} is spot ${pos + 1} in the rule (because ${gameState.pattern.length} % ${ruleLen} = ${pos}). ` +
-      `The <code>%</code> operator (remainder/modulo) is how computers cycle through patterns — it's the mathematical trick behind ALL repeating patterns! ` +
-      `Press <strong>Next Challenge</strong> for another one.`;
-  } else {
-    btn.classList.add('wrong');
-    gameState.streak = 0;
-    document.getElementById('explanation').innerHTML =
-      '<strong>Not quite!</strong> Look at the pattern carefully. Find the group that repeats, then count where the ? falls within that group. Try again!';
-  }
-
-  updateScore();
-}
-
-function updateScore() {
-  const stars = document.getElementById('stars');
-  let s = '';
-  for (let i = 0; i < gameState.score; i++) s += '&#11088;';
-  if (gameState.score === 0) s = '(none yet)';
-  stars.innerHTML = s;
-
-  const streakText = document.getElementById('streakText');
-  if (gameState.streak >= 3) {
-    streakText.textContent = `${gameState.streak} in a row!`;
-  } else {
-    streakText.textContent = '';
-  }
-}
-
-function runPattern() {
-  generatePattern();
-
-  // Animate code
-  gameState.currentHL = 3;
-  renderCode();
-
-  setTimeout(() => {
-    gameState.currentHL = 7;
-    renderCode();
-
-    document.getElementById('ruleText').textContent = gameState.rule.map(r => r.shape || r.text || r.colorName || '?').join(', ');
-    document.getElementById('loopText').textContent = `${gameState.pattern.length} times (pattern length)`;
-
-    const seqText = gameState.pattern.map(p => p.num !== undefined ? p.num : (p.shape ? '.' : '?')).join(', ') + ', ?';
-    document.getElementById('seqText').textContent = seqText.length > 50 ? seqText.substring(0, 50) + '...' : seqText;
-
-    setTimeout(() => {
-      gameState.currentHL = 13;
-      renderCode();
-      renderPattern();
-      renderOptions();
-
-      document.getElementById('explanation').innerHTML =
-        '<strong>Pattern generated!</strong> The code created this pattern by repeating a rule inside a loop. ' +
-        'Look at the sequence — can you spot what repeats? Find the <strong>repeating group</strong>, then figure out what the <strong>?</strong> should be. ' +
-        'Pick your answer below!';
-    }, 400);
-  }, 400);
-}
-
-function nextChallenge() {
-  runPattern();
-}
-
-function resetAll() {
-  gameState.score = 0;
-  gameState.streak = 0;
-  gameState.currentHL = -1;
-  gameState.pattern = [];
-  gameState.rule = [];
-  gameState.revealed = false;
-
-  document.getElementById('patternDisplay').innerHTML = '<span style="color:#555; font-style:italic;">Press Run Pattern to start!</span>';
-  document.getElementById('answerOptions').innerHTML = '';
-  document.getElementById('ruleText').textContent = '—';
-  document.getElementById('loopText').textContent = '—';
-  document.getElementById('seqText').textContent = '—';
-  updateScore();
-  renderCode();
-  document.getElementById('explanation').innerHTML =
-    '<strong>How patterns work in code:</strong> Every pattern follows a <strong>rule</strong>. A loop repeats the rule to make the pattern grow. Pick a mode and press <strong>Run Pattern</strong> to see a pattern, then figure out what comes next!';
-}
-
-// Init
-renderCode();
-updateScore();
-</script>
-</body>
-</html>
+MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
+refreshStage();
+</script></body></html>

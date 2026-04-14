@@ -1,325 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 2 — Coordinate Explorer</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coordinate Plotter — MathCode</title>
+<link rel="stylesheet" href="/css/project-shared.css">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f2e;color:#fff;min-height:100vh}
-  .header{background:linear-gradient(135deg,#1a1a4e,#2d1b69);padding:18px 28px;border-bottom:3px solid #00cec9}
-  .header h1{font-size:1.5em;color:#81ecec}.header .sub{font-size:.85em;color:#74b9ff;margin-top:4px}
-  .header .meta{font-size:.72em;color:#888;margin-top:6px}
-  .main{display:flex;min-height:calc(100vh - 95px)}
-  .code-panel{width:42%;background:#1a1a3e;padding:18px;border-right:2px solid #333;display:flex;flex-direction:column}
-  .game-panel{width:58%;padding:18px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
-  .ptitle{font-size:1em;color:#ffd93d;margin-bottom:10px}
-  .code-editor{flex:1;background:#0d0d28;border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:12px;overflow-y:auto}
-  .code-line{display:flex;margin-bottom:1px;min-height:18px;align-items:center}
-  .ln{color:#555;width:28px;text-align:right;margin-right:10px;font-size:11px;flex-shrink:0}
-  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
-  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
-  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
-  .hl{background:rgba(0,206,201,.12);border-left:3px solid #00cec9;margin-left:-14px;padding-left:11px}
-  .ctrls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-  .btn{padding:9px 18px;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-  .btn-run{background:#00b894;color:#fff}.btn-run:hover{background:#00a381}
-  .btn-clear{background:#d63031;color:#fff}
-  canvas{border-radius:10px;border:2px solid #333;cursor:crosshair}
-  .func-btns{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap;justify-content:center}
-  .fb{padding:7px 14px;border:2px solid #444;border-radius:7px;background:#1a1a3e;color:#fff;font-size:.8em;cursor:pointer;font-family:'Courier New',monospace;transition:all .2s}
-  .fb:hover{border-color:#00cec9}.fb.active{border-color:#00cec9;background:rgba(0,206,201,.15)}
-  .info-panel{background:#1a1a3e;border-radius:10px;padding:12px;width:100%;max-width:480px;margin-top:8px;font-size:.82em}
-  .info-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2a2a5a}
-  .info-row:last-child{border-bottom:none}
-  .info-l{color:#888}.info-v{color:#ffd93d;font-family:'Courier New',monospace}
-  .explanation{margin-top:10px;background:rgba(116,185,255,.08);border-left:3px solid #74b9ff;border-radius:0 8px 8px 0;padding:11px 14px;font-size:.82em;color:#b2bec3;line-height:1.5;width:100%;max-width:480px}
-  .explanation strong{color:#74b9ff}
-  .slider-row{display:flex;align-items:center;gap:10px;width:100%;max-width:480px;margin:4px 0}
-  .slider-row label{font-size:.8em;color:#81ecec;min-width:30px}
-  .slider-row input{flex:1;accent-color:#00cec9}
-  .slider-row .sv{font-family:'Courier New',monospace;color:#ffd93d;min-width:40px;text-align:right;font-size:.85em}
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>MathCode Project: Coordinate Explorer</h1>
-  <div class="sub">Tier 2 — Unit 4: Coordinate Geometry & Linear Functions (Grades 5-7, Ages 10-12)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students graph linear equations by computing y-values from x-values, understanding slope as rate of change and y-intercept as starting value</div>
-</div>
-<div class="main">
-  <div class="code-panel">
-    <div class="ptitle">&#128187; Python Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="ctrls">
-      <button class="btn btn-run" onclick="plotFunction()">&#9654; Plot Function</button>
-      <button class="btn btn-clear" onclick="clearCanvas()">&#8635; Clear</button>
-    </div>
-  </div>
-  <div class="game-panel">
-    <div class="ptitle">&#128200; Coordinate Plane</div>
-    <canvas id="graphCanvas" width="460" height="400"></canvas>
-    <div class="func-btns">
-      <button class="fb active" onclick="setFunc('linear',this)">y = mx + b</button>
-      <button class="fb" onclick="setFunc('quadratic',this)">y = ax&sup2;</button>
-      <button class="fb" onclick="setFunc('absolute',this)">y = |x|</button>
-      <button class="fb" onclick="setFunc('step',this)">y = floor(x)</button>
-    </div>
-    <div class="slider-row">
-      <label>m:</label>
-      <input type="range" id="sliderM" min="-5" max="5" value="2" step="0.5" oninput="updateSliders()">
-      <span class="sv" id="valM">2</span>
-    </div>
-    <div class="slider-row">
-      <label>b:</label>
-      <input type="range" id="sliderB" min="-8" max="8" value="1" step="0.5" oninput="updateSliders()">
-      <span class="sv" id="valB">1</span>
-    </div>
-    <div class="info-panel" id="infoPanel">
-      <div class="info-row"><span class="info-l">Function</span><span class="info-v" id="funcText">y = 2x + 1</span></div>
-      <div class="info-row"><span class="info-l">Slope (m)</span><span class="info-v" id="slopeText">2 (up 2, right 1)</span></div>
-      <div class="info-row"><span class="info-l">Y-intercept (b)</span><span class="info-v" id="yintText">(0, 1)</span></div>
-      <div class="info-row"><span class="info-l">When x=3</span><span class="info-v" id="sampleText">y = 2(3) + 1 = 7</span></div>
-    </div>
-    <div class="explanation" id="explanation">
-      <strong>How graphing works in code:</strong> A function like <code>y = 2x + 1</code> is a rule: plug in any x, get a y. The code uses a <code>for</code> loop to try MANY x values, compute y for each, and plot the point (x, y). The result is a line! Adjust <strong>m</strong> (slope) and <strong>b</strong> (y-intercept) to see how the line changes.
-    </div>
-  </div>
-</div>
+  .grid-svg { background:#fafbff; border-radius:10px; }
+  .input-pair { display:flex; gap:10px; align-items:center; justify-content:center; margin:10px 0; }
+  .input-pair input { padding:8px; font-size:18px; width:70px; text-align:center;
+    border:2px solid var(--line); border-radius:8px; }
+  .input-pair label { font-weight:700; }
+</style></head><body>
+<script src="/js/project-framework.js"></script>
 <script>
-let state = { funcType: 'linear', m: 2, b: 1, plotted: false, points: [], colors: ['#00cec9','#e17055','#6c5ce7','#fdcb6e','#00b894','#fd79a8'] };
-let colorIdx = 0;
+const cstate = { plottedX: '', plottedY: '', placedTwo: false, points: [], targetMet: false, distance: 0 };
 
-const canvas = document.getElementById('graphCanvas');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-const ox = W / 2, oy = H / 2;
-const scale = 25;
-
-function drawGrid() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#141432';
-  ctx.fillRect(0, 0, W, H);
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,.06)';
-  ctx.lineWidth = 1;
-  for (let x = ox % scale; x < W; x += scale) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-  for (let y = oy % scale; y < H; y += scale) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-  // Axes
-  ctx.strokeStyle = 'rgba(255,255,255,.3)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(W, oy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, H); ctx.stroke();
-  // Labels
-  ctx.fillStyle = '#555';
-  ctx.font = '10px Courier New';
-  for (let i = -8; i <= 8; i++) {
-    if (i === 0) continue;
-    ctx.fillText(i, ox + i * scale - 3, oy + 14);
-    ctx.fillText(i, ox + 6, oy - i * scale + 4);
+function gridSVG(points = [], opts = {}) {
+  const W = 320, H = 320, cx = W/2, cy = H/2, scale = 22;
+  let lines = '';
+  // gridlines
+  for (let i = -7; i <= 7; i++) {
+    lines += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6" stroke-width="1"/>`;
+    lines += `<line x1="0" y1="${cy + i*scale}" x2="${W}" y2="${cy + i*scale}" stroke="#e8ecf6" stroke-width="1"/>`;
   }
-  ctx.fillStyle = '#888';
-  ctx.font = '11px Courier New';
-  ctx.fillText('x', W - 15, oy - 6);
-  ctx.fillText('y', ox + 6, 14);
-  ctx.fillText('0', ox + 4, oy + 14);
-}
-
-function computeY(x) {
-  const { funcType, m, b } = state;
-  switch (funcType) {
-    case 'linear': return m * x + b;
-    case 'quadratic': return m * x * x + b;
-    case 'absolute': return m * Math.abs(x) + b;
-    case 'step': return Math.floor(m * x) + b;
+  // axes
+  lines += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
+  lines += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
+  // labels
+  lines += `<text x="${W-12}" y="${cy-6}" font-size="11" fill="#5a6190">x</text>`;
+  lines += `<text x="${cx+6}" y="12" font-size="11" fill="#5a6190">y</text>`;
+  // tick numbers
+  for (let i = -6; i <= 6; i+=2) if (i!==0) {
+    lines += `<text x="${cx+i*scale-4}" y="${cy+14}" font-size="10" fill="#8a93b8">${i}</text>`;
+    lines += `<text x="${cx-14}" y="${cy-i*scale+4}" font-size="10" fill="#8a93b8">${i}</text>`;
   }
-}
-
-function plotFunc(color) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  let first = true;
-  for (let px = 0; px < W; px++) {
-    const x = (px - ox) / scale;
-    const y = computeY(x);
-    const py = oy - y * scale;
-    if (py < -50 || py > H + 50) { first = true; continue; }
-    if (first) { ctx.moveTo(px, py); first = false; }
-    else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // Plot key points
-  for (let x = -8; x <= 8; x++) {
-    const y = computeY(x);
-    const px = ox + x * scale;
-    const py = oy - y * scale;
-    if (py < -10 || py > H + 10) continue;
-    ctx.beginPath();
-    ctx.arc(px, py, 4, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-  }
-
-  // Y-intercept highlight
-  const yInt = computeY(0);
-  const pyInt = oy - yInt * scale;
-  ctx.beginPath();
-  ctx.arc(ox, pyInt, 7, 0, Math.PI * 2);
-  ctx.strokeStyle = '#ffd93d';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
-
-function getFuncText() {
-  const { funcType, m, b } = state;
-  const bStr = b >= 0 ? ` + ${b}` : ` - ${Math.abs(b)}`;
-  const bStr0 = b === 0 ? '' : bStr;
-  switch (funcType) {
-    case 'linear': return `y = ${m}x${bStr0}`;
-    case 'quadratic': return `y = ${m}x\u00B2${bStr0}`;
-    case 'absolute': return `y = ${m}|x|${bStr0}`;
-    case 'step': return `y = floor(${m}x)${bStr0}`;
-  }
-}
-
-function updateInfo() {
-  const { funcType, m, b } = state;
-  document.getElementById('funcText').textContent = getFuncText();
-  if (funcType === 'linear') {
-    const dir = m > 0 ? `up ${Math.abs(m)}, right 1` : m < 0 ? `down ${Math.abs(m)}, right 1` : 'flat (horizontal)';
-    document.getElementById('slopeText').textContent = `${m} (${dir})`;
-  } else {
-    document.getElementById('slopeText').textContent = `${m} (coefficient)`;
-  }
-  document.getElementById('yintText').textContent = `(0, ${b})`;
-  const sampleX = 3;
-  const sampleY = computeY(sampleX);
-  document.getElementById('sampleText').textContent = `y = ${getFuncText().replace('y = ', '').replace('x', `(${sampleX})`)} = ${Number.isInteger(sampleY) ? sampleY : sampleY.toFixed(1)}`;
-}
-
-function getCode() {
-  const { funcType, m, b } = state;
-  const funcExpr = funcType === 'linear' ? `${m} * x + ${b}` :
-    funcType === 'quadratic' ? `${m} * x**2 + ${b}` :
-    funcType === 'absolute' ? `${m} * abs(x) + ${b}` : `floor(${m} * x) + ${b}`;
-  return [
-    { parts: [{ t: '# Coordinate Explorer — Function Grapher', c: 'cm' }] },
-    { parts: [] },
-    { parts: [{ t: '# Define our function', c: 'cm' }] },
-    { parts: [{ t: 'def ', c: 'kw' }, { t: 'f', c: 'fn' }, { t: '(x):', c: '' }] },
-    { parts: [{ t: '    ', c: '' }, { t: 'return ', c: 'kw' }, { t: funcExpr, c: 'vr' }] },
-    { parts: [] },
-    { parts: [{ t: '# Generate points using a loop', c: 'cm' }] },
-    { parts: [{ t: 'points', c: 'vr' }, { t: ' = ', c: 'op' }, { t: '[]', c: '' }] },
-    { parts: [{ t: 'for ', c: 'kw' }, { t: 'x', c: 'vr' }, { t: ' in ', c: 'kw' }, { t: 'range', c: 'fn' }, { t: '(-8, 9):', c: '' }] },
-    { parts: [{ t: '    y', c: 'vr' }, { t: ' = ', c: 'op' }, { t: 'f', c: 'fn' }, { t: '(x)', c: '' }] },
-    { parts: [{ t: '    points.', c: 'vr' }, { t: 'append', c: 'fn' }, { t: '((x, y))', c: '' }] },
-    { parts: [{ t: '    ', c: '' }, { t: 'print', c: 'fn' }, { t: '(', c: '' }, { t: `f"x={x}, y={y}"`, c: 'st' }, { t: ')', c: '' }] },
-    { parts: [] },
-    { parts: [{ t: '# Plot all points on the coordinate plane', c: 'cm' }] },
-    { parts: [{ t: 'plot', c: 'fn' }, { t: '(points, color=', c: '' }, { t: `"${state.colors[colorIdx % state.colors.length]}"`, c: 'st' }, { t: ')', c: '' }] },
-    { parts: [] },
-    { parts: [{ t: `# Slope (m) = ${m}`, c: 'cm' }] },
-    { parts: [{ t: `# Y-intercept (b) = ${b}  →  line crosses y-axis at (0, ${b})`, c: 'cm' }] },
-    { parts: [{ t: `# ${getFuncText()}`, c: 'cm' }] },
-  ];
-}
-
-function renderCode() {
-  const lines = getCode();
-  const ed = document.getElementById('codeEditor');
-  ed.innerHTML = '';
-  lines.forEach((line, i) => {
-    const div = document.createElement('div');
-    div.className = 'code-line';
-    const n = document.createElement('span'); n.className = 'ln'; n.textContent = i + 1;
-    div.appendChild(n);
-    const c = document.createElement('span'); c.className = 'ct';
-    if (!line.parts || !line.parts.length) c.textContent = '';
-    else line.parts.forEach(p => { const s = document.createElement('span'); s.className = p.c; s.textContent = p.t; c.appendChild(s); });
-    div.appendChild(c);
-    ed.appendChild(div);
+  // points
+  points.forEach((p, i) => {
+    const px = cx + p.x*scale, py = cy - p.y*scale;
+    lines += `<circle cx="${px}" cy="${py}" r="7" fill="${p.color || '#7c5cff'}"/>`;
+    lines += `<text x="${px+10}" y="${py-8}" font-size="12" font-weight="700" fill="${p.color || '#7c5cff'}">(${p.x}, ${p.y})</text>`;
   });
-}
-
-function plotFunction() {
-  drawGrid();
-  // Redraw previous functions
-  state.points.forEach(p => plotFunc(p.color));
-  // Draw current
-  const color = state.colors[colorIdx % state.colors.length];
-  plotFunc(color);
-  state.points.push({ funcType: state.funcType, m: state.m, b: state.b, color });
-  colorIdx++;
-  state.plotted = true;
-  renderCode();
-
-  const m = state.m;
-  let msg = '';
-  if (state.funcType === 'linear') {
-    msg = `<strong>Line plotted!</strong> The loop computed y for x = -8 to 8, then plotted each (x, y) point. ` +
-      `<strong>Slope = ${m}</strong> means for every 1 step right, the line goes ${m > 0 ? 'up' : 'down'} ${Math.abs(m)}. ` +
-      `<strong>Y-intercept = ${state.b}</strong> means the line crosses the y-axis at (0, ${state.b}). ` +
-      `Try changing m and b to see how the line moves!`;
-  } else {
-    msg = `<strong>Function plotted!</strong> The code computed y = f(x) for every x value and plotted the result. ` +
-      `Notice how the shape changes as you adjust the sliders. Each function type creates a different curve!`;
+  // line between two points
+  if (opts.line && points.length >= 2) {
+    const a = points[0], b = points[1];
+    lines += `<line x1="${cx + a.x*scale}" y1="${cy - a.y*scale}" x2="${cx + b.x*scale}" y2="${cy - b.y*scale}" stroke="#fbbf24" stroke-width="3"/>`;
   }
-  document.getElementById('explanation').innerHTML = msg;
+  return `<svg class="grid-svg" viewBox="0 0 ${W} ${H}" width="320" height="320">${lines}</svg>`;
 }
 
-function setFunc(type, btn) {
-  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  state.funcType = type;
-  renderCode();
-  updateInfo();
-  if (state.plotted) {
-    drawGrid();
-    state.points.forEach(p => plotFunc(p.color));
+function refreshStage() {
+  const stage = MC.$('stage'); if (!stage) return;
+  const step = MC.state.step;
+  if (step === 1) {
+    stage.innerHTML = `<h3>📍 The coordinate plane</h3>
+      ${gridSVG([{x:3,y:2,color:'#7c5cff'}])}
+      <div class="kv">
+        <div class="pair"><b>3</b><span>x (right)</span></div>
+        <div class="pair"><b>2</b><span>y (up)</span></div>
+      </div>
+      <div class="stage-msg">A point on the grid is written as (x, y). x = how far right. y = how far up. The center is (0, 0).</div>`;
+    cstate.sawIntro = true; MC.refresh();
+  }
+  else if (step === 2) {
+    const pts = [];
+    if (cstate.plottedX !== '' && cstate.plottedY !== '') pts.push({x: +cstate.plottedX, y: +cstate.plottedY, color:'#34d399'});
+    stage.innerHTML = `<h3>🎯 Plot the point (5, -3)</h3>
+      ${gridSVG(pts)}
+      <div class="input-pair">
+        <label>x =</label><input type="number" id="xIn" value="${cstate.plottedX}" placeholder="?">
+        <label>y =</label><input type="number" id="yIn" value="${cstate.plottedY}" placeholder="?">
+        <button class="btn primary" id="plotBtn">📍 Plot</button>
+      </div>
+      <div class="stage-msg ${cstate.plottedX==='5'&&cstate.plottedY==='-3'?'':cstate.plottedX!==''?'bad':''}">${cstate.plottedX==='5'&&cstate.plottedY==='-3' ? '✓ Perfect! (5, -3) means 5 right, 3 down.' : cstate.plottedX!=='' ? '✗ Try again — should be (5, -3).' : 'Type 5 and -3, then click Plot.'}</div>`;
+    MC.$('plotBtn').onclick = () => {
+      cstate.plottedX = MC.$('xIn').value; cstate.plottedY = MC.$('yIn').value;
+      refreshStage(); MC.refresh();
+    };
+  }
+  else if (step === 3) {
+    const pts = [];
+    if (cstate.points.length === 0) cstate.points = [{x:1,y:1,color:'#7c5cff'},{x:4,y:5,color:'#fbbf24'}];
+    pts.push(...cstate.points);
+    stage.innerHTML = `<h3>📏 Two points make a line</h3>
+      ${gridSVG(pts, {line: true})}
+      <div class="kv">
+        <div class="pair"><b>(1,1)</b><span>start</span></div>
+        <div class="pair"><b>(4,5)</b><span>end</span></div>
+        <div class="pair"><b>+3</b><span>change in x</span></div>
+        <div class="pair"><b>+4</b><span>change in y</span></div>
+      </div>
+      <div class="stage-msg">From (1,1) to (4,5): we moved 3 right and 4 up. Slope = rise/run = 4/3.</div>`;
+    cstate.sawSlope = true; MC.refresh();
+  }
+  else if (step === 4) {
+    // Distance between (0,0) and (3,4) → 5 (Pythagoras)
+    stage.innerHTML = `<h3>📐 Distance: how far apart?</h3>
+      ${gridSVG([{x:0,y:0,color:'#7c5cff'},{x:3,y:4,color:'#fbbf24'}], {line:true})}
+      <p style="text-align:center;font-size:16px">From (0,0) to (3,4):<br>distance = √(3² + 4²) = √(9+16) = √25 = <b style="color:var(--primary)">5</b></p>
+      <div class="row-controls">
+        <button class="btn primary" id="distBtn" ${cstate.distance>0?'disabled':''}>Calculate distance</button>
+      </div>
+      <div class="stage-msg">${cstate.distance>0 ? '✓ Distance = 5 units. Pythagorean theorem: a² + b² = c².' : 'Click to calculate.'}</div>`;
+    MC.$('distBtn').onclick = () => { cstate.distance = 5; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 5) {
+    stage.innerHTML = `<h3>🏆 Coordinate Quiz</h3><div class="stage-msg">Answer the questions to finish.</div>`;
   }
 }
 
-function updateSliders() {
-  state.m = parseFloat(document.getElementById('sliderM').value);
-  state.b = parseFloat(document.getElementById('sliderB').value);
-  document.getElementById('valM').textContent = state.m;
-  document.getElementById('valB').textContent = state.b;
-  renderCode();
-  updateInfo();
-  if (state.plotted) {
-    // Live preview
-    drawGrid();
-    state.points.slice(0, -1).forEach(p => plotFunc(p.color));
-    plotFunc(state.colors[(colorIdx - 1) % state.colors.length]);
-    state.points[state.points.length - 1] = { funcType: state.funcType, m: state.m, b: state.b, color: state.colors[(colorIdx - 1) % state.colors.length] };
+const STEPS = [
+  { title: '1. The grid',
+    sub: 'Two number lines crossing at 0.',
+    task: '🎯 Look at the point (3, 2).',
+    taskSub: 'x means right/left. y means up/down.',
+    why: 'Maps, video games, and graphs all use coordinates. The horizontal axis is x, the vertical axis is y. Where they cross — (0,0) — is called the origin.',
+    hint: 'Just look, then click Next.',
+    isDone: () => cstate.sawIntro === true,
+    check: () => 'Click Next to plot a point.',
+    code: [
+      { line: 'point = (3, 2)', highlight: true },
+      { line: 'x = 3', ann: '3 right' },
+      { line: 'y = 2', ann: '2 up' },
+    ]
+  },
+  { title: '2. Plot a point',
+    sub: 'Negative numbers go left and down.',
+    task: '🎯 Plot the point (5, -3).',
+    taskSub: 'Type x = 5, y = -3, then click Plot.',
+    why: 'Positive x goes right, negative x goes left. Positive y goes up, negative y goes down. So (5, -3) is 5 right and 3 DOWN.',
+    hint: 'x = 5, y = -3.',
+    isDone: () => cstate.plottedX === '5' && cstate.plottedY === '-3',
+    check: () => 'Plot the point (5, -3).',
+    code: [
+      { line: 'x = 5' },
+      { line: 'y = -3', highlight: true, ann: 'negative = down' },
+      { line: 'plot(x, y)' },
+    ]
+  },
+  { title: '3. Slope between two points',
+    sub: 'Slope = rise / run.',
+    task: '🎯 Look at the line from (1,1) to (4,5).',
+    taskSub: 'Click Next when ready.',
+    why: 'Slope tells how steep a line is. "Rise" = change in y. "Run" = change in x. Slope = rise ÷ run. A flat line has slope 0; a vertical line is undefined.',
+    hint: 'Just look at the picture.',
+    isDone: () => cstate.sawSlope === true,
+    check: () => 'Click Next.',
+    code: [
+      { line: 'a = (1, 1)' },
+      { line: 'b = (4, 5)' },
+      { line: 'rise = b[1] - a[1]', highlight: true, ann: '5 - 1 = 4' },
+      { line: 'run  = b[0] - a[0]', ann: '4 - 1 = 3' },
+      { line: 'slope = rise / run', ann: '4/3' },
+    ]
+  },
+  { title: '4. Distance with Pythagoras',
+    sub: 'a² + b² = c².',
+    task: '🎯 Click "Calculate distance".',
+    taskSub: 'Find the straight-line distance from (0,0) to (3,4).',
+    why: 'The Pythagorean theorem says: in a right triangle, the long side² = the sum of the two short sides². If we go 3 right and 4 up, the diagonal = √(9+16) = √25 = 5.',
+    hint: 'Click the orange button.',
+    isDone: () => cstate.distance > 0,
+    check: () => cstate.distance > 0 ? '' : 'Click "Calculate distance".',
+    code: [
+      { line: 'import math' },
+      { line: 'a = 3', ann: 'horizontal' },
+      { line: 'b = 4', ann: 'vertical' },
+      { line: 'c = math.sqrt(a*a + b*b)', highlight: true },
+      { line: 'print(c)', ann: '5.0' },
+    ]
+  },
+  { title: '5. Test your skills',
+    sub: 'Final challenge.',
+    task: '🎯 Answer all 4 questions to complete the project.',
+    taskSub: '',
+    why: 'You learned how computers, maps, and graphs locate things in 2D. Same idea works in 3D for video games and CAD.',
+    hint: 'Remember: (x, y) — x first.',
+    isDone: (s) => s.challengeIdx >= 4,
+    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
+    showChallenge: true,
+    code: [
+      { line: 'print("📍 Coordinate master!")' },
+    ]
   }
-}
+];
 
-function clearCanvas() {
-  state.points = [];
-  state.plotted = false;
-  colorIdx = 0;
-  drawGrid();
-  renderCode();
-  document.getElementById('explanation').innerHTML = '<strong>Canvas cleared!</strong> Choose a function type, adjust m and b, then press <strong>Plot Function</strong>. Plot multiple functions to compare them!';
-}
+const CHALLENGES = [
+  { q: 'What does (4, 0) mean?',
+    options: ['4 right, 0 up','0 right, 4 up','4 right, 4 up','4 down'], answer: '4 right, 0 up',
+    why: 'First number is x (right), second is y (up). y=0 means stay on the x-axis.' },
+  { q: 'Which point is in the bottom-left of the grid?',
+    options: ['(-3, -2)','(3, 2)','(-3, 2)','(3, -2)'], answer: '(-3, -2)',
+    why: 'Negative x = left. Negative y = down. So both negative = bottom-left.' },
+  { q: 'What is the slope from (0,0) to (2,6)?',
+    options: ['3','2','6','12'], answer: '3',
+    why: 'Rise = 6, run = 2. Slope = 6/2 = 3.' },
+  { q: 'Distance from (0,0) to (6,8)?',
+    options: ['10','14','100','7'], answer: '10',
+    why: 'sqrt(6² + 8²) = sqrt(36+64) = sqrt(100) = 10.' },
+];
 
-drawGrid();
-renderCode();
-updateInfo();
+const PROJECT = {
+  title: 'Coordinate Plotter', icon: '📍', language: 'Python',
+  welcomeIcon: '📍', welcomeTitle: 'Welcome to Coordinate Plotter!',
+  welcomeBody: "Maps, video games, and graphs all use a coordinate grid. We'll plot points, measure slope, and use Pythagoras to find distances.",
+  youWill: ['What (x, y) means','How to plot any point','How to find slope between two points','How to calculate distance'],
+  duration: '12–15 min', gradeBand: 'Grade 6–7',
+  youLearned: ['x = right, y = up','Origin (0,0) is the center','Slope = rise / run','Distance uses Pythagoras: √(a² + b²)'],
+  upNext: 'Next: Probability Lab — rolling dice and flipping coins!'
+};
 
-canvas.addEventListener('mousemove', e => {
-  if (!state.plotted) return;
-  const rect = canvas.getBoundingClientRect();
-  const px = e.clientX - rect.left;
-  const py = e.clientY - rect.top;
-  const x = (px - ox) / scale;
-  const y = -(py - oy) / scale;
-  document.getElementById('eqGoal') && (document.title = `(${x.toFixed(1)}, ${y.toFixed(1)})`);
-});
-</script>
-</body>
-</html>
+MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
+refreshStage();
+</script></body></html>

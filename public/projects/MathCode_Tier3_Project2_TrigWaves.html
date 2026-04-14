@@ -1,421 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 3 — Trigonometry Wave Simulator</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trig Waves — MathCode</title>
+<link rel="stylesheet" href="/css/project-shared.css">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#0a0a1e;color:#fff;min-height:100vh}
-  .header{background:linear-gradient(135deg,#0d0d30,#1a0a3e);padding:16px 24px;border-bottom:3px solid #e74c3c}
-  .header h1{font-size:1.4em;color:#ff6b6b}.header .sub{font-size:.82em;color:#74b9ff;margin-top:3px}
-  .header .meta{font-size:.7em;color:#666;margin-top:5px}
-  .main{display:flex;min-height:calc(100vh - 85px)}
-  .code-panel{width:44%;background:#121230;padding:16px;border-right:2px solid #222;display:flex;flex-direction:column}
-  .game-panel{width:56%;padding:16px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
-  .ptitle{font-size:.95em;color:#ffd93d;margin-bottom:8px}
-  .code-editor{flex:1;background:#080818;border-radius:8px;padding:12px;font-family:'Fira Code','Courier New',monospace;font-size:12px;overflow-y:auto}
-  .code-line{display:flex;margin-bottom:0;min-height:18px;align-items:center}
-  .code-line.hl{background:rgba(231,76,60,.12);border-left:2px solid #e74c3c}
-  .ln{color:#444;width:26px;text-align:right;margin-right:8px;font-size:10px;flex-shrink:0}
-  .ct .kw{color:#c792ea}.ct .fn{color:#82aaff}.ct .st{color:#c3e88d}
-  .ct .nm{color:#f78c6c}.ct .cm{color:#546e7a;font-style:italic}
-  .ct .vr{color:#ffcb6b}.ct .op{color:#89ddff}
-  .ctrls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-  .btn{padding:8px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
-  .btn-run{background:#e74c3c;color:#fff}.btn-run:hover{background:#c0392b}
-  .btn-ani{background:#9b59b6;color:#fff}.btn-ani:hover{background:#8e44ad}
-  .btn-reset{background:#555;color:#fff}.btn-reset:hover{background:#666}
-  .btn-add{background:#3498db;color:#fff}.btn-add:hover{background:#2980b9}
-  canvas{border-radius:8px;border:1px solid #222}
-  .controls{width:100%;max-width:500px;margin:8px 0}
-  .ctrl-group{background:#121230;border-radius:8px;padding:10px 14px;margin:6px 0}
-  .ctrl-row{display:flex;align-items:center;gap:10px;margin:5px 0}
-  .ctrl-label{font-size:.78em;color:#74b9ff;width:100px;flex-shrink:0}
-  .ctrl-val{font-size:.82em;color:#ffd93d;font-family:'Courier New',monospace;width:55px;text-align:right;flex-shrink:0}
-  input[type="range"]{flex:1;accent-color:#e74c3c;height:6px}
-  .wave-select{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
-  .wave-btn{padding:6px 12px;border:1px solid #333;border-radius:6px;background:#121230;color:#ddd;font-size:.75em;cursor:pointer;font-family:'Courier New',monospace}
-  .wave-btn:hover{border-color:#e74c3c;background:rgba(231,76,60,.1)}
-  .wave-btn.active{border-color:#e74c3c;background:rgba(231,76,60,.25);color:#ff6b6b}
-  .analysis{background:#121230;border-radius:8px;padding:12px;width:100%;max-width:500px;margin-top:8px;font-size:.8em}
-  .a-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1a1a3a}
-  .a-row:last-child{border:none}.a-l{color:#666}.a-v{color:#ffd93d;font-family:'Courier New',monospace}
-  .explanation{margin-top:8px;background:rgba(116,185,255,.06);border-left:3px solid #74b9ff;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;color:#999;line-height:1.5;width:100%;max-width:500px}
-  .explanation strong{color:#74b9ff}
-  .overlay-list{width:100%;max-width:500px;margin-top:6px}
-  .ol-item{display:flex;align-items:center;gap:8px;padding:4px 8px;background:#121230;border-radius:5px;margin:3px 0;font-size:.8em}
-  .ol-color{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-  .ol-expr{flex:1;font-family:'Courier New',monospace;color:#ddd}
-  .ol-del{cursor:pointer;color:#555;font-size:1.1em}.ol-del:hover{color:#e74c3c}
-  .challenge{margin-top:10px;background:rgba(231,76,60,.06);border-left:3px solid #e74c3c;border-radius:0 6px 6px 0;padding:10px 12px;font-size:.78em;width:100%;max-width:500px}
-  .challenge h3{color:#ff6b6b;font-size:1em;margin-bottom:6px}
-  .ch-q{color:#ddd;margin:6px 0}
-  .ch-opts{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0}
-  .ch-opt{padding:5px 12px;border:1px solid #333;border-radius:5px;background:#121230;color:#ddd;font-size:.9em;cursor:pointer}
-  .ch-opt:hover{border-color:#e74c3c}.ch-opt.correct{border-color:#27ae60;background:rgba(39,174,96,.2);color:#2ecc71}
-  .ch-opt.wrong{border-color:#e74c3c;background:rgba(231,76,60,.2);color:#e74c3c}
-  .ch-feedback{font-size:.9em;margin-top:5px;min-height:18px}
-  .score-bar{display:flex;gap:12px;align-items:center;margin-top:4px}
-  .score-bar span{font-size:.75em;color:#666}.score-bar .sv{color:#ffd93d}
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>MathCode Project: Trigonometry Wave Simulator</h1>
-  <div class="sub">Tier 3 — Unit 2: Trigonometric Functions (Grades 9-11, Ages 14-17)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students explore sine, cosine, and tangent waves by manipulating amplitude, frequency, and phase shift, seeing how each parameter shapes the waveform</div>
-</div>
-<div class="main">
-  <div class="code-panel">
-    <div class="ptitle">&#128187; Python Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="ctrls">
-      <button class="btn btn-run" onclick="runPlot()">&#9654; Plot Wave</button>
-      <button class="btn btn-ani" onclick="toggleAnimate()">&#9654; Animate</button>
-      <button class="btn btn-add" onclick="addOverlay()">+ Overlay</button>
-      <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
-    </div>
-  </div>
-  <div class="game-panel">
-    <div class="ptitle">&#127754; Wave Graph</div>
-    <canvas id="waveCanvas" width="480" height="300"></canvas>
-    <div class="controls">
-      <div class="wave-select">
-        <button class="wave-btn active" onclick="setWaveType('sin')" id="wbSin">sin(x)</button>
-        <button class="wave-btn" onclick="setWaveType('cos')" id="wbCos">cos(x)</button>
-        <button class="wave-btn" onclick="setWaveType('tan')" id="wbTan">tan(x)</button>
-        <button class="wave-btn" onclick="setWaveType('combo')" id="wbCombo">sin+cos</button>
-      </div>
-      <div class="ctrl-group">
-        <div class="ctrl-row">
-          <span class="ctrl-label">Amplitude (A)</span>
-          <input type="range" id="slA" min="0.1" max="3" step="0.1" value="1" oninput="updateParams()">
-          <span class="ctrl-val" id="valA">1.0</span>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">Frequency (B)</span>
-          <input type="range" id="slB" min="0.1" max="5" step="0.1" value="1" oninput="updateParams()">
-          <span class="ctrl-val" id="valB">1.0</span>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">Phase Shift (C)</span>
-          <input type="range" id="slC" min="-3.14" max="3.14" step="0.05" value="0" oninput="updateParams()">
-          <span class="ctrl-val" id="valC">0.00</span>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">Vertical Shift (D)</span>
-          <input type="range" id="slD" min="-2" max="2" step="0.1" value="0" oninput="updateParams()">
-          <span class="ctrl-val" id="valD">0.0</span>
-        </div>
-      </div>
-    </div>
-    <div class="analysis" id="analysisPanel"></div>
-    <div class="overlay-list" id="overlayList"></div>
-    <div class="explanation">
-      <strong>General Sinusoidal Form:</strong> y = A · func(B · (x − C)) + D<br><br>
-      <strong>A (Amplitude)</strong> controls the wave's height — how far it stretches above and below the center line. |A| is the distance from center to peak.<br>
-      <strong>B (Frequency)</strong> controls how fast the wave oscillates. Period = 2π/B. Higher B means more cycles in the same space.<br>
-      <strong>C (Phase Shift)</strong> slides the wave left or right. Positive C shifts right, negative shifts left.<br>
-      <strong>D (Vertical Shift)</strong> moves the entire wave up or down. The new center line is y = D.<br><br>
-      <strong>Key Identity:</strong> cos(x) = sin(x + π/2) — cosine is just a phase-shifted sine wave!
-    </div>
-    <div class="challenge" id="challengePanel"></div>
-  </div>
-</div>
+  .wave-svg { background:#fafbff; border-radius:10px; }
+  .sl { background:#f5f7fc; padding:10px 14px; border-radius:8px; }
+  .sl label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
+  .sl b { color:var(--primary); font-size:18px; }
+  .controls { display:grid; gap:10px; grid-template-columns:1fr 1fr; max-width:380px; margin:14px auto 0; }
+</style></head><body>
+<script src="/js/project-framework.js"></script>
 <script>
-const canvas = document.getElementById('waveCanvas');
-const ctx = canvas.getContext('2d');
-let waveType = 'sin';
-let A = 1, B = 1, C = 0, D = 0;
-let animating = false, animId = null, animPhase = 0;
-let overlays = [];
-const COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63'];
-let score = 0, total = 0, currentQ = null;
+const cstate = { amp: 1, freq: 1, sawSin: false, sawAmp: false, sawFreq: false, sawCos: false };
 
-function setWaveType(t) {
-  waveType = t;
-  document.querySelectorAll('.wave-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('wb' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
-  if(t === 'combo') document.getElementById('wbCombo').classList.add('active');
-  updateParams();
-}
-
-function updateParams() {
-  A = parseFloat(document.getElementById('slA').value);
-  B = parseFloat(document.getElementById('slB').value);
-  C = parseFloat(document.getElementById('slC').value);
-  D = parseFloat(document.getElementById('slD').value);
-  document.getElementById('valA').textContent = A.toFixed(1);
-  document.getElementById('valB').textContent = B.toFixed(1);
-  document.getElementById('valC').textContent = C.toFixed(2);
-  document.getElementById('valD').textContent = D.toFixed(1);
-  runPlot();
-}
-
-function waveFn(x, type, a, b, c, d) {
-  let bx = b * (x - c);
-  let v;
-  if(type === 'sin') v = a * Math.sin(bx) + d;
-  else if(type === 'cos') v = a * Math.cos(bx) + d;
-  else if(type === 'tan') { v = a * Math.tan(bx) + d; if(Math.abs(v) > 10) return NaN; }
-  else if(type === 'combo') v = a * (Math.sin(bx) + Math.cos(bx)) + d;
-  return v;
-}
-
-function getEquationStr(type, a, b, c, d) {
-  let fn = type === 'combo' ? '(sin(B*(x-C)) + cos(B*(x-C)))' : type + '(B*(x - C))';
-  let eq = `y = ${a.toFixed(1)} * ${fn} + ${d.toFixed(1)}`;
-  eq = eq.replace('B', b.toFixed(1)).replace('C', c.toFixed(2));
-  return eq;
-}
-
-function drawGraph() {
-  const W = canvas.width, H = canvas.height;
-  const xMin = -2 * Math.PI, xMax = 2 * Math.PI;
-  const yMin = -4, yMax = 4;
-  ctx.fillStyle = '#080818';
-  ctx.fillRect(0, 0, W, H);
-
-  // Grid
-  ctx.strokeStyle = '#1a1a3a'; ctx.lineWidth = 0.5;
-  for(let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
-    let px = (gx - xMin) / (xMax - xMin) * W;
-    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+function plotWave(fn, color = '#7c5cff', extra = '') {
+  const W = 360, H = 220, cx = 30, cy = H/2, scale = 30;
+  let pts = [];
+  for (let px = cx; px <= W; px += 2) {
+    const x = (px - cx) / scale;
+    const y = fn(x);
+    const py = cy - y * scale;
+    pts.push([px, py]);
   }
-  for(let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
-    let py = H - (gy - yMin) / (yMax - yMin) * H;
-    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  let g = '';
+  for (let i = 0; i <= 12; i++) g += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
+  for (let i = -3; i <= 3; i++) g += `<line x1="${cx}" y1="${cy + i*scale}" x2="${W}" y2="${cy + i*scale}" stroke="#e8ecf6"/>`;
+  g += `<line x1="${cx}" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
+  g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
+  return `<svg class="wave-svg" viewBox="0 0 ${W} ${H}" width="360" height="220">${g}<path d="${path}" fill="none" stroke="${color}" stroke-width="3"/>${extra}</svg>`;
+}
+
+function refreshStage() {
+  const stage = MC.$('stage'); if (!stage) return;
+  const step = MC.state.step;
+  if (step === 1) {
+    stage.innerHTML = `<h3>🌊 The sine wave: y = sin(x)</h3>
+      ${plotWave(x => Math.sin(x))}
+      <div class="kv">
+        <div class="pair"><b>1</b><span>max</span></div>
+        <div class="pair"><b>-1</b><span>min</span></div>
+        <div class="pair"><b>2π</b><span>period</span></div>
+      </div>
+      <div class="stage-msg">A sine wave goes smoothly up and down between -1 and 1, repeating forever. ${cstate.sawSin ? '✓' : 'Click Next when ready.'}</div>`;
+    cstate.sawSin = true; MC.refresh();
   }
-
-  // π labels on x-axis
-  ctx.fillStyle = '#444'; ctx.font = '9px monospace';
-  const piMarks = [{v: -2*Math.PI, l:'-2π'},{v:-Math.PI, l:'-π'},{v:0, l:'0'},{v:Math.PI, l:'π'},{v:2*Math.PI, l:'2π'}];
-  piMarks.forEach(m => {
-    let px = (m.v - xMin) / (xMax - xMin) * W;
-    let py = H - (0 - yMin) / (yMax - yMin) * H;
-    ctx.fillText(m.l, px + 2, py + 12);
-  });
-
-  // Axes
-  ctx.strokeStyle = '#444'; ctx.lineWidth = 1;
-  let zeroY = H - (0 - yMin) / (yMax - yMin) * H;
-  ctx.beginPath(); ctx.moveTo(0, zeroY); ctx.lineTo(W, zeroY); ctx.stroke();
-  let zeroX = (0 - xMin) / (xMax - xMin) * W;
-  ctx.beginPath(); ctx.moveTo(zeroX, 0); ctx.lineTo(zeroX, H); ctx.stroke();
-
-  // Overlays
-  overlays.forEach((ov, idx) => {
-    drawWaveLine(xMin, xMax, yMin, yMax, W, H, ov.type, ov.a, ov.b, ov.c, ov.d, COLORS[(idx+1) % COLORS.length], 1.5);
-  });
-
-  // Main wave
-  drawWaveLine(xMin, xMax, yMin, yMax, W, H, waveType, A, B, C + animPhase, D, COLORS[0], 2.5);
-
-  // Amplitude/period markers
-  if(waveType !== 'tan') {
-    // Amplitude lines
-    ctx.setLineDash([4,4]); ctx.strokeStyle = 'rgba(255,217,61,0.3)'; ctx.lineWidth = 1;
-    let peakY = H - ((A + D) - yMin) / (yMax - yMin) * H;
-    let troughY = H - ((-A + D) - yMin) / (yMax - yMin) * H;
-    ctx.beginPath(); ctx.moveTo(0, peakY); ctx.lineTo(W, peakY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, troughY); ctx.lineTo(W, troughY); ctx.stroke();
-    ctx.setLineDash([]);
-    // Period bracket
-    if(B > 0) {
-      let period = 2 * Math.PI / B;
-      let px1 = (C + animPhase - xMin) / (xMax - xMin) * W;
-      let px2 = (C + animPhase + period - xMin) / (xMax - xMin) * W;
-      if(px1 >= 0 && px2 <= W) {
-        let markerY = H - 12;
-        ctx.strokeStyle = '#74b9ff'; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(px1, markerY - 5); ctx.lineTo(px1, markerY + 5); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(px1, markerY); ctx.lineTo(px2, markerY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(px2, markerY - 5); ctx.lineTo(px2, markerY + 5); ctx.stroke();
-        ctx.fillStyle = '#74b9ff'; ctx.font = '9px sans-serif';
-        ctx.fillText('Period = ' + (period).toFixed(2), (px1+px2)/2 - 28, markerY - 8);
+  else if (step === 2) {
+    stage.innerHTML = `<h3>📏 Amplitude controls height</h3>
+      ${plotWave(x => cstate.amp * Math.sin(x))}
+      <div class="controls">
+        <div class="sl"><label>amplitude = <b>${cstate.amp.toFixed(1)}</b></label>
+          <input type="range" min="0.5" max="3" step="0.1" value="${cstate.amp}" id="ampSld" style="width:100%"></div>
+      </div>
+      <div class="stage-msg">y = ${cstate.amp.toFixed(1)} × sin(x). ${cstate.sawAmp ? '✓ Amplitude = how TALL the wave is.' : 'Move the slider.'}</div>`;
+    MC.$('ampSld').oninput = (e) => { cstate.amp = +e.target.value; cstate.sawAmp = true; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 3) {
+    stage.innerHTML = `<h3>🎵 Frequency controls how fast it wiggles</h3>
+      ${plotWave(x => Math.sin(cstate.freq * x))}
+      <div class="controls">
+        <div class="sl"><label>frequency = <b>${cstate.freq.toFixed(1)}</b></label>
+          <input type="range" min="0.5" max="4" step="0.1" value="${cstate.freq}" id="freqSld" style="width:100%"></div>
+      </div>
+      <div class="stage-msg">y = sin(${cstate.freq.toFixed(1)} × x). ${cstate.sawFreq ? '✓ Higher frequency = more waves in the same space (like high-pitched sound).' : 'Move the slider.'}</div>`;
+    MC.$('freqSld').oninput = (e) => { cstate.freq = +e.target.value; cstate.sawFreq = true; refreshStage(); MC.refresh(); };
+  }
+  else if (step === 4) {
+    const W = 360, H = 220, cx = 30, cy = H/2, scale = 30;
+    function path(fn) {
+      let p = '';
+      for (let px = cx; px <= W; px += 2) {
+        const x = (px - cx) / scale;
+        const py = cy - fn(x) * scale;
+        p += (p ? 'L' : 'M') + px.toFixed(1) + ',' + py.toFixed(1);
       }
+      return p;
     }
+    let g = '';
+    for (let i = 0; i <= 12; i++) g += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
+    for (let i = -3; i <= 3; i++) g += `<line x1="${cx}" y1="${cy + i*scale}" x2="${W}" y2="${cy + i*scale}" stroke="#e8ecf6"/>`;
+    g += `<line x1="${cx}" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
+    g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
+    g += `<path d="${path(x => Math.sin(x))}" fill="none" stroke="#7c5cff" stroke-width="2.5"/>`;
+    g += `<path d="${path(x => Math.cos(x))}" fill="none" stroke="#fbbf24" stroke-width="2.5"/>`;
+    stage.innerHTML = `<h3>🆚 sin(x) vs cos(x)</h3>
+      <svg class="wave-svg" viewBox="0 0 ${W} ${H}" width="360" height="220">${g}</svg>
+      <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-weight:700">
+        <span style="color:#7c5cff">━ sin(x)</span>
+        <span style="color:#fbbf24">━ cos(x)</span>
+      </div>
+      <div class="stage-msg">${cstate.sawCos ? '✓ Same shape — cos is sin shifted left by π/2 (a quarter wave).' : 'Look how cos is sin SHIFTED.'}</div>`;
+    cstate.sawCos = true; MC.refresh();
+  }
+  else if (step === 5) {
+    stage.innerHTML = `<h3>🏆 Trig Quiz</h3><div class="stage-msg">Answer the questions below.</div>`;
   }
 }
 
-function drawWaveLine(xMin, xMax, yMin, yMax, W, H, type, a, b, c, d, color, lw) {
-  ctx.strokeStyle = color; ctx.lineWidth = lw;
-  ctx.beginPath();
-  let started = false;
-  for(let px = 0; px <= W; px++) {
-    let x = xMin + (px / W) * (xMax - xMin);
-    let y = waveFn(x, type, a, b, c, d);
-    if(isNaN(y) || Math.abs(y) > 10) { started = false; continue; }
-    let py = H - (y - yMin) / (yMax - yMin) * H;
-    if(!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
+const STEPS = [
+  { title: '1. The sine wave',
+    sub: 'A wave that repeats forever.',
+    task: '🎯 Look at sin(x).',
+    taskSub: 'It oscillates between -1 and 1.',
+    why: 'Sine and cosine are the heartbeat of trigonometry. They model sound, light, music, ocean waves, springs, and circular motion. The sine wave is the simplest "wave" in math.',
+    hint: 'Just look at the graph.',
+    isDone: () => cstate.sawSin === true,
+    check: () => 'Click Next.',
+    code: [
+      { line: 'import math' },
+      { line: 'for x in range(360):' },
+      { line: '    y = math.sin(math.radians(x))', highlight: true },
+      { line: '    plot(x, y)' },
+    ]
+  },
+  { title: '2. Amplitude',
+    sub: 'How tall the wave is.',
+    task: '🎯 Move the amplitude slider.',
+    taskSub: 'See the wave grow and shrink.',
+    why: 'Amplitude is the height of the wave. In sound, it controls volume (loud = tall wave). In light, it controls brightness. In music, it controls how loud a note plays.',
+    hint: 'Drag the slider.',
+    isDone: () => cstate.sawAmp === true,
+    check: () => 'Move the slider.',
+    code: [
+      { line: `amp = ${cstate.amp.toFixed(1)}`, highlight: true },
+      { line: 'y = amp * math.sin(x)' },
+    ]
+  },
+  { title: '3. Frequency',
+    sub: 'How fast it oscillates.',
+    task: '🎯 Move the frequency slider.',
+    taskSub: 'Higher = more wiggles.',
+    why: 'Frequency is how many waves fit in a given space (or time). In sound, it\'s pitch (high frequency = high note). In radio, it\'s the station number. In light, it\'s color.',
+    hint: 'Drag the slider.',
+    isDone: () => cstate.sawFreq === true,
+    check: () => 'Move the slider.',
+    code: [
+      { line: `freq = ${cstate.freq.toFixed(1)}`, highlight: true },
+      { line: 'y = math.sin(freq * x)' },
+    ]
+  },
+  { title: '4. Cosine: same wave, shifted',
+    sub: 'cos(x) is sin shifted by π/2.',
+    task: '🎯 Look at sin and cos together.',
+    taskSub: 'Same shape, different start.',
+    why: 'Cosine has the same shape as sine, but starts at 1 instead of 0. They\'re partners — together they describe rotation around a circle, position vs velocity, and complex sound.',
+    hint: 'Look at the two waves.',
+    isDone: () => cstate.sawCos === true,
+    check: () => 'Click Next.',
+    code: [
+      { line: 'sin_val = math.sin(x)' },
+      { line: 'cos_val = math.cos(x)', highlight: true },
+      { line: '# cos(x) = sin(x + pi/2)' },
+    ]
+  },
+  { title: '5. Trig quiz',
+    sub: 'Test what you learned.',
+    task: '🎯 Answer all 4 questions.',
+    taskSub: '',
+    why: 'You\'re now ready to understand sound waves, AC electricity, GPS triangulation, and circular motion.',
+    hint: 'Match property to wave behavior.',
+    isDone: (s) => s.challengeIdx >= 4,
+    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
+    showChallenge: true,
+    code: [
+      { line: 'print("🌊 Trig wave master!")' },
+    ]
   }
-  ctx.stroke();
-}
-
-function runPlot() {
-  drawGraph();
-  updateCode();
-  updateAnalysis();
-}
-
-function updateCode() {
-  const ed = document.getElementById('codeEditor');
-  let fn = waveType === 'combo' ? 'sin' : waveType;
-  let fn2 = waveType === 'combo' ? ' + np.cos' : '';
-  let lines = [
-    {t:[{c:'import',s:'kw'},{c:' numpy ',s:'vr'},{c:'as',s:'kw'},{c:' np',s:'vr'}]},
-    {t:[{c:'import',s:'kw'},{c:' matplotlib.pyplot ',s:'vr'},{c:'as',s:'kw'},{c:' plt',s:'vr'}]},
-    {t:[]},
-    {t:[{c:'# Wave parameters',s:'cm'}]},
-    {t:[{c:'A',s:'vr'},{c:' = ',s:'op'},{c:A.toFixed(1),s:'nm'}],hl:true},
-    {t:[{c:'B',s:'vr'},{c:' = ',s:'op'},{c:B.toFixed(1),s:'nm'}],hl:true},
-    {t:[{c:'C',s:'vr'},{c:' = ',s:'op'},{c:C.toFixed(2),s:'nm'}],hl:true},
-    {t:[{c:'D',s:'vr'},{c:' = ',s:'op'},{c:D.toFixed(1),s:'nm'}],hl:true},
-    {t:[]},
-    {t:[{c:'# Generate x values from -2π to 2π',s:'cm'}]},
-    {t:[{c:'x',s:'vr'},{c:' = ',s:'op'},{c:'np.',s:'vr'},{c:'linspace',s:'fn'},{c:'(',s:'op'},{c:'-2',s:'nm'},{c:'*',s:'op'},{c:'np.pi',s:'vr'},{c:', ',s:'op'},{c:'2',s:'nm'},{c:'*',s:'op'},{c:'np.pi',s:'vr'},{c:', ',s:'op'},{c:'1000',s:'nm'},{c:')',s:'op'}]},
-    {t:[]},
-    {t:[{c:'# Compute wave: y = A * ' + fn + '(B*(x - C)) + D',s:'cm'}]},
-    {t:[{c:'y',s:'vr'},{c:' = ',s:'op'},{c:'A',s:'vr'},{c:' * ',s:'op'},{c:'np.',s:'vr'},{c:fn,s:'fn'},{c:'(',s:'op'},{c:'B',s:'vr'},{c:' * ',s:'op'},{c:'(',s:'op'},{c:'x',s:'vr'},{c:' - ',s:'op'},{c:'C',s:'vr'},{c:')',s:'op'},{c:')',s:'op'},{c:fn2 ? ' + A * np.' : '',s:fn2?'vr':''},{c:fn2?'cos':' ',s:fn2?'fn':''},{c:fn2?'(B * (x - C))':'',s:fn2?'op':''},{c:' + ',s:'op'},{c:'D',s:'vr'}],hl:true},
-    {t:[]},
-    {t:[{c:'# Compute period and amplitude',s:'cm'}]},
-    {t:[{c:'period',s:'vr'},{c:' = ',s:'op'},{c:'2',s:'nm'},{c:' * ',s:'op'},{c:'np.pi',s:'vr'},{c:' / ',s:'op'},{c:'B',s:'vr'}],hl:true},
-    {t:[{c:'amplitude',s:'vr'},{c:' = ',s:'op'},{c:'abs',s:'fn'},{c:'(',s:'op'},{c:'A',s:'vr'},{c:')',s:'op'}],hl:true},
-    {t:[{c:'print',s:'fn'},{c:'(',s:'op'},{c:'f"Period: {period:.2f}, Amplitude: {amplitude:.1f}"',s:'st'},{c:')',s:'op'}]},
-    {t:[]},
-    {t:[{c:'# Plot the wave',s:'cm'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'figure',s:'fn'},{c:'(',s:'op'},{c:'figsize',s:'vr'},{c:'=',s:'op'},{c:'(10, 5)',s:'nm'},{c:')',s:'op'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'plot',s:'fn'},{c:'(',s:'op'},{c:'x',s:'vr'},{c:', ',s:'op'},{c:'y',s:'vr'},{c:', ',s:'op'},{c:"color",s:'vr'},{c:'=',s:'op'},{c:"'red'",s:'st'},{c:', ',s:'op'},{c:'linewidth',s:'vr'},{c:'=',s:'op'},{c:'2',s:'nm'},{c:')',s:'op'}],hl:true},
-    {t:[{c:'plt.',s:'vr'},{c:'axhline',s:'fn'},{c:'(',s:'op'},{c:'y',s:'vr'},{c:'=',s:'op'},{c:'0',s:'nm'},{c:', ',s:'op'},{c:'color',s:'vr'},{c:'=',s:'op'},{c:"'gray'",s:'st'},{c:')',s:'op'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'title',s:'fn'},{c:'(',s:'op'},{c:`"${getEquationStr(waveType, A, B, C, D)}"`,s:'st'},{c:')',s:'op'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'xlabel',s:'fn'},{c:'(',s:'op'},{c:"'x (radians)'",s:'st'},{c:')',s:'op'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'ylabel',s:'fn'},{c:'(',s:'op'},{c:"'y'",s:'st'},{c:')',s:'op'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'grid',s:'fn'},{c:'(',s:'op'},{c:'True',s:'kw'},{c:')',s:'op'}]},
-    {t:[{c:'plt.',s:'vr'},{c:'show',s:'fn'},{c:'()',s:'op'}]}
-  ];
-  ed.innerHTML = lines.map((l,i) => {
-    let cls = l.hl ? ' hl' : '';
-    let inner = l.t.map(p => `<span class="${p.s}">${p.c}</span>`).join('');
-    return `<div class="code-line${cls}"><span class="ln">${i+1}</span><span class="ct">${inner || '&nbsp;'}</span></div>`;
-  }).join('');
-}
-
-function updateAnalysis() {
-  let period = waveType === 'tan' ? Math.PI / B : 2 * Math.PI / B;
-  let periodLabel = waveType === 'tan' ? 'π/' + B.toFixed(1) : '2π/' + B.toFixed(1);
-  let amp = waveType === 'tan' ? '∞ (unbounded)' : Math.abs(A).toFixed(2);
-  let midline = D.toFixed(1);
-  let maxVal = waveType === 'tan' ? '∞' : (Math.abs(A) + D).toFixed(2);
-  let minVal = waveType === 'tan' ? '-∞' : (-Math.abs(A) + D).toFixed(2);
-  let phaseDir = C > 0 ? 'right' : C < 0 ? 'left' : 'none';
-  document.getElementById('analysisPanel').innerHTML = `
-    <div class="a-row"><span class="a-l">Wave Type</span><span class="a-v">${waveType === 'combo' ? 'sin + cos' : waveType}</span></div>
-    <div class="a-row"><span class="a-l">Equation</span><span class="a-v">${getEquationStr(waveType, A, B, C, D)}</span></div>
-    <div class="a-row"><span class="a-l">Amplitude |A|</span><span class="a-v">${amp}</span></div>
-    <div class="a-row"><span class="a-l">Period</span><span class="a-v">${periodLabel} = ${period.toFixed(3)}</span></div>
-    <div class="a-row"><span class="a-l">Phase Shift</span><span class="a-v">${Math.abs(C).toFixed(2)} ${phaseDir}</span></div>
-    <div class="a-row"><span class="a-l">Vertical Shift</span><span class="a-v">${midline}</span></div>
-    <div class="a-row"><span class="a-l">Range</span><span class="a-v">[${minVal}, ${maxVal}]</span></div>
-  `;
-}
-
-function addOverlay() {
-  overlays.push({type: waveType, a: A, b: B, c: C, d: D});
-  renderOverlayList();
-  drawGraph();
-}
-
-function renderOverlayList() {
-  const el = document.getElementById('overlayList');
-  el.innerHTML = overlays.map((ov, i) => {
-    let col = COLORS[(i+1) % COLORS.length];
-    return `<div class="ol-item"><span class="ol-color" style="background:${col}"></span>
-      <span class="ol-expr">${getEquationStr(ov.type, ov.a, ov.b, ov.c, ov.d)}</span>
-      <span class="ol-del" onclick="removeOverlay(${i})">×</span></div>`;
-  }).join('');
-}
-
-function removeOverlay(i) { overlays.splice(i, 1); renderOverlayList(); drawGraph(); }
-
-function toggleAnimate() {
-  animating = !animating;
-  document.querySelector('.btn-ani').textContent = animating ? '⏸ Stop' : '▶ Animate';
-  if(animating) animate(); else { cancelAnimationFrame(animId); animPhase = 0; runPlot(); }
-}
-
-function animate() {
-  if(!animating) return;
-  animPhase += 0.03;
-  drawGraph();
-  animId = requestAnimationFrame(animate);
-}
-
-function resetAll() {
-  animating = false; animPhase = 0;
-  document.querySelector('.btn-ani').textContent = '▶ Animate';
-  cancelAnimationFrame(animId);
-  overlays = [];
-  document.getElementById('slA').value = 1; document.getElementById('slB').value = 1;
-  document.getElementById('slC').value = 0; document.getElementById('slD').value = 0;
-  setWaveType('sin');
-  renderOverlayList();
-  updateParams();
-}
-
-// Challenges
-const challenges = [
-  {q: 'What is the period of y = sin(2x)?', opts: ['π','2π','4π','π/2'], ans: 0, expl: 'Period = 2π/B = 2π/2 = π'},
-  {q: 'If amplitude is 3, what is the range of y = 3sin(x)?', opts: ['[-3, 3]','[-1, 1]','[0, 3]','[-6, 6]'], ans: 0, expl: 'Range is [-A, A] = [-3, 3] when D = 0'},
-  {q: 'cos(x) equals sin(x + ?)', opts: ['π/2','π','-π/2','2π'], ans: 0, expl: 'cos(x) = sin(x + π/2). Cosine leads sine by π/2 radians.'},
-  {q: 'Phase shift of y = sin(x - π/4)?', opts: ['π/4 right','π/4 left','π/2 right','No shift'], ans: 0, expl: 'y = sin(x - C): positive C shifts right. C = π/4, shift is π/4 right.'},
-  {q: 'What is the midline of y = sin(x) + 2?', opts: ['y = 2','y = 0','y = 1','y = -2'], ans: 0, expl: 'D = 2 shifts everything up 2 units, so midline is y = 2.'},
-  {q: 'Period of y = cos(πx)?', opts: ['2','π','2π','1'], ans: 0, expl: 'Period = 2π/B = 2π/π = 2'},
-  {q: 'tan(x) has vertical asymptotes at:', opts: ['x = ±π/2, ±3π/2, ...','x = 0, ±π, ±2π, ...','x = ±π/4','x = ±1'], ans: 0, expl: 'tan(x) = sin(x)/cos(x) is undefined when cos(x) = 0, at x = ±π/2 + nπ'},
-  {q: 'Doubling the frequency B will:', opts: ['Halve the period','Double the period','Double the amplitude','Shift the wave right'], ans: 0, expl: 'Period = 2π/B. If B doubles, period halves — more cycles fit in the same space.'}
 ];
 
-function loadChallenge() {
-  let idx = Math.floor(Math.random() * challenges.length);
-  currentQ = challenges[idx];
-  let shuffled = [...currentQ.opts];
-  // Shuffle options but track correct answer
-  let correctVal = currentQ.opts[currentQ.ans];
-  for(let i = shuffled.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i+1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  currentQ._shuffled = shuffled;
-  currentQ._correctIdx = shuffled.indexOf(correctVal);
-  const cp = document.getElementById('challengePanel');
-  cp.innerHTML = `<h3>&#127891; Trig Challenge</h3>
-    <div class="ch-q">${currentQ.q}</div>
-    <div class="ch-opts">${shuffled.map((o,i) => `<div class="ch-opt" onclick="checkAnswer(${i})">${o}</div>`).join('')}</div>
-    <div class="ch-feedback" id="chFeedback"></div>
-    <div class="score-bar"><span>Score: <span class="sv">${score}/${total}</span></span>
-    <span style="cursor:pointer;color:#74b9ff" onclick="loadChallenge()">Next →</span></div>`;
-}
+const CHALLENGES = [
+  { q: 'What does amplitude control in a sine wave?',
+    options: ['Height','Speed','Starting position','Color'], answer: 'Height',
+    why: 'Amplitude = how tall the wave is.' },
+  { q: 'What does increasing frequency do?',
+    options: ['Adds more wiggles','Makes the wave taller','Shifts left','Stops it'], answer: 'Adds more wiggles',
+    why: 'Higher frequency = more cycles per unit.' },
+  { q: 'sin(0) = ?',
+    options: ['0','1','-1','π'], answer: '0',
+    why: 'Sine starts at 0 when x = 0.' },
+  { q: 'Cosine looks like sine, but:',
+    options: ['Shifted left by π/2','Upside down','Twice as tall','Half as tall'], answer: 'Shifted left by π/2',
+    why: 'cos(x) = sin(x + π/2).' },
+];
 
-function checkAnswer(i) {
-  total++;
-  const fb = document.getElementById('chFeedback');
-  const opts = document.querySelectorAll('.ch-opt');
-  opts.forEach(o => o.style.pointerEvents = 'none');
-  if(i === currentQ._correctIdx) {
-    score++;
-    opts[i].classList.add('correct');
-    fb.innerHTML = `<span style="color:#2ecc71">✓ Correct! ${currentQ.expl}</span>`;
-  } else {
-    opts[i].classList.add('wrong');
-    opts[currentQ._correctIdx].classList.add('correct');
-    fb.innerHTML = `<span style="color:#e74c3c">✗ ${currentQ.expl}</span>`;
-  }
-  document.querySelector('.score-bar .sv').textContent = `${score}/${total}`;
-}
+const PROJECT = {
+  title: 'Trig Waves', icon: '🌊', language: 'Python',
+  welcomeIcon: '🌊', welcomeTitle: 'Welcome to Trig Waves!',
+  welcomeBody: "Sine and cosine waves describe almost every kind of oscillation: sound, light, springs, and circles. We'll explore amplitude and frequency with sliders.",
+  youWill: ['What sin(x) and cos(x) look like','How amplitude controls height','How frequency controls wiggles','Why sine and cosine are partners'],
+  duration: '15 min', gradeBand: 'Grade 9–10',
+  youLearned: ['Sine waves repeat between -1 and 1','Amplitude scales the height','Frequency packs more waves into the same space','Cosine = sine shifted by π/2'],
+  upNext: 'Next: Stat Lab — averages and outliers!'
+};
 
-// Init
-updateParams();
-loadChallenge();
-</script>
-</body>
-</html>
+MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
+refreshStage();
+</script></body></html>
