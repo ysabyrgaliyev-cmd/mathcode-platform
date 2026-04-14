@@ -1,213 +1,180 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Probability Lab — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .die { width:90px; height:90px; background:white; border:3px solid var(--ink); border-radius:14px;
-    display:flex; align-items:center; justify-content:center; font-size:48px; font-weight:900; color:var(--ink);
-    box-shadow:0 6px 14px rgba(0,0,0,.15); margin:14px auto; }
-  .coin { width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#ffd27a,#f4a830);
-    border:3px solid #b8651a; display:flex; align-items:center; justify-content:center;
-    font-size:30px; font-weight:900; color:#5a3000; margin:14px auto; }
-  .bar-chart { display:flex; gap:10px; align-items:flex-end; height:120px; margin:14px auto; max-width:300px; justify-content:center; }
-  .bar { width:36px; background:linear-gradient(180deg,var(--primary),var(--primary-2));
-    border-radius:6px 6px 0 0; position:relative; min-height:4px; }
-  .bar .lbl { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%);
-    font-size:12px; font-weight:700; }
-  .bar .ct { position:absolute; top:-22px; left:50%; transform:translateX(-50%);
-    font-size:12px; color:var(--primary); font-weight:800; }
+.dice-area{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;padding:20px}
+.die{width:60px;height:60px;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#1f2545;box-shadow:0 3px 6px rgba(0,0,0,.2);animation:roll .4s ease-out}
+@keyframes roll{0%{transform:rotate(-90deg) scale(.5)}100%{transform:rotate(0) scale(1)}}
+.histo{display:flex;align-items:flex-end;gap:5px;height:100px;margin-top:14px}
+.hbar{width:28px;background:var(--primary);border-radius:4px 4px 0 0;position:relative;min-height:2px;transition:height .5s ease-out}
+.hbar .n{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:#1f2545}
+.hbar .c{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;font-weight:900;color:var(--primary)}
+.count-chip{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);text-align:center}
+.count-chip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700}
+.stage-visual{background:linear-gradient(180deg,#fce7f3,#f472b6);min-height:320px;padding:20px 14px 30px}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🎲</div><h2>Welcome to Probability Lab!</h2>
+  <p>Simulate dice rolls with Python and discover probability.</p>
+  <div class="pills"><div class="pill">⏱ 15 min</div><div class="pill">📚 Grade 4–7</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Simulate random events</li>
+    <li>Count outcomes with a loop</li>
+    <li>Estimate probability from data</li>
+    <li>Build a simple histogram</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Roll dice! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🎲</div><div><h1>Probability Lab</h1><div class="sub">Simulate randomness with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="count-chip"><span class="lbl">Rolls</span><span id="rollCount">0</span></div>
+        <div class="dice-area" id="diceArea"></div>
+        <div class="histo" id="histo"></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>probability.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const cstate = { coinFlips: { H:0, T:0 }, dieRolls: [], totalRolls: 0, sawTheory: false, lastRoll: 0 };
-
-const dieFaces = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>🪙 The coin: 50% heads, 50% tails</h3>
-      <div class="coin">${cstate.lastFlip || '?'}</div>
-      <div class="kv">
-        <div class="pair"><b>${cstate.coinFlips.H}</b><span>heads</span></div>
-        <div class="pair"><b>${cstate.coinFlips.T}</b><span>tails</span></div>
-        <div class="pair"><b>${cstate.coinFlips.H + cstate.coinFlips.T}</b><span>total flips</span></div>
-      </div>
-      <div class="row-controls">
-        <button class="btn primary" id="flipBtn">🪙 Flip 1 coin</button>
-        <button class="btn" id="flip10">⚡ Flip 10 coins</button>
-        <button class="btn" id="resetCoin">↻ Reset</button>
-      </div>
-      <div class="stage-msg">${cstate.coinFlips.H + cstate.coinFlips.T >= 10 ? `✓ ${cstate.coinFlips.H + cstate.coinFlips.T} flips: ${cstate.coinFlips.H} heads (${Math.round(100*cstate.coinFlips.H/(cstate.coinFlips.H+cstate.coinFlips.T))}%). Theory says 50%.` : 'Flip 10 or more times to see if heads ≈ 50%.'}</div>`;
-    MC.$('flipBtn').onclick = () => doFlip(1);
-    MC.$('flip10').onclick = () => doFlip(10);
-    MC.$('resetCoin').onclick = () => { cstate.coinFlips = {H:0,T:0}; cstate.lastFlip=''; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 2) {
-    stage.innerHTML = `<h3>🎲 Rolling a die</h3>
-      <div class="die">${dieFaces[cstate.lastRoll] || '?'}</div>
-      <div class="stage-msg">A die has 6 sides. The chance of any one number = 1 out of 6, or about 16.7%.</div>
-      <div class="kv">
-        <div class="pair"><b>1/6</b><span>P(any number)</span></div>
-        <div class="pair"><b>≈16.7%</b><span>chance</span></div>
-      </div>
-      <div class="row-controls">
-        <button class="btn primary" id="roll1">🎲 Roll once</button>
-      </div>
-      <div class="stage-msg">${cstate.lastRoll ? `✓ Rolled: ${cstate.lastRoll}.` : 'Click to roll.'}</div>`;
-    MC.$('roll1').onclick = () => { cstate.lastRoll = 1 + Math.floor(Math.random()*6); refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    const counts = [0,0,0,0,0,0];
-    cstate.dieRolls.forEach(r => counts[r-1]++);
-    const max = Math.max(1, ...counts);
-    stage.innerHTML = `<h3>🎲 Roll many times — see the pattern</h3>
-      <div class="bar-chart">
-        ${counts.map((c,i) => `<div class="bar" style="height:${(c/max)*110}px"><span class="ct">${c}</span><span class="lbl">${i+1}</span></div>`).join('')}
-      </div>
-      <div style="text-align:center;margin-top:30px;font-weight:700">Total rolls: ${cstate.totalRolls}</div>
-      <div class="row-controls">
-        <button class="btn primary" id="roll10">🎲 Roll 10</button>
-        <button class="btn" id="roll100">⚡ Roll 100</button>
-        <button class="btn" id="resetD">↻ Reset</button>
-      </div>
-      <div class="stage-msg">${cstate.totalRolls >= 60 ? '✓ With many rolls, all 6 numbers come up about equally — that\'s the law of large numbers!' : 'Roll at least 60 times to see the pattern.'}</div>`;
-    MC.$('roll10').onclick = () => doRolls(10);
-    MC.$('roll100').onclick = () => doRolls(100);
-    MC.$('resetD').onclick = () => { cstate.dieRolls = []; cstate.totalRolls = 0; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 4) {
-    stage.innerHTML = `<h3>🎯 Theoretical vs experimental probability</h3>
-      <p style="text-align:center;font-size:15px;max-width:340px">
-        <b>Theoretical:</b> what math predicts (1/6 ≈ 16.7%).<br><br>
-        <b>Experimental:</b> what actually happened in your rolls.<br><br>
-        With more rolls, experimental gets CLOSER to theoretical.
-      </p>
-      <div class="row-controls">
-        <button class="btn primary" id="ackBtn" ${cstate.sawTheory?'disabled':''}>Got it!</button>
-      </div>
-      <div class="stage-msg">${cstate.sawTheory ? '✓ Click Next.' : 'Click "Got it!" when ready.'}</div>`;
-    MC.$('ackBtn').onclick = () => { cstate.sawTheory = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🏆 Probability Quiz</h3><div class="stage-msg">Answer the questions below.</div>`;
-  }
-  function doFlip(n) {
-    for (let i=0;i<n;i++) {
-      const r = Math.random() < 0.5 ? 'H' : 'T';
-      cstate.coinFlips[r]++;
-      cstate.lastFlip = r === 'H' ? '👑' : '🌙';
-    }
-    refreshStage(); MC.refresh();
-  }
-  function doRolls(n) {
-    for (let i=0;i<n;i++) cstate.dieRolls.push(1 + Math.floor(Math.random()*6));
-    cstate.totalRolls += n;
-    refreshStage(); MC.refresh();
+const FACES = {1:'⚀',2:'⚁',3:'⚂',4:'⚃',5:'⚄',6:'⚅'};
+function rollOne() { return 1 + Math.floor(Math.random() * 6); }
+function showDice(rolls) {
+  const area = document.getElementById('diceArea');
+  area.innerHTML = '';
+  rolls.slice(-12).forEach(r => { const d = document.createElement('div'); d.className = 'die'; d.textContent = FACES[r]; area.appendChild(d); });
+  document.getElementById('rollCount').textContent = rolls.length;
+}
+function showHisto(rolls) {
+  const h = document.getElementById('histo');
+  h.innerHTML = '';
+  const counts = [0,0,0,0,0,0];
+  rolls.forEach(r => counts[r-1]++);
+  const max = Math.max(1, ...counts);
+  for (let i = 1; i <= 6; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'hbar';
+    bar.style.height = (counts[i-1] / max * 100) + '%';
+    bar.innerHTML = '<span class="c">' + counts[i-1] + '</span><span class="n">' + i + '</span>';
+    h.appendChild(bar);
   }
 }
 
-const STEPS = [
-  { title: '1. Flip a coin',
-    sub: '50/50 chance — but does it always work out?',
-    task: '🎯 Flip the coin 10 or more times.',
-    taskSub: 'See if heads comes up exactly half.',
-    why: 'Probability is the chance something happens. A fair coin has a 50% chance of heads. But if you flip just 4 times, you could get all heads! Probability shows up over MANY tries.',
-    hint: 'Click "Flip 10 coins".',
-    isDone: () => (cstate.coinFlips.H + cstate.coinFlips.T) >= 10,
-    check: () => `Flips: ${cstate.coinFlips.H + cstate.coinFlips.T} (need 10).`,
-    code: [
-      { line: 'import random' },
-      { line: 'flip = random.choice(["H","T"])', highlight: true },
-      { line: 'print(flip)' },
-    ]
-  },
-  { title: '2. Meet the die',
-    sub: '6 sides, equal chance for each.',
-    task: '🎯 Roll the die once.',
-    taskSub: 'You should get a number from 1 to 6.',
-    why: 'A standard die has 6 sides. The chance of any specific number = 1 out of 6 = 1/6 ≈ 16.7%. Each roll is independent (the die has no memory).',
-    hint: 'Click "Roll once".',
-    isDone: () => cstate.lastRoll > 0,
-    check: () => cstate.lastRoll > 0 ? '' : 'Click "Roll once".',
-    code: [
-      { line: 'import random' },
-      { line: 'roll = random.randint(1, 6)', highlight: true, ann: 'random number 1 to 6' },
-      { line: 'print(roll)' },
-    ]
-  },
-  { title: '3. Roll many times',
-    sub: 'The pattern emerges with lots of rolls.',
-    task: '🎯 Roll the die 60 or more times.',
-    taskSub: 'Watch the bars even out.',
-    why: 'The "law of large numbers" says: the more times you try a random event, the closer the results match theory. 6 rolls might be all 1\'s. 600 rolls will give about 100 of each number.',
-    hint: 'Click "Roll 100".',
-    isDone: () => cstate.totalRolls >= 60,
-    check: () => `Rolls: ${cstate.totalRolls} (need 60).`,
-    code: [
-      { line: 'counts = [0]*6' },
-      { line: 'for i in range(100):', highlight: true },
-      { line: '    r = random.randint(1, 6)' },
-      { line: '    counts[r-1] += 1' },
-      { line: 'print(counts)' },
-    ]
-  },
-  { title: '4. Theory vs experiment',
-    sub: 'Math vs reality.',
-    task: '🎯 Read the explanation, then click "Got it!"',
-    taskSub: '',
-    why: 'Theoretical probability is calculated (1/6 for a die). Experimental probability is what you actually observed. They should match closely with many trials. Casinos and insurance companies live off this.',
-    hint: 'Click the orange button.',
-    isDone: () => cstate.sawTheory === true,
-    check: () => cstate.sawTheory ? '' : 'Click "Got it!".',
-    code: [
-      { line: 'theoretical = 1/6', highlight: true, ann: '≈ 0.167' },
-      { line: 'experimental = counts[0] / 100' },
-      { line: 'print(theoretical, experimental)' },
-    ]
-  },
-  { title: '5. Test your knowledge',
-    sub: 'Answer the questions to finish.',
-    task: '🎯 Complete all 4 questions.',
-    taskSub: '',
-    why: 'Probability runs your weather forecast, your insurance, and your favorite games. Now you know how it works.',
-    hint: 'Count the favorable outcomes ÷ total possible.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: 'print("🎲 Probability pro!")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'You flip a fair coin 100 times. About how many heads?',
-    options: ['About 50','Exactly 50','100','25'], answer: 'About 50',
-    why: '50% chance × 100 flips ≈ 50 heads (rarely exactly 50).' },
-  { q: 'Probability of rolling a 4 on a die?',
-    options: ['1/6','1/4','4/6','1/2'], answer: '1/6',
-    why: 'One favorable side out of 6 sides.' },
-  { q: 'A bag has 3 red, 2 blue marbles. Probability of drawing red?',
-    options: ['3/5','2/5','3/2','1/5'], answer: '3/5',
-    why: '3 red out of 5 total marbles.' },
-  { q: 'You roll a die 6 times and never get a 3. The 7th roll must be 3?',
-    options: ['No — each roll is independent','Yes — it\'s overdue','Yes — 1/6 means every 6 rolls','No — never possible'],
-    answer: 'No — each roll is independent',
-    why: 'The die has no memory. Each roll is still 1/6.' },
-];
-
-const PROJECT = {
-  title: 'Probability Lab', icon: '🎲', language: 'Python',
-  welcomeIcon: '🎲', welcomeTitle: 'Welcome to Probability Lab!',
-  welcomeBody: "Probability is the math of chance. We'll flip coins, roll dice, and discover why your results match theory only after MANY tries.",
-  youWill: ['What probability means','Coin flips and dice rolls','Theoretical vs experimental probability','The law of large numbers'],
-  duration: '12–15 min', gradeBand: 'Grade 6–8',
-  youLearned: ['Probability = favorable outcomes ÷ total outcomes','Each event is independent (no memory)','Small samples are noisy','Theoretical probability comes true with enough trials'],
-  upNext: 'Tier 2 complete! Up next: Function Lab — graphing equations.'
+window.PROJECT = {
+  initialState: { rolls: [] },
+  STEPS: [
+    {
+      title: "1. Roll one die",
+      sub: "A die has 6 faces.",
+      task: "🎯 Put 6 for range(6).",
+      taskSub: "Pick 1 random face of 6.",
+      why: "In Python, random numbers come from <b>range</b>. Your code picks any number 1..6 — like a real roll!",
+      hint: "Put 6 in the blank.",
+      code: [
+        { txt: "# Roll a fair 6-sided die" },
+        { txt: "faces = ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("Die has", faces, "faces")' }
+      ],
+      blanks: [{ validator: v => v === "6" }],
+      onRun: (vars, state) => { state.custom.rolls = [rollOne()]; showDice(state.custom.rolls); showHisto(state.custom.rolls); },
+      canAdvance: s => s.custom.rolls && s.custom.rolls.length >= 1,
+      advanceMessage: '✓ Rolled a die!'
+    },
+    {
+      title: "2. Roll many times",
+      sub: "Use a loop.",
+      task: "🎯 Put 20 to roll 20 times.",
+      taskSub: "More rolls = better data.",
+      why: "A <b>for loop</b> rolls 20 times in one click. Each run gives different numbers — that's randomness!",
+      hint: "Put 20 in the blank.",
+      code: [
+        { txt: "rolls = 0" },
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    rolls = rolls + 1" },
+        { txt: 'print("Total rolls:", rolls)' }
+      ],
+      blanks: [{ validator: v => v === "20" }],
+      onRun: (vars, state) => { state.custom.rolls = []; for (let i = 0; i < 20; i++) state.custom.rolls.push(rollOne()); showDice(state.custom.rolls); showHisto(state.custom.rolls); },
+      canAdvance: s => s.custom.rolls && s.custom.rolls.length === 20,
+      advanceMessage: '✓ 20 rolls done!'
+    },
+    {
+      title: "3. Count sixes",
+      sub: "Use if to count.",
+      task: "🎯 Put 30 rolls. Count how many 6s.",
+      taskSub: "Probability = sixes / total.",
+      why: "<b>if roll == 6:</b> checks for 6. Add 1 to <b>sixes</b> every time. After many rolls, sixes/total ≈ 1/6 ≈ 0.167.",
+      hint: "Put 30 in the blank.",
+      code: [
+        { txt: "sixes = 0" },
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    # roll happens here" },
+        { txt: "    sixes = sixes + 0" },
+        { txt: 'print("Sixes:", sixes)' }
+      ],
+      blanks: [{ validator: v => v === "30" }],
+      onRun: (vars, state) => { state.custom.rolls = []; let sixes = 0; for (let i = 0; i < 30; i++) { const r = rollOne(); state.custom.rolls.push(r); if (r === 6) sixes++; } showDice(state.custom.rolls); showHisto(state.custom.rolls); const con = document.getElementById('console'); const d = document.createElement('div'); d.className = 'out'; d.textContent = '› Sixes in 30 rolls: ' + sixes; con.appendChild(d); },
+      canAdvance: s => s.custom.rolls && s.custom.rolls.length === 30,
+      advanceMessage: '✓ Sixes counted!'
+    },
+    {
+      title: "4. Probability estimate",
+      sub: "Divide count by total.",
+      task: "🎯 Put 100 rolls.",
+      taskSub: "With 100, estimate gets close to 1/6.",
+      why: "<b>sixes / total</b> estimates the probability. More rolls = more accurate. This is how scientists measure real-world probabilities.",
+      hint: "Put 100 in the blank.",
+      code: [
+        { txt: "total = ", blank: { idx: 0, width: 50 } },
+        { txt: "# run 100 rolls, count sixes" },
+        { txt: 'print("Expected: 1/6 = 0.167")' },
+        { txt: 'print("Your data will print below")' }
+      ],
+      blanks: [{ validator: v => v === "100" }],
+      onRun: (vars, state) => { state.custom.rolls = []; let sixes = 0; for (let i = 0; i < 100; i++) { const r = rollOne(); state.custom.rolls.push(r); if (r === 6) sixes++; } showDice(state.custom.rolls); showHisto(state.custom.rolls); const con = document.getElementById('console'); const d = document.createElement('div'); d.className = 'out'; d.textContent = '› ' + sixes + '/100 = ' + (sixes/100).toFixed(3) + ' (expected ~0.167)'; con.appendChild(d); },
+      canAdvance: s => s.custom.rolls && s.custom.rolls.length === 100,
+      advanceMessage: '✓ 100 rolls, probability estimated!'
+    },
+    {
+      title: "5. Big simulation",
+      sub: "Law of large numbers.",
+      task: "🎯 Put 500 for 500 rolls.",
+      taskSub: "Histogram bars become more equal.",
+      why: "With 500 rolls, each face should appear about 83 times (500/6). That's the <b>law of large numbers</b> — more data, truer probability!",
+      hint: "Put 500 in the blank.",
+      code: [
+        { txt: "trials = ", blank: { idx: 0, width: 50 } },
+        { txt: "# run 500 rolls" },
+        { txt: 'print("Running", trials, "rolls...")' },
+        { txt: 'print("🏆 Science through code!")' }
+      ],
+      blanks: [{ validator: v => v === "500" }],
+      onRun: (vars, state) => { state.custom.rolls = []; for (let i = 0; i < 500; i++) state.custom.rolls.push(rollOne()); showDice(state.custom.rolls); showHisto(state.custom.rolls); setTimeout(() => MC.celebrate(), 400); },
+      canAdvance: s => s.custom.rolls && s.custom.rolls.length === 500,
+      advanceMessage: '✓ 500 rolls! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.rolls = []; showDice([]); showHisto([]); },
+  summary: `<div class="ic">🎲</div><h2>Lab Complete!</h2><p>You simulated 500+ dice rolls with Python.</p><ul><li>Random events with loops</li><li>Counting outcomes with if</li><li>Probability = count / total</li><li>Law of large numbers</li></ul><div class="next">Next tier: <b>Function Lab</b> — plot f(x)!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+showDice([]); showHisto([]);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

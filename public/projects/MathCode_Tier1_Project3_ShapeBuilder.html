@@ -1,203 +1,182 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Shape Builder — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .shape-canvas { background:#fafbff; border-radius:10px; }
-  .controls-grid { display:grid; gap:10px; grid-template-columns: 1fr 1fr; max-width:380px; margin:14px 0; }
-  .ctrl { background:#f5f7fc; padding:10px 14px; border-radius:8px; }
-  .ctrl label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
-  .ctrl input[type=range] { width:100%; }
-  .ctrl b { color:var(--primary); font-size:18px; }
+.shape-box{position:relative;width:260px;height:260px}
+.shape-box svg{width:100%;height:100%}
+.info-chip{position:absolute;top:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;font-size:14px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.info-chip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700;text-transform:uppercase}
+.stage-visual{background:linear-gradient(180deg,#e0f2fe,#93c5fd)}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
-<script>
-const cstate = { sides: 3, size: 80, angle: 120, drawnSquare: false, customSides: 5 };
 
-function drawShape(sides, size, color = '#7c5cff') {
-  const cx = 150, cy = 150;
-  const angleStep = (2 * Math.PI) / sides;
-  const startAngle = -Math.PI / 2;
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🔺</div><h2>Welcome to Shape Builder!</h2>
+  <p>Draw shapes by writing Python code. The number of sides in your loop = the shape you get.</p>
+  <div class="pills"><div class="pill">⏱ 12 min</div><div class="pill">📚 Grade 3–5</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Use a <b>loop</b> to draw sides</li>
+    <li>See how <b>360 ÷ sides</b> = turn angle</li>
+    <li>Count sides, corners, and symmetry</li>
+    <li>Use <b>if</b> to classify shapes</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's build! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🔺</div><div><h1>Shape Builder</h1><div class="sub">Draw polygons with loops</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="info-chip"><span class="lbl">Shape</span><span id="shapeName">—</span></div>
+        <div class="shape-box"><svg id="shapeSvg" viewBox="-130 -130 260 260"></svg></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>shape_builder.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NAMES = {3:'Triangle 🔺',4:'Square ⬛',5:'Pentagon',6:'Hexagon',7:'Heptagon',8:'Octagon',10:'Decagon',12:'Dodecagon'};
+function drawShape(sides) {
+  const svg = document.getElementById('shapeSvg');
+  svg.innerHTML = '';
+  if (!sides || sides < 3) { document.getElementById('shapeName').textContent = '—'; return; }
+  const R = 100;
   let pts = [];
   for (let i = 0; i < sides; i++) {
-    const a = startAngle + i * angleStep;
-    pts.push([cx + size * Math.cos(a), cy + size * Math.sin(a)]);
+    const a = (i / sides) * 2 * Math.PI - Math.PI/2;
+    pts.push((R*Math.cos(a)) + ',' + (R*Math.sin(a)));
   }
-  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + ' Z';
-  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="5" fill="${color}"/>`).join('');
-  return `<svg class="shape-canvas" viewBox="0 0 300 300" width="280" height="280">
-    <path d="${path}" fill="${color}22" stroke="${color}" stroke-width="3"/>
-    ${dots}
-  </svg>`;
+  const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+  poly.setAttribute('points', pts.join(' '));
+  poly.setAttribute('fill', '#fbbf24');
+  poly.setAttribute('stroke', '#7c5cff');
+  poly.setAttribute('stroke-width', '4');
+  svg.appendChild(poly);
+  for (let i = 0; i < sides; i++) {
+    const a = (i / sides) * 2 * Math.PI - Math.PI/2;
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', R*Math.cos(a)); c.setAttribute('cy', R*Math.sin(a));
+    c.setAttribute('r', 6); c.setAttribute('fill', '#5b3df0');
+    svg.appendChild(c);
+  }
+  document.getElementById('shapeName').textContent = NAMES[sides] || (sides + '-gon');
 }
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>📐 A triangle has 3 sides</h3>
-      ${drawShape(3, 80)}
-      <div class="kv">
-        <div class="pair"><b>3</b><span>sides</span></div>
-        <div class="pair"><b>120°</b><span>turn at each corner</span></div>
-      </div>
-      <div class="stage-msg">A triangle is a 3-sided shape. To draw it, you go forward, turn 120°, repeat 3 times.</div>`;
-    cstate.sawTriangle = true; MC.refresh();
-  }
-  else if (step === 2) {
-    stage.innerHTML = `<h3>⬜ Now build a square (4 sides)</h3>
-      ${drawShape(cstate.drawnSquare ? 4 : 3, 80, cstate.drawnSquare ? '#34d399' : '#7c5cff')}
-      <div class="kv">
-        <div class="pair"><b>${cstate.drawnSquare?4:3}</b><span>sides</span></div>
-        <div class="pair"><b>${cstate.drawnSquare?'90°':'120°'}</b><span>turn</span></div>
-      </div>
-      <div class="row-controls">
-        <button class="btn primary" id="makeSquare">▶ Run code: draw square</button>
-      </div>
-      <div class="stage-msg ${cstate.drawnSquare?'':''}">${cstate.drawnSquare?'✓ A square has 4 sides and 90° turns. Notice: 4 × 90 = 360°!':'Click the button to run the code and draw a square.'}</div>`;
-    MC.$('makeSquare').onclick = () => { cstate.drawnSquare = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    stage.innerHTML = `<h3>🔁 The magic rule: turn = 360 ÷ sides</h3>
-      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center">
-        <div style="text-align:center">${drawShape(3,60,'#f87171')}<div style="margin-top:6px;font-weight:700">3 sides → 120°</div></div>
-        <div style="text-align:center">${drawShape(4,60,'#fbbf24')}<div style="margin-top:6px;font-weight:700">4 sides → 90°</div></div>
-        <div style="text-align:center">${drawShape(6,60,'#34d399')}<div style="margin-top:6px;font-weight:700">6 sides → 60°</div></div>
-        <div style="text-align:center">${drawShape(8,60,'#7c5cff')}<div style="margin-top:6px;font-weight:700">8 sides → 45°</div></div>
-      </div>
-      <div class="stage-msg">Look at the pattern: more sides = smaller turn. 360 ÷ 3 = 120, 360 ÷ 4 = 90, 360 ÷ 6 = 60.</div>`;
-    cstate.sawRule = true; MC.refresh();
-  }
-  else if (step === 4) {
-    const turn = (360 / cstate.customSides).toFixed(1);
-    stage.innerHTML = `<h3>🎨 Build any shape you want</h3>
-      ${drawShape(cstate.customSides, 80)}
-      <div class="kv">
-        <div class="pair"><b>${cstate.customSides}</b><span>sides</span></div>
-        <div class="pair"><b>${turn}°</b><span>turn (360 ÷ sides)</span></div>
-      </div>
-      <div class="controls-grid">
-        <div class="ctrl">
-          <label>Number of sides: <b>${cstate.customSides}</b></label>
-          <input type="range" min="3" max="12" value="${cstate.customSides}" id="sideSlider">
-        </div>
-      </div>
-      <div class="stage-msg">${cstate.customSides>=8?'✓ Nice — that almost looks like a circle!':'Try moving the slider up to 8 or more sides.'}</div>`;
-    MC.$('sideSlider').oninput = (e) => { cstate.customSides = +e.target.value; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🎉 You built shapes with code!</h3>
-      ${drawShape(cstate.customSides || 6, 90)}
-      <div class="stage-msg">Answer the questions below to finish.</div>`;
-  }
-}
-
-const STEPS = [
-  { title: '1. The triangle',
-    sub: 'Every shape has sides and angles.',
-    task: '🎯 Look at the triangle. It has 3 sides.',
-    taskSub: 'Click Next when ready.',
-    why: 'A polygon (closed shape with straight sides) is built by walking forward, turning, and repeating. The triangle is the simplest one — 3 sides, 3 turns.',
-    hint: 'Just click Next.',
-    isDone: () => cstate.sawTriangle === true,
-    check: () => 'Look at the triangle, then click Next.',
-    code: [
-      { line: 'import turtle' },
-      { line: 't = turtle.Turtle()' },
-      { line: 'for i in range(3):', highlight: true, ann: 'do this 3 times' },
-      { line: '    t.forward(80)', ann: 'walk forward 80 steps' },
-      { line: '    t.left(120)', ann: 'turn left 120 degrees' },
-    ]
-  },
-  { title: '2. Build a square',
-    sub: 'Change 3 to 4. Change 120 to 90.',
-    task: '🎯 Click "Run code" to draw a square.',
-    taskSub: 'A square has 4 sides and 90° corners.',
-    why: 'To go from triangle to square, change two numbers: number of sides (3→4) and turn angle (120→90). Same loop, different numbers!',
-    hint: 'Click the orange "Run code: draw square" button.',
-    isDone: () => cstate.drawnSquare === true,
-    check: () => cstate.drawnSquare ? '' : 'Click "Run code: draw square".',
-    code: [
-      { line: 'for i in range(4):', highlight: true, ann: '4 sides' },
-      { line: '    t.forward(80)' },
-      { line: '    t.left(90)', highlight: true, ann: '90 degree turn' },
-    ]
-  },
-  { title: '3. The magic rule',
-    sub: 'Turn angle = 360 ÷ number of sides.',
-    task: '🎯 Look at the pattern: 3-4-6-8 sides.',
-    taskSub: 'See how the turn angle gets smaller as sides grow.',
-    why: 'A full trip around any shape adds up to 360° of turning. So if you have N sides, each turn = 360 ÷ N. This is the secret to drawing any regular shape!',
-    hint: 'Just look at the four shapes.',
-    isDone: () => cstate.sawRule === true,
-    check: () => 'Look at the pattern, then click Next.',
-    code: [
-      { line: 'sides = 6' },
-      { line: 'turn = 360 / sides', highlight: true, ann: 'the magic formula!' },
-      { line: 'for i in range(sides):' },
-      { line: '    t.forward(80)' },
-      { line: '    t.left(turn)' },
-    ]
-  },
-  { title: '4. Make any shape',
-    sub: 'Move the slider. Watch the code adapt.',
-    task: '🎯 Drag the slider to 8 or more sides.',
-    taskSub: 'Notice how the shape gets rounder.',
-    why: 'When you add more sides, the shape looks more like a circle. Computers draw circles by drawing polygons with hundreds of tiny sides!',
-    hint: 'Drag the slider all the way to the right.',
-    isDone: () => cstate.customSides >= 8,
-    check: () => `Sides: ${cstate.customSides} (need 8 or more).`,
-    code: [
-      { line: 'sides = ' + (cstate.customSides||5), highlight: true },
-      { line: 'turn = 360 / sides' },
-      { line: 'for i in range(sides):' },
-      { line: '    t.forward(80)' },
-      { line: '    t.left(turn)' },
-    ]
-  },
-  { title: '5. Test your knowledge',
-    sub: 'Final challenge!',
-    task: '🎯 Answer all the questions to complete the project.',
-    taskSub: '',
-    why: 'You learned the core idea behind computer graphics: shapes are just loops with the right numbers.',
-    hint: 'Use the "magic rule" — turn = 360 ÷ sides.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: '# you did it!' },
-      { line: 'print("Shape master 🏆")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'A pentagon has 5 sides. What is the turn angle?',
-    options: ['72°','60°','45°','90°'], answer: '72°',
-    why: '360 ÷ 5 = 72.' },
-  { q: 'You wrote a loop that runs 6 times with t.left(60). What shape did you draw?',
-    options: ['Hexagon','Triangle','Square','Octagon'], answer: 'Hexagon',
-    why: '6 sides + 60° turns = hexagon (and 6×60 = 360).' },
-  { q: 'Which loop draws a square?',
-    options: ['for i in range(4): forward(80); left(90)','for i in range(3): forward(80); left(90)','for i in range(4): forward(80); left(60)','for i in range(2): forward(80); left(180)'],
-    answer: 'for i in range(4): forward(80); left(90)',
-    why: '4 sides, 90° turns = square.' },
-  { q: 'Why do all the turns in a closed shape add up to 360°?',
-    options: ['Because you end facing the same way you started','Because computers like 360','Because of pi','Because of gravity'],
-    answer: 'Because you end facing the same way you started',
-    why: 'Walking around a shape and ending where you started means you turned a full circle (360°).' },
-];
-
-const PROJECT = {
-  title: 'Shape Builder', icon: '📐', language: 'Python',
-  welcomeIcon: '📐', welcomeTitle: 'Welcome to Shape Builder!',
-  welcomeBody: "We'll teach the computer to draw shapes by giving it just two things: how many sides, and how much to turn. Discover the magic rule that draws ANY shape!",
-  youWill: ['What a polygon is','How for-loops repeat work','The rule: turn = 360 ÷ sides','Why circles are just polygons with many sides'],
-  duration: '12–15 min', gradeBand: 'Grade 3–5',
-  youLearned: ['Polygons = shapes with straight sides','for-loops repeat code','Turn angle = 360 ÷ number of sides','More sides = rounder shape'],
-  upNext: 'Next: Pattern Machine — discovering number sequences!'
+window.PROJECT = {
+  initialState: { sides: 0 },
+  STEPS: [
+    {
+      title: "1. Draw a triangle",
+      sub: "A shape is made by repeating sides.",
+      task: "🎯 Type 3 in the yellow box, then click ▶ Run.",
+      taskSub: "3 sides = triangle.",
+      why: "A <b>for loop</b> with <b>range(3)</b> runs 3 times — one for each side. The name of the shape depends on how many sides you draw.",
+      hint: "Put 3 in the blank.",
+      code: [
+        { txt: "sides = ", blank: { idx: 0, width: 50 } },
+        { txt: "for i in range(sides):" },
+        { txt: '    print("Drawing side", i+1)' },
+        { txt: 'print("Shape has", sides, "sides")' }
+      ],
+      blanks: [{ validator: v => v === "3" }],
+      onRun: (vars, state) => { state.custom.sides = vars.sides; drawShape(vars.sides); },
+      canAdvance: s => s.custom.sides === 3,
+      advanceMessage: '✓ Triangle drawn!'
+    },
+    {
+      title: "2. Make a square",
+      sub: "Change the number → change the shape.",
+      task: "🎯 Type 4 in the yellow box, then click ▶ Run.",
+      taskSub: "4 sides = square.",
+      why: "Same code, just one number changes! That's the power of variables — one edit redraws the whole shape.",
+      hint: "Put 4 in the blank.",
+      code: [
+        { txt: "sides = ", blank: { idx: 0, width: 50 } },
+        { txt: "for i in range(sides):" },
+        { txt: '    print("Side", i+1, "of", sides)' }
+      ],
+      blanks: [{ validator: v => v === "4" }],
+      onRun: (vars, state) => { state.custom.sides = vars.sides; drawShape(vars.sides); },
+      canAdvance: s => s.custom.sides === 4,
+      advanceMessage: '✓ Square drawn!'
+    },
+    {
+      title: "3. Turn angle",
+      sub: "360° split into equal turns.",
+      task: "🎯 Put 6 to make a hexagon.",
+      taskSub: "Each turn = 360 / sides degrees.",
+      why: "To draw any regular polygon, you turn the same angle at each corner. For a hexagon: <b>360 / 6 = 60°</b> per corner. The computer calculates it for you.",
+      hint: "Put 6 in the blank.",
+      code: [
+        { txt: "sides = ", blank: { idx: 0, width: 50 } },
+        { txt: "turn = 360 / sides" },
+        { txt: 'print("Each turn is", turn, "degrees")' },
+        { txt: 'print("Shape:", sides, "sides")' }
+      ],
+      blanks: [{ validator: v => v === "6" }],
+      onRun: (vars, state) => { state.custom.sides = vars.sides; drawShape(vars.sides); },
+      canAdvance: s => s.custom.sides === 6,
+      advanceMessage: '✓ Hexagon! Turn = 60°'
+    },
+    {
+      title: "4. Is it a triangle?",
+      sub: "Use if to name shapes.",
+      task: "🎯 Put 8 to test an octagon.",
+      taskSub: "if tells the computer what shape it is.",
+      why: "<b>if sides == 3:</b> asks a question. Only if sides is 3 does it print \"triangle\". The computer decides which branch to take.",
+      hint: "Put 8 in the blank.",
+      code: [
+        { txt: "sides = ", blank: { idx: 0, width: 50 } },
+        { txt: "if sides == 3:" },
+        { txt: '    print("Triangle!")' },
+        { txt: "if sides == 4:" },
+        { txt: '    print("Square!")' },
+        { txt: "if sides >= 5:" },
+        { txt: '    print("Big polygon with", sides, "sides!")' }
+      ],
+      blanks: [{ validator: v => v === "8" }],
+      onRun: (vars, state) => { state.custom.sides = vars.sides; drawShape(vars.sides); },
+      canAdvance: s => s.custom.sides === 8,
+      advanceMessage: '✓ Octagon classified!'
+    },
+    {
+      title: "5. Final shape",
+      sub: "Put it all together.",
+      task: "🎯 Draw a 12-gon (dodecagon)!",
+      taskSub: "The more sides, the closer to a circle.",
+      why: "With lots of sides, a polygon looks almost like a circle! That's how computers draw circles — with many tiny sides.",
+      hint: "Put 12 in the blank.",
+      code: [
+        { txt: "sides = ", blank: { idx: 0, width: 50 } },
+        { txt: "turn = 360 / sides" },
+        { txt: "for i in range(sides):" },
+        { txt: '    print("Corner", i+1, "turn", turn)' },
+        { txt: "if sides >= 10:" },
+        { txt: '    print("🏆 Amazing shape!")' }
+      ],
+      blanks: [{ validator: v => v === "12" }],
+      onRun: (vars, state) => { state.custom.sides = vars.sides; drawShape(vars.sides); if (vars.sides >= 10) setTimeout(() => MC.celebrate(), 200); },
+      canAdvance: s => s.custom.sides === 12,
+      advanceMessage: '✓ Dodecagon! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.sides = 0; drawShape(0); },
+  summary: `<div class="ic">🔺</div><h2>Shapes Built!</h2><p>You drew 5 polygons with Python code.</p><ul><li>Used loops to draw sides</li><li>Computed turn angles with division</li><li>Classified shapes with if</li></ul><div class="next">Next up: <b>Pattern Machine</b> — make sequences!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+drawShape(0);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

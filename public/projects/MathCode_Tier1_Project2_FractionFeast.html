@@ -1,233 +1,189 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fraction Feast — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .pizza { width:240px; height:240px; border-radius:50%; border:6px solid #b8651a;
-    background:#ffd27a; position:relative; box-shadow:0 6px 14px rgba(0,0,0,.12); }
-  .pizza .slice-cut { position:absolute; left:50%; top:50%; width:50%; height:2px;
-    background:#7a3a07; transform-origin:left center; }
-  .pizza.eaten-half { background: conic-gradient(#ffd27a 0 180deg, #f5f7fc 180deg 360deg); }
-  .pizza-row { display:flex; gap:30px; align-items:center; flex-wrap:wrap; justify-content:center; }
-  .frac { display:inline-flex; flex-direction:column; align-items:center; font-size:36px; font-weight:900; color:var(--primary); }
-  .frac .top { border-bottom:3px solid var(--ink); padding:0 12px; }
-  .frac .bot { padding:0 12px; }
-  .slice-btn { padding:10px 18px; font-size:15px; }
+.pizza{position:relative;width:220px;height:220px}
+.pizza svg{width:100%;height:100%;filter:drop-shadow(0 4px 10px rgba(0,0,0,.2))}
+.frac-readout{position:absolute;bottom:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;font-size:22px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.frac-readout .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700;text-transform:uppercase}
+.stage-visual{background:linear-gradient(180deg,#fef3c7,#fbbf24)}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🍕</div><h2>Welcome to Fraction Feast!</h2>
+  <p>Slice pizzas by writing Python code. Learn what fractions really mean.</p>
+  <div class="pills"><div class="pill">⏱ 12 min</div><div class="pill">📚 Grade 3–5</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Count <b>slices</b> using variables</li>
+    <li>Write a <b>fraction</b> as code</li>
+    <li>Add and subtract slices with math</li>
+    <li>Compare fractions with <b>if</b></li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's slice! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🍕</div><div><h1>Fraction Feast</h1><div class="sub">Slice pizzas with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="pizza"><svg id="pizzaSvg" viewBox="-110 -110 220 220"></svg></div>
+        <div class="frac-readout"><span class="lbl">Fraction</span><span id="fracText">0/1</span></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>fraction_feast.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const cstate = { slices: 1, eaten: 0, equivLeft: '1/2', equivRight: '2/4', cmpA: '1/2', cmpB: '1/3', sumA: 1, sumB: 1, denom: 4 };
-
-function pizzaSVG(slices, eaten) {
-  // returns inline SVG of a pizza with `slices` cuts and `eaten` slices removed
-  const r = 110, cx = 120, cy = 120;
-  let parts = '';
-  const step = 2 * Math.PI / slices;
-  for (let i = 0; i < slices; i++) {
-    const a1 = -Math.PI/2 + i * step;
-    const a2 = a1 + step;
-    const x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
-    const x2 = cx + r*Math.cos(a2), y2 = cy + r*Math.sin(a2);
-    const large = step > Math.PI ? 1 : 0;
-    const fill = i < eaten ? '#f5f7fc' : '#ffd27a';
-    const stroke = i < eaten ? '#cfd5e8' : '#b8651a';
-    parts += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
-  }
-  return `<svg viewBox="0 0 240 240" width="220" height="220">${parts}</svg>`;
-}
-
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>🍕 The whole pizza</h3>
-      ${pizzaSVG(1,0)}
-      <div class="kv"><div class="pair"><b>1</b><span>whole pizza</span></div></div>
-      <div class="row-controls">
-        <button class="btn primary slice-btn" id="cutBtn">✂️ Cut into ${cstate.slices === 1 ? '2 slices' : cstate.slices === 2 ? '4 slices' : '8 slices'}</button>
-      </div>
-      <div class="stage-msg" id="msg">${cstate.slices > 1 ? `Cut into ${cstate.slices} equal slices! Each slice is 1/${cstate.slices} of the pizza.` : 'Click the button to cut the pizza.'}</div>`;
-    if (cstate.slices > 1) {
-      stage.querySelector('h3').innerHTML = `🍕 Cut into ${cstate.slices} slices`;
-      stage.querySelector('.kv').innerHTML = `<div class="pair"><b>1/${cstate.slices}</b><span>each slice</span></div><div class="pair"><b>${cstate.slices}/${cstate.slices}</b><span>whole pizza</span></div>`;
+function renderPizza(slices, eaten) {
+  const svg = document.getElementById('pizzaSvg');
+  svg.innerHTML = '';
+  if (!slices || slices < 1) slices = 1;
+  const R = 100;
+  if (slices === 1) {
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',0);c.setAttribute('cy',0);c.setAttribute('r',R);
+    c.setAttribute('fill', eaten >= 1 ? '#f5f7fc' : '#fbbf24');
+    c.setAttribute('stroke','#7a3a07');c.setAttribute('stroke-width','2');
+    svg.appendChild(c);
+  } else {
+    for (let i = 0; i < slices; i++) {
+      const a0 = (i / slices) * 2 * Math.PI - Math.PI/2;
+      const a1 = ((i+1) / slices) * 2 * Math.PI - Math.PI/2;
+      const x0 = R * Math.cos(a0), y0 = R * Math.sin(a0);
+      const x1 = R * Math.cos(a1), y1 = R * Math.sin(a1);
+      const large = (a1 - a0) > Math.PI ? 1 : 0;
+      const d = `M0,0 L${x0},${y0} A${R},${R} 0 ${large} 1 ${x1},${y1} Z`;
+      const isEaten = i < eaten;
+      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', isEaten ? '#f5f7fc' : '#fbbf24');
+      p.setAttribute('stroke', '#7a3a07');
+      p.setAttribute('stroke-width', '2');
+      svg.appendChild(p);
+      if (!isEaten) {
+        const cx = 55 * Math.cos((a0+a1)/2), cy = 55 * Math.sin((a0+a1)/2);
+        const t = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        t.setAttribute('cx', cx); t.setAttribute('cy', cy); t.setAttribute('r', 6); t.setAttribute('fill', '#dc2626');
+        svg.appendChild(t);
+      }
     }
-    const btn = MC.$('cutBtn');
-    if (btn) btn.onclick = () => {
-      if (cstate.slices === 1) cstate.slices = 2;
-      else if (cstate.slices === 2) cstate.slices = 4;
-      else if (cstate.slices === 4) cstate.slices = 8;
-      else return;
-      refreshStage(); MC.refresh();
-    };
   }
-  else if (step === 2) {
-    stage.innerHTML = `<h3>🍴 Eat some slices</h3>
-      ${pizzaSVG(4, cstate.eaten)}
-      <div class="kv">
-        <div class="pair"><b>${cstate.eaten}</b><span>eaten</span></div>
-        <div class="pair"><b>4</b><span>total slices</span></div>
-        <div class="pair"><b>${cstate.eaten}/4</b><span>fraction eaten</span></div>
-      </div>
-      <div class="row-controls">
-        <button class="btn primary" id="eatBtn" ${cstate.eaten>=4?'disabled':''}>🍴 Eat 1 slice</button>
-        <button class="btn" id="resetEat">↻ Reset pizza</button>
-      </div>
-      <div class="stage-msg" id="msg">${cstate.eaten >= 2 ? `You've eaten ${cstate.eaten}/4 of the pizza!` : 'Eat at least 2 slices to continue.'}</div>`;
-    MC.$('eatBtn').onclick = () => { if (cstate.eaten < 4) cstate.eaten++; refreshStage(); MC.refresh(); };
-    MC.$('resetEat').onclick = () => { cstate.eaten = 0; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    stage.innerHTML = `<h3>⚖️ Equivalent fractions: 1/2 = 2/4</h3>
-      <div class="pizza-row">
-        <div style="text-align:center">${pizzaSVG(2,1)}<div class="frac"><span class="top">1</span><span class="bot">2</span></div></div>
-        <div style="font-size:48px;color:var(--primary);font-weight:900">=</div>
-        <div style="text-align:center">${pizzaSVG(4,2)}<div class="frac"><span class="top">2</span><span class="bot">4</span></div></div>
-      </div>
-      <div class="stage-msg">Same amount of pizza eaten — just cut differently! 1/2 and 2/4 are <b>equivalent</b>.</div>`;
-    cstate.sawEquiv = true; MC.refresh();
-  }
-  else if (step === 4) {
-    stage.innerHTML = `<h3>🆚 Which is bigger: 1/2 or 1/3?</h3>
-      <div class="pizza-row">
-        <div style="text-align:center">${pizzaSVG(2,1)}<div class="frac"><span class="top">1</span><span class="bot">2</span></div></div>
-        <div style="text-align:center">${pizzaSVG(3,1)}<div class="frac"><span class="top">1</span><span class="bot">3</span></div></div>
-      </div>
-      <div class="row-controls">
-        <button class="btn" data-pick="1/2">1/2 is bigger</button>
-        <button class="btn" data-pick="1/3">1/3 is bigger</button>
-        <button class="btn" data-pick="equal">They're equal</button>
-      </div>
-      <div class="stage-msg ${cstate.cmpAnswer==='wrong'?'bad':''}" id="msg">${cstate.cmpAnswer==='right'?'✓ Correct! When the pizza is cut into FEWER pieces, each piece is BIGGER. So 1/2 > 1/3.':cstate.cmpAnswer==='wrong'?'✗ Look again — which slice looks larger?':'Click the bigger fraction.'}</div>`;
-    stage.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
-      cstate.cmpAnswer = b.dataset.pick === '1/2' ? 'right' : 'wrong';
-      refreshStage(); MC.refresh();
-    });
-  }
-  else if (step === 5) {
-    const total = cstate.sumA + cstate.sumB;
-    stage.innerHTML = `<h3>➕ Add fractions: ${cstate.sumA}/4 + ${cstate.sumB}/4 = ${total}/4</h3>
-      <div class="pizza-row">
-        <div style="text-align:center">${pizzaSVG(4,cstate.sumA)}<div class="frac"><span class="top">${cstate.sumA}</span><span class="bot">4</span></div></div>
-        <div style="font-size:48px;color:var(--primary);font-weight:900">+</div>
-        <div style="text-align:center">${pizzaSVG(4,cstate.sumB)}<div class="frac"><span class="top">${cstate.sumB}</span><span class="bot">4</span></div></div>
-        <div style="font-size:48px;color:var(--primary);font-weight:900">=</div>
-        <div style="text-align:center">${pizzaSVG(4,total)}<div class="frac"><span class="top">${total}</span><span class="bot">4</span></div></div>
-      </div>
-      <div class="row-controls">
-        <button class="btn" id="addA" ${cstate.sumA>=3?'disabled':''}>+1 to first</button>
-        <button class="btn" id="addB" ${cstate.sumB>=3?'disabled':''}>+1 to second</button>
-        <button class="btn" id="resetSum">↻ Reset</button>
-      </div>
-      <div class="stage-msg">When the bottom (denominator) is the same, just add the tops. ${total>=3?'✓ Great! You added fractions.':''}</div>`;
-    MC.$('addA').onclick = () => { if (cstate.sumA<3) cstate.sumA++; refreshStage(); MC.refresh(); };
-    MC.$('addB').onclick = () => { if (cstate.sumB<3) cstate.sumB++; refreshStage(); MC.refresh(); };
-    MC.$('resetSum').onclick = () => { cstate.sumA=1; cstate.sumB=1; refreshStage(); MC.refresh(); };
-  }
+  document.getElementById('fracText').textContent = eaten + '/' + slices;
 }
 
-const STEPS = [
-  { title: '1. What is a fraction?',
-    sub: 'A fraction shows part of a whole.',
-    task: '🎯 Cut the pizza into 2, then 4, then 8 equal slices.',
-    taskSub: 'Click the cut button 3 times to slice the pizza.',
-    why: 'A fraction has two numbers. The TOP (numerator) tells how many parts you have. The BOTTOM (denominator) tells how many equal parts the whole is divided into.',
-    hint: 'Click the orange "Cut" button 3 times.',
-    isDone: () => cstate.slices >= 8,
-    check: () => `Pizza is cut into ${cstate.slices} slice${cstate.slices===1?'':'s'} (need 8).`,
-    code: [
-      { line: 'pizza_slices = 1', ann: 'start with 1 whole pizza' },
-      { line: 'pizza_slices = pizza_slices * 2', ann: 'each cut doubles the slices', highlight: true },
-      { line: 'print(pizza_slices)' },
-    ]
-  },
-  { title: '2. Eat some slices',
-    sub: 'The fraction shows how much you ate.',
-    task: '🎯 Eat 2 or more slices from the 4-slice pizza.',
-    taskSub: 'Each click eats one slice. Watch the fraction "eaten / total" update.',
-    why: 'If you eat 3 of 4 slices, you ate 3/4 of the pizza. Top = slices eaten. Bottom = total slices. The fraction tells the story.',
-    hint: 'Click "Eat 1 slice" twice (or more).',
-    isDone: () => cstate.eaten >= 2,
-    check: () => `Slices eaten: ${cstate.eaten}/4 (need at least 2).`,
-    code: [
-      { line: 'total_slices = 4' },
-      { line: 'eaten = 0' },
-      { line: 'eaten = eaten + 1', ann: 'one slice gone', highlight: true },
-      { line: 'print(eaten, "/", total_slices)' },
-    ]
-  },
-  { title: '3. Equivalent fractions',
-    sub: 'Different fractions, same amount.',
-    task: '🎯 Look at the picture. 1/2 and 2/4 are the SAME amount of pizza!',
-    taskSub: 'Click Next when you understand they are equal.',
-    why: 'You can multiply BOTH the top and the bottom by the same number to get an equivalent fraction. 1/2 × 2/2 = 2/4. Both = half the pizza.',
-    hint: 'Just look — does the eaten part of the left pizza match the right one?',
-    isDone: () => cstate.sawEquiv === true,
-    check: () => 'Look at the two pizzas — they show the same amount.',
-    code: [
-      { line: 'half = 1/2' },
-      { line: 'two_quarters = 2/4', highlight: true },
-      { line: 'print(half == two_quarters)', ann: 'True!' },
-    ]
-  },
-  { title: '4. Compare fractions',
-    sub: 'Fewer cuts = bigger pieces.',
-    task: '🎯 Which is bigger: 1/2 or 1/3?',
-    taskSub: 'Click the bigger fraction.',
-    why: 'When the top is the same (both are 1), the fraction with the SMALLER bottom is BIGGER. Cut a pizza into 2 → big slices. Cut into 100 → tiny slices.',
-    hint: 'Look at the two pizzas. Which orange slice is bigger?',
-    isDone: () => cstate.cmpAnswer === 'right',
-    check: () => cstate.cmpAnswer==='right' ? '' : 'Click the bigger fraction.',
-    code: [
-      { line: 'a = 1/2' },
-      { line: 'b = 1/3' },
-      { line: 'if a > b:', highlight: true },
-      { line: '    print("1/2 is bigger")' },
-    ]
-  },
-  { title: '5. Add fractions (same bottom)',
-    sub: 'Add the tops, keep the bottom.',
-    task: '🎯 Build a sum that totals at least 3/4.',
-    taskSub: 'Click +1 buttons to add slices to each pizza.',
-    why: 'When the bottom (denominator) is the same, you only add the tops: 1/4 + 2/4 = 3/4. The bottom does NOT change because the slice size stays the same.',
-    hint: 'Click "+1 to first" and "+1 to second" until the total is 3/4 or more.',
-    isDone: () => (cstate.sumA + cstate.sumB) >= 3,
-    check: () => `Total: ${cstate.sumA + cstate.sumB}/4 (need 3/4 or more).`,
-    showChallenge: true,
-    code: [
-      { line: 'a = 1' },
-      { line: 'b = 2' },
-      { line: 'top = a + b', ann: 'add the tops', highlight: true },
-      { line: 'bottom = 4', ann: 'bottom stays the same' },
-      { line: 'print(top, "/", bottom)' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'You ate 3 slices of an 8-slice pizza. What fraction did you eat?',
-    options: ['3/8','8/3','3/5','1/3'], answer: '3/8',
-    why: 'Top = slices eaten (3). Bottom = total slices (8). So 3/8.' },
-  { q: 'Which is the same as 1/2?',
-    options: ['2/4','3/4','1/4','1/3'], answer: '2/4',
-    why: '1/2 = 2/4 because you multiply BOTH top and bottom by 2.' },
-  { q: 'Which fraction is biggest?',
-    options: ['1/2','1/3','1/4','1/8'], answer: '1/2',
-    why: 'When tops are equal, the smaller bottom = bigger pieces. 1/2 wins.' },
-  { q: '2/5 + 1/5 = ?',
-    options: ['3/5','3/10','2/5','3/25'], answer: '3/5',
-    why: 'Add the tops: 2+1=3. Bottom stays 5. So 3/5.' },
-];
-
-const PROJECT = {
-  title: 'Fraction Feast', icon: '🍕', language: 'Python',
-  welcomeIcon: '🍕', welcomeTitle: 'Welcome to Fraction Feast!',
-  welcomeBody: "We'll slice and eat virtual pizzas to learn how fractions work — what they mean, when they're equal, how to compare and add them.",
-  youWill: ['What numerator and denominator mean','Equivalent fractions (1/2 = 2/4)','Compare fractions','Add fractions with the same denominator'],
-  duration: '12–15 min', gradeBand: 'Grade 3–4',
-  youLearned: ['Fractions = part of a whole','Top is the numerator, bottom is the denominator','1/2 = 2/4 (equivalent)','Smaller denominator = bigger slice','Add tops, keep bottom (same denominator)'],
-  upNext: 'Next: Shape Builder — drawing polygons with code loops!'
+window.PROJECT = {
+  initialState: { slices: 1, eaten: 0 },
+  STEPS: [
+    {
+      title: "1. Cut the pizza",
+      sub: "A fraction tells how many pieces.",
+      task: "🎯 Type 4 in the yellow box, then click ▶ Run.",
+      taskSub: "Cut the pizza into 4 equal slices.",
+      why: "<b>slices = 4</b> means \"make 4 equal pieces.\" The bottom number of a fraction tells how many total pieces there are.",
+      hint: "Put 4 in the blank.",
+      code: [
+        { txt: "slices = ", blank: { idx: 0, width: 50 } },
+        { txt: "eaten = 0" },
+        { txt: 'print("Pizza cut into", slices, "slices")' }
+      ],
+      blanks: [{ validator: v => v === "4" }],
+      onRun: (vars, state) => { state.custom.slices = vars.slices; state.custom.eaten = 0; renderPizza(vars.slices, 0); },
+      canAdvance: s => s.custom.slices === 4,
+      advanceMessage: '✓ Pizza sliced into 4!'
+    },
+    {
+      title: "2. Eat a slice",
+      sub: "Subtract using math.",
+      task: "🎯 Type 1 to eat one slice, then click ▶ Run.",
+      taskSub: "Click Run more times to eat more slices.",
+      why: "<b>eaten = eaten + 1</b> means \"take what's in eaten, add 1, put it back.\" Each click eats one more slice.",
+      hint: "Put 1 in the blank.",
+      code: [
+        { txt: "eaten = eaten + ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("Eaten:", eaten, "of", slices)' }
+      ],
+      blanks: [{ validator: v => v === "1" }],
+      getInitialVars: s => ({ slices: s.custom.slices, eaten: s.custom.eaten }),
+      onRun: (vars, state) => { state.custom.eaten = Math.min(vars.eaten, state.custom.slices); renderPizza(state.custom.slices, state.custom.eaten); },
+      canAdvance: s => s.custom.eaten >= 2,
+      advanceMessage: '✓ You ate 2+ slices!'
+    },
+    {
+      title: "3. Eat many with a loop",
+      sub: "Repeat a bite automatically.",
+      task: "🎯 Cut 8 slices and eat 6 of them.",
+      taskSub: "Fill both blanks: slices=8, loop=6.",
+      why: "A <b>for loop</b> with <b>range(6)</b> eats 6 slices by repeating the same line 6 times. Much faster than typing it 6 times!",
+      hint: "First blank: 8. Second blank: 6.",
+      code: [
+        { txt: "slices = ", blank: { idx: 0, width: 50 } },
+        { txt: "eaten = 0" },
+        { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+        { txt: "    eaten = eaten + 1" },
+        { txt: 'print(eaten, "/", slices, "eaten")' }
+      ],
+      blanks: [{ validator: v => v === "8" }, { validator: v => v === "6" }],
+      onRun: (vars, state) => { state.custom.slices = vars.slices; state.custom.eaten = vars.eaten; renderPizza(vars.slices, vars.eaten); },
+      canAdvance: s => s.custom.slices === 8 && s.custom.eaten === 6,
+      advanceMessage: '✓ 6/8 of the pizza is gone!'
+    },
+    {
+      title: "4. Is more than half gone?",
+      sub: "Use if to check a fraction.",
+      task: "🎯 Put 6 so you eat more than half of 10.",
+      taskSub: "Click Run to check if eaten > slices/2.",
+      why: "<b>if eaten > slices / 2:</b> means \"if you ate more than half, do this.\" The computer compares the numbers and only runs the line when it's true.",
+      hint: "Put 6 in the blank (eating 6 of 10 = 60%).",
+      code: [
+        { txt: "slices = 10" },
+        { txt: "eaten = ", blank: { idx: 0, width: 50 } },
+        { txt: "if eaten > slices / 2:" },
+        { txt: '    print("🎉 More than half the pizza is gone!")' }
+      ],
+      blanks: [{ validator: v => v === "6" }],
+      onRun: (vars, state) => { state.custom.slices = vars.slices; state.custom.eaten = vars.eaten; renderPizza(vars.slices, vars.eaten); if (vars.eaten > vars.slices/2) MC.celebrate(); },
+      canAdvance: s => s.custom.slices === 10 && s.custom.eaten === 6,
+      advanceMessage: '✓ Over half — celebration!'
+    },
+    {
+      title: "5. Fraction challenge",
+      sub: "Put it all together.",
+      task: "🎯 Slice 12, eat 9 with a loop.",
+      taskSub: "Fill in 12, 9 to finish the feast.",
+      why: "You just wrote Python to cut, eat, and compare fractions. 9/12 = 3/4 — the computer checks that for you!",
+      hint: "First: 12 slices. Second: loop 9 times.",
+      code: [
+        { txt: "slices = ", blank: { idx: 0, width: 50 } },
+        { txt: "eaten = 0" },
+        { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+        { txt: "    eaten = eaten + 1" },
+        { txt: "if eaten >= slices * 3 / 4:" },
+        { txt: '    print("🏆 Feast complete: ate 3/4 or more!")' }
+      ],
+      blanks: [{ validator: v => v === "12" }, { validator: v => v === "9" }],
+      onRun: (vars, state) => { state.custom.slices = vars.slices; state.custom.eaten = vars.eaten; renderPizza(vars.slices, vars.eaten); if (vars.eaten >= vars.slices*3/4) setTimeout(() => MC.celebrate(), 300); },
+      canAdvance: s => s.custom.slices === 12 && s.custom.eaten === 9,
+      advanceMessage: '✓ Feast complete! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.slices = 1; s.custom.eaten = 0; renderPizza(1, 0); },
+  summary: `<div class="ic">🍕</div><h2>Feast Complete!</h2><p>You sliced, ate, and compared fractions with Python.</p><ul><li>Variables to track slices and eaten</li><li>Math to update counts</li><li>Loops to eat many slices</li><li>If to compare fractions</li></ul><div class="next">Next up: <b>Shape Builder</b> — draw polygons with loops!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+renderPizza(1, 0);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

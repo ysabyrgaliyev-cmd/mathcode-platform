@@ -1,198 +1,175 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trig Waves — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .wave-svg { background:#fafbff; border-radius:10px; }
-  .sl { background:#f5f7fc; padding:10px 14px; border-radius:8px; }
-  .sl label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
-  .sl b { color:var(--primary); font-size:18px; }
-  .controls { display:grid; gap:10px; grid-template-columns:1fr 1fr; max-width:380px; margin:14px auto 0; }
+.wave-plot{width:360px;height:240px}
+.wave-plot svg{width:100%;height:100%;background:#0f1320;border-radius:10px}
+.stage-visual{background:linear-gradient(180deg,#bfdbfe,#60a5fa);min-height:300px}
+.wchip{position:absolute;top:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;font-family:monospace;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.wchip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🌊</div><h2>Welcome to Trig Waves!</h2>
+  <p>Draw sine waves by writing Python. See how amplitude and frequency change the wave.</p>
+  <div class="pills"><div class="pill">⏱ 18 min</div><div class="pill">📚 Grade 8–12</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Use <b>math.sin</b> in Python</li>
+    <li>Change <b>amplitude</b> (height)</li>
+    <li>Change <b>frequency</b> (tightness)</li>
+    <li>Combine sine and cosine</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Make waves! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🌊</div><div><h1>Trig Waves</h1><div class="sub">Sine waves with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="wchip"><span class="lbl">Wave</span><span id="waveLbl">y = 0</span></div>
+        <div class="wave-plot"><svg id="waveSvg" viewBox="0 -8 20 16" preserveAspectRatio="none"></svg></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>trig_waves.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const cstate = { amp: 1, freq: 1, sawSin: false, sawAmp: false, sawFreq: false, sawCos: false };
-
-function plotWave(fn, color = '#7c5cff', extra = '') {
-  const W = 360, H = 220, cx = 30, cy = H/2, scale = 30;
-  let pts = [];
-  for (let px = cx; px <= W; px += 2) {
-    const x = (px - cx) / scale;
-    const y = fn(x);
-    const py = cy - y * scale;
-    pts.push([px, py]);
+function drawWave(fn, label) {
+  const svg = document.getElementById('waveSvg');
+  svg.innerHTML = '';
+  const ax = document.createElementNS('http://www.w3.org/2000/svg','line');
+  ax.setAttribute('x1',0);ax.setAttribute('y1',0);ax.setAttribute('x2',20);ax.setAttribute('y2',0);
+  ax.setAttribute('stroke','#2a3148');ax.setAttribute('stroke-width','0.08');
+  svg.appendChild(ax);
+  let d = 'M ';
+  for (let x = 0; x <= 20; x += 0.1) {
+    let y;
+    try { y = fn(x); } catch { continue; }
+    if (!isFinite(y)) continue;
+    d += x + ' ' + (-y) + ' L ';
   }
-  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  let g = '';
-  for (let i = 0; i <= 12; i++) g += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
-  for (let i = -3; i <= 3; i++) g += `<line x1="${cx}" y1="${cy + i*scale}" x2="${W}" y2="${cy + i*scale}" stroke="#e8ecf6"/>`;
-  g += `<line x1="${cx}" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-  g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-  return `<svg class="wave-svg" viewBox="0 0 ${W} ${H}" width="360" height="220">${g}<path d="${path}" fill="none" stroke="${color}" stroke-width="3"/>${extra}</svg>`;
+  d = d.slice(0, -3);
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d', d);
+  p.setAttribute('fill', 'none');
+  p.setAttribute('stroke', '#60a5fa');
+  p.setAttribute('stroke-width', '0.2');
+  svg.appendChild(p);
+  document.getElementById('waveLbl').textContent = label;
 }
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>🌊 The sine wave: y = sin(x)</h3>
-      ${plotWave(x => Math.sin(x))}
-      <div class="kv">
-        <div class="pair"><b>1</b><span>max</span></div>
-        <div class="pair"><b>-1</b><span>min</span></div>
-        <div class="pair"><b>2π</b><span>period</span></div>
-      </div>
-      <div class="stage-msg">A sine wave goes smoothly up and down between -1 and 1, repeating forever. ${cstate.sawSin ? '✓' : 'Click Next when ready.'}</div>`;
-    cstate.sawSin = true; MC.refresh();
-  }
-  else if (step === 2) {
-    stage.innerHTML = `<h3>📏 Amplitude controls height</h3>
-      ${plotWave(x => cstate.amp * Math.sin(x))}
-      <div class="controls">
-        <div class="sl"><label>amplitude = <b>${cstate.amp.toFixed(1)}</b></label>
-          <input type="range" min="0.5" max="3" step="0.1" value="${cstate.amp}" id="ampSld" style="width:100%"></div>
-      </div>
-      <div class="stage-msg">y = ${cstate.amp.toFixed(1)} × sin(x). ${cstate.sawAmp ? '✓ Amplitude = how TALL the wave is.' : 'Move the slider.'}</div>`;
-    MC.$('ampSld').oninput = (e) => { cstate.amp = +e.target.value; cstate.sawAmp = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    stage.innerHTML = `<h3>🎵 Frequency controls how fast it wiggles</h3>
-      ${plotWave(x => Math.sin(cstate.freq * x))}
-      <div class="controls">
-        <div class="sl"><label>frequency = <b>${cstate.freq.toFixed(1)}</b></label>
-          <input type="range" min="0.5" max="4" step="0.1" value="${cstate.freq}" id="freqSld" style="width:100%"></div>
-      </div>
-      <div class="stage-msg">y = sin(${cstate.freq.toFixed(1)} × x). ${cstate.sawFreq ? '✓ Higher frequency = more waves in the same space (like high-pitched sound).' : 'Move the slider.'}</div>`;
-    MC.$('freqSld').oninput = (e) => { cstate.freq = +e.target.value; cstate.sawFreq = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 4) {
-    const W = 360, H = 220, cx = 30, cy = H/2, scale = 30;
-    function path(fn) {
-      let p = '';
-      for (let px = cx; px <= W; px += 2) {
-        const x = (px - cx) / scale;
-        const py = cy - fn(x) * scale;
-        p += (p ? 'L' : 'M') + px.toFixed(1) + ',' + py.toFixed(1);
-      }
-      return p;
+window.PROJECT = {
+  initialState: { last: null },
+  STEPS: [
+    {
+      title: "1. First sine wave",
+      sub: "math.sin makes waves.",
+      task: "🎯 Put x in math.sin.",
+      taskSub: "Basic sine of x.",
+      why: "<b>math.sin(x)</b> returns a number between -1 and +1 that oscillates — up, down, up, down. This is the purest wave in math.",
+      hint: "Put x in the blank.",
+      code: [
+        { txt: "import math  # already imported" },
+        { txt: "def f(x):" },
+        { txt: "    return math.sin(", blank: { idx: 0, width: 50 }, suffix: ")" },
+        { txt: 'print("sin(0) =", f(0))' },
+        { txt: 'print("sin(1.57) =", f(1.57))' }
+      ],
+      blanks: [{ validator: v => v.trim() === "x" }],
+      onRun: (vars, state) => { state.custom.last = 'sin'; drawWave(x => Math.sin(x), 'y = sin(x)'); },
+      canAdvance: s => s.custom.last === 'sin',
+      advanceMessage: '✓ Sine wave drawn!'
+    },
+    {
+      title: "2. Amplitude",
+      sub: "Multiply to grow the wave.",
+      task: "🎯 Put 3 as amplitude.",
+      taskSub: "Wave goes from -3 to +3.",
+      why: "<b>A * sin(x)</b> makes the wave <b>A</b> times taller. This is called <b>amplitude</b> — loud sounds have big amplitude, soft sounds have small.",
+      hint: "Put 3 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    A = ", blank: { idx: 0, width: 50 } },
+        { txt: "    return A * math.sin(x)" },
+        { txt: 'print("Peak:", f(1.57))' }
+      ],
+      blanks: [{ validator: v => v === "3" }],
+      onRun: (vars, state) => { state.custom.last = 'amp'; drawWave(x => 3*Math.sin(x), 'y = 3·sin(x)'); },
+      canAdvance: s => s.custom.last === 'amp',
+      advanceMessage: '✓ Taller wave!'
+    },
+    {
+      title: "3. Frequency",
+      sub: "Tighter waves with bigger numbers inside.",
+      task: "🎯 Put 2 as frequency.",
+      taskSub: "Wave cycles twice as often.",
+      why: "<b>sin(f * x)</b> speeds up the wave — higher <b>f</b> means more wiggles in the same space. High frequency = high pitch in sound!",
+      hint: "Put 2 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    freq = ", blank: { idx: 0, width: 50 } },
+        { txt: "    return math.sin(freq * x)" },
+        { txt: 'print("Wave cycles fast!")' }
+      ],
+      blanks: [{ validator: v => v === "2" }],
+      onRun: (vars, state) => { state.custom.last = 'freq'; drawWave(x => Math.sin(2*x), 'y = sin(2x)'); },
+      canAdvance: s => s.custom.last === 'freq',
+      advanceMessage: '✓ Twice as many cycles!'
+    },
+    {
+      title: "4. Combine the two",
+      sub: "Amplitude and frequency together.",
+      task: "🎯 Amplitude 2, frequency 3.",
+      taskSub: "y = 2·sin(3x).",
+      why: "Real music and radio signals are combinations! <b>y = A·sin(f·x)</b> lets you tune both loudness (A) and pitch (f) together.",
+      hint: "First: 2. Second: 3.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    A = ", blank: { idx: 0, width: 50 } },
+        { txt: "    freq = ", blank: { idx: 1, width: 50 } },
+        { txt: "    return A * math.sin(freq * x)" }
+      ],
+      blanks: [{ validator: v => v === "2" }, { validator: v => v === "3" }],
+      onRun: (vars, state) => { state.custom.last = 'combo'; drawWave(x => 2*Math.sin(3*x), 'y = 2·sin(3x)'); },
+      canAdvance: s => s.custom.last === 'combo',
+      advanceMessage: '✓ Combined wave!'
+    },
+    {
+      title: "5. Table of sine values",
+      sub: "Loop through the wave.",
+      task: "🎯 Put 10 to print 10 values.",
+      taskSub: "Watch the wave rise and fall.",
+      why: "Printing sin(x) at each step shows the wave as numbers. That's what a computer sees — an endless stream of wave values going up and down.",
+      hint: "Put 10 in the blank.",
+      code: [
+        { txt: "for x in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: '    print("sin(", x, ") =", math.sin(x))' },
+        { txt: 'print("🏆 Wave table done!")' }
+      ],
+      blanks: [{ validator: v => v === "10" }],
+      onRun: (vars, state) => { state.custom.last = 'table'; drawWave(x => Math.sin(x), 'y = sin(x)'); setTimeout(() => MC.celebrate(), 300); },
+      canAdvance: s => s.custom.last === 'table',
+      advanceMessage: '✓ Wave table printed! 🏆',
+      isLast: true
     }
-    let g = '';
-    for (let i = 0; i <= 12; i++) g += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
-    for (let i = -3; i <= 3; i++) g += `<line x1="${cx}" y1="${cy + i*scale}" x2="${W}" y2="${cy + i*scale}" stroke="#e8ecf6"/>`;
-    g += `<line x1="${cx}" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-    g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-    g += `<path d="${path(x => Math.sin(x))}" fill="none" stroke="#7c5cff" stroke-width="2.5"/>`;
-    g += `<path d="${path(x => Math.cos(x))}" fill="none" stroke="#fbbf24" stroke-width="2.5"/>`;
-    stage.innerHTML = `<h3>🆚 sin(x) vs cos(x)</h3>
-      <svg class="wave-svg" viewBox="0 0 ${W} ${H}" width="360" height="220">${g}</svg>
-      <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-weight:700">
-        <span style="color:#7c5cff">━ sin(x)</span>
-        <span style="color:#fbbf24">━ cos(x)</span>
-      </div>
-      <div class="stage-msg">${cstate.sawCos ? '✓ Same shape — cos is sin shifted left by π/2 (a quarter wave).' : 'Look how cos is sin SHIFTED.'}</div>`;
-    cstate.sawCos = true; MC.refresh();
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🏆 Trig Quiz</h3><div class="stage-msg">Answer the questions below.</div>`;
-  }
-}
-
-const STEPS = [
-  { title: '1. The sine wave',
-    sub: 'A wave that repeats forever.',
-    task: '🎯 Look at sin(x).',
-    taskSub: 'It oscillates between -1 and 1.',
-    why: 'Sine and cosine are the heartbeat of trigonometry. They model sound, light, music, ocean waves, springs, and circular motion. The sine wave is the simplest "wave" in math.',
-    hint: 'Just look at the graph.',
-    isDone: () => cstate.sawSin === true,
-    check: () => 'Click Next.',
-    code: [
-      { line: 'import math' },
-      { line: 'for x in range(360):' },
-      { line: '    y = math.sin(math.radians(x))', highlight: true },
-      { line: '    plot(x, y)' },
-    ]
-  },
-  { title: '2. Amplitude',
-    sub: 'How tall the wave is.',
-    task: '🎯 Move the amplitude slider.',
-    taskSub: 'See the wave grow and shrink.',
-    why: 'Amplitude is the height of the wave. In sound, it controls volume (loud = tall wave). In light, it controls brightness. In music, it controls how loud a note plays.',
-    hint: 'Drag the slider.',
-    isDone: () => cstate.sawAmp === true,
-    check: () => 'Move the slider.',
-    code: [
-      { line: `amp = ${cstate.amp.toFixed(1)}`, highlight: true },
-      { line: 'y = amp * math.sin(x)' },
-    ]
-  },
-  { title: '3. Frequency',
-    sub: 'How fast it oscillates.',
-    task: '🎯 Move the frequency slider.',
-    taskSub: 'Higher = more wiggles.',
-    why: 'Frequency is how many waves fit in a given space (or time). In sound, it\'s pitch (high frequency = high note). In radio, it\'s the station number. In light, it\'s color.',
-    hint: 'Drag the slider.',
-    isDone: () => cstate.sawFreq === true,
-    check: () => 'Move the slider.',
-    code: [
-      { line: `freq = ${cstate.freq.toFixed(1)}`, highlight: true },
-      { line: 'y = math.sin(freq * x)' },
-    ]
-  },
-  { title: '4. Cosine: same wave, shifted',
-    sub: 'cos(x) is sin shifted by π/2.',
-    task: '🎯 Look at sin and cos together.',
-    taskSub: 'Same shape, different start.',
-    why: 'Cosine has the same shape as sine, but starts at 1 instead of 0. They\'re partners — together they describe rotation around a circle, position vs velocity, and complex sound.',
-    hint: 'Look at the two waves.',
-    isDone: () => cstate.sawCos === true,
-    check: () => 'Click Next.',
-    code: [
-      { line: 'sin_val = math.sin(x)' },
-      { line: 'cos_val = math.cos(x)', highlight: true },
-      { line: '# cos(x) = sin(x + pi/2)' },
-    ]
-  },
-  { title: '5. Trig quiz',
-    sub: 'Test what you learned.',
-    task: '🎯 Answer all 4 questions.',
-    taskSub: '',
-    why: 'You\'re now ready to understand sound waves, AC electricity, GPS triangulation, and circular motion.',
-    hint: 'Match property to wave behavior.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: 'print("🌊 Trig wave master!")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'What does amplitude control in a sine wave?',
-    options: ['Height','Speed','Starting position','Color'], answer: 'Height',
-    why: 'Amplitude = how tall the wave is.' },
-  { q: 'What does increasing frequency do?',
-    options: ['Adds more wiggles','Makes the wave taller','Shifts left','Stops it'], answer: 'Adds more wiggles',
-    why: 'Higher frequency = more cycles per unit.' },
-  { q: 'sin(0) = ?',
-    options: ['0','1','-1','π'], answer: '0',
-    why: 'Sine starts at 0 when x = 0.' },
-  { q: 'Cosine looks like sine, but:',
-    options: ['Shifted left by π/2','Upside down','Twice as tall','Half as tall'], answer: 'Shifted left by π/2',
-    why: 'cos(x) = sin(x + π/2).' },
-];
-
-const PROJECT = {
-  title: 'Trig Waves', icon: '🌊', language: 'Python',
-  welcomeIcon: '🌊', welcomeTitle: 'Welcome to Trig Waves!',
-  welcomeBody: "Sine and cosine waves describe almost every kind of oscillation: sound, light, springs, and circles. We'll explore amplitude and frequency with sliders.",
-  youWill: ['What sin(x) and cos(x) look like','How amplitude controls height','How frequency controls wiggles','Why sine and cosine are partners'],
-  duration: '15 min', gradeBand: 'Grade 9–10',
-  youLearned: ['Sine waves repeat between -1 and 1','Amplitude scales the height','Frequency packs more waves into the same space','Cosine = sine shifted by π/2'],
-  upNext: 'Next: Stat Lab — averages and outliers!'
+  ],
+  onReset: s => { s.custom.last = null; drawWave(() => 0, 'y = 0'); },
+  summary: `<div class="ic">🌊</div><h2>Waves Mastered!</h2><p>You drew sinusoidal waves in Python.</p><ul><li>math.sin for oscillation</li><li>Amplitude controls height</li><li>Frequency controls cycles</li><li>Waves = music, radio, light</li></ul><div class="next">Next: <b>Stat Lab</b> — mean and median!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+drawWave(() => 0, 'y = 0');
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

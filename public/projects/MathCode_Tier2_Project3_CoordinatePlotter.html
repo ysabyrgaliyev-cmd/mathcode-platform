@@ -1,212 +1,195 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Coordinate Plotter — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .grid-svg { background:#fafbff; border-radius:10px; }
-  .input-pair { display:flex; gap:10px; align-items:center; justify-content:center; margin:10px 0; }
-  .input-pair input { padding:8px; font-size:18px; width:70px; text-align:center;
-    border:2px solid var(--line); border-radius:8px; }
-  .input-pair label { font-weight:700; }
+.grid-box{width:280px;height:280px;position:relative}
+.grid-box svg{width:100%;height:100%;background:white;border-radius:10px}
+.pt-chip{position:absolute;top:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);font-family:monospace}
+.pt-chip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700}
+.stage-visual{background:linear-gradient(180deg,#d1fae5,#6ee7b7);min-height:320px}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
-<script>
-const cstate = { plottedX: '', plottedY: '', placedTwo: false, points: [], targetMet: false, distance: 0 };
 
-function gridSVG(points = [], opts = {}) {
-  const W = 320, H = 320, cx = W/2, cy = H/2, scale = 22;
-  let lines = '';
-  // gridlines
-  for (let i = -7; i <= 7; i++) {
-    lines += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6" stroke-width="1"/>`;
-    lines += `<line x1="0" y1="${cy + i*scale}" x2="${W}" y2="${cy + i*scale}" stroke="#e8ecf6" stroke-width="1"/>`;
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">📍</div><h2>Welcome to Coordinate Plotter!</h2>
+  <p>Place points on a grid by writing Python. Build shapes from coordinates.</p>
+  <div class="pills"><div class="pill">⏱ 15 min</div><div class="pill">📚 Grade 4–7</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Write (x, y) coordinates</li>
+    <li>Plot points with variables</li>
+    <li>Use loops to make lines</li>
+    <li>Compute distance with math</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Plot points! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">📍</div><div><h1>Coordinate Plotter</h1><div class="sub">x, y coordinates with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="pt-chip"><span class="lbl">Points</span><span id="ptsTxt">0</span></div>
+        <div class="grid-box"><svg id="gridSvg" viewBox="-10 -10 20 20"></svg></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>plot.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const points = [];
+function drawGrid() {
+  const svg = document.getElementById('gridSvg');
+  svg.innerHTML = '';
+  // grid lines
+  for (let i = -10; i <= 10; i++) {
+    const vl = document.createElementNS('http://www.w3.org/2000/svg','line');
+    vl.setAttribute('x1', i); vl.setAttribute('y1', -10); vl.setAttribute('x2', i); vl.setAttribute('y2', 10);
+    vl.setAttribute('stroke', '#e3e7f3'); vl.setAttribute('stroke-width', '0.04');
+    svg.appendChild(vl);
+    const hl = document.createElementNS('http://www.w3.org/2000/svg','line');
+    hl.setAttribute('x1', -10); hl.setAttribute('y1', i); hl.setAttribute('x2', 10); hl.setAttribute('y2', i);
+    hl.setAttribute('stroke', '#e3e7f3'); hl.setAttribute('stroke-width', '0.04');
+    svg.appendChild(hl);
   }
   // axes
-  lines += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-  lines += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-  // labels
-  lines += `<text x="${W-12}" y="${cy-6}" font-size="11" fill="#5a6190">x</text>`;
-  lines += `<text x="${cx+6}" y="12" font-size="11" fill="#5a6190">y</text>`;
-  // tick numbers
-  for (let i = -6; i <= 6; i+=2) if (i!==0) {
-    lines += `<text x="${cx+i*scale-4}" y="${cy+14}" font-size="10" fill="#8a93b8">${i}</text>`;
-    lines += `<text x="${cx-14}" y="${cy-i*scale+4}" font-size="10" fill="#8a93b8">${i}</text>`;
-  }
-  // points
+  const xAx = document.createElementNS('http://www.w3.org/2000/svg','line');
+  xAx.setAttribute('x1', -10); xAx.setAttribute('y1', 0); xAx.setAttribute('x2', 10); xAx.setAttribute('y2', 0);
+  xAx.setAttribute('stroke', '#1f2545'); xAx.setAttribute('stroke-width', '0.08');
+  svg.appendChild(xAx);
+  const yAx = document.createElementNS('http://www.w3.org/2000/svg','line');
+  yAx.setAttribute('x1', 0); yAx.setAttribute('y1', -10); yAx.setAttribute('x2', 0); yAx.setAttribute('y2', 10);
+  yAx.setAttribute('stroke', '#1f2545'); yAx.setAttribute('stroke-width', '0.08');
+  svg.appendChild(yAx);
+  // points (note: SVG y is flipped)
   points.forEach((p, i) => {
-    const px = cx + p.x*scale, py = cy - p.y*scale;
-    lines += `<circle cx="${px}" cy="${py}" r="7" fill="${p.color || '#7c5cff'}"/>`;
-    lines += `<text x="${px+10}" y="${py-8}" font-size="12" font-weight="700" fill="${p.color || '#7c5cff'}">(${p.x}, ${p.y})</text>`;
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', p[0]); c.setAttribute('cy', -p[1]); c.setAttribute('r', 0.4);
+    c.setAttribute('fill', '#7c5cff'); c.setAttribute('stroke', 'white'); c.setAttribute('stroke-width', '0.1');
+    svg.appendChild(c);
   });
-  // line between two points
-  if (opts.line && points.length >= 2) {
-    const a = points[0], b = points[1];
-    lines += `<line x1="${cx + a.x*scale}" y1="${cy - a.y*scale}" x2="${cx + b.x*scale}" y2="${cy - b.y*scale}" stroke="#fbbf24" stroke-width="3"/>`;
+  // lines between consecutive points if >1
+  for (let i = 1; i < points.length; i++) {
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1', points[i-1][0]); l.setAttribute('y1', -points[i-1][1]);
+    l.setAttribute('x2', points[i][0]); l.setAttribute('y2', -points[i][1]);
+    l.setAttribute('stroke', '#fbbf24'); l.setAttribute('stroke-width', '0.15');
+    svg.appendChild(l);
   }
-  return `<svg class="grid-svg" viewBox="0 0 ${W} ${H}" width="320" height="320">${lines}</svg>`;
+  document.getElementById('ptsTxt').textContent = points.length;
 }
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>📍 The coordinate plane</h3>
-      ${gridSVG([{x:3,y:2,color:'#7c5cff'}])}
-      <div class="kv">
-        <div class="pair"><b>3</b><span>x (right)</span></div>
-        <div class="pair"><b>2</b><span>y (up)</span></div>
-      </div>
-      <div class="stage-msg">A point on the grid is written as (x, y). x = how far right. y = how far up. The center is (0, 0).</div>`;
-    cstate.sawIntro = true; MC.refresh();
-  }
-  else if (step === 2) {
-    const pts = [];
-    if (cstate.plottedX !== '' && cstate.plottedY !== '') pts.push({x: +cstate.plottedX, y: +cstate.plottedY, color:'#34d399'});
-    stage.innerHTML = `<h3>🎯 Plot the point (5, -3)</h3>
-      ${gridSVG(pts)}
-      <div class="input-pair">
-        <label>x =</label><input type="number" id="xIn" value="${cstate.plottedX}" placeholder="?">
-        <label>y =</label><input type="number" id="yIn" value="${cstate.plottedY}" placeholder="?">
-        <button class="btn primary" id="plotBtn">📍 Plot</button>
-      </div>
-      <div class="stage-msg ${cstate.plottedX==='5'&&cstate.plottedY==='-3'?'':cstate.plottedX!==''?'bad':''}">${cstate.plottedX==='5'&&cstate.plottedY==='-3' ? '✓ Perfect! (5, -3) means 5 right, 3 down.' : cstate.plottedX!=='' ? '✗ Try again — should be (5, -3).' : 'Type 5 and -3, then click Plot.'}</div>`;
-    MC.$('plotBtn').onclick = () => {
-      cstate.plottedX = MC.$('xIn').value; cstate.plottedY = MC.$('yIn').value;
-      refreshStage(); MC.refresh();
-    };
-  }
-  else if (step === 3) {
-    const pts = [];
-    if (cstate.points.length === 0) cstate.points = [{x:1,y:1,color:'#7c5cff'},{x:4,y:5,color:'#fbbf24'}];
-    pts.push(...cstate.points);
-    stage.innerHTML = `<h3>📏 Two points make a line</h3>
-      ${gridSVG(pts, {line: true})}
-      <div class="kv">
-        <div class="pair"><b>(1,1)</b><span>start</span></div>
-        <div class="pair"><b>(4,5)</b><span>end</span></div>
-        <div class="pair"><b>+3</b><span>change in x</span></div>
-        <div class="pair"><b>+4</b><span>change in y</span></div>
-      </div>
-      <div class="stage-msg">From (1,1) to (4,5): we moved 3 right and 4 up. Slope = rise/run = 4/3.</div>`;
-    cstate.sawSlope = true; MC.refresh();
-  }
-  else if (step === 4) {
-    // Distance between (0,0) and (3,4) → 5 (Pythagoras)
-    stage.innerHTML = `<h3>📐 Distance: how far apart?</h3>
-      ${gridSVG([{x:0,y:0,color:'#7c5cff'},{x:3,y:4,color:'#fbbf24'}], {line:true})}
-      <p style="text-align:center;font-size:16px">From (0,0) to (3,4):<br>distance = √(3² + 4²) = √(9+16) = √25 = <b style="color:var(--primary)">5</b></p>
-      <div class="row-controls">
-        <button class="btn primary" id="distBtn" ${cstate.distance>0?'disabled':''}>Calculate distance</button>
-      </div>
-      <div class="stage-msg">${cstate.distance>0 ? '✓ Distance = 5 units. Pythagorean theorem: a² + b² = c².' : 'Click to calculate.'}</div>`;
-    MC.$('distBtn').onclick = () => { cstate.distance = 5; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🏆 Coordinate Quiz</h3><div class="stage-msg">Answer the questions to finish.</div>`;
-  }
-}
+function addPoint(x, y) { points.push([x, y]); drawGrid(); }
+function clearPoints() { points.length = 0; drawGrid(); }
 
-const STEPS = [
-  { title: '1. The grid',
-    sub: 'Two number lines crossing at 0.',
-    task: '🎯 Look at the point (3, 2).',
-    taskSub: 'x means right/left. y means up/down.',
-    why: 'Maps, video games, and graphs all use coordinates. The horizontal axis is x, the vertical axis is y. Where they cross — (0,0) — is called the origin.',
-    hint: 'Just look, then click Next.',
-    isDone: () => cstate.sawIntro === true,
-    check: () => 'Click Next to plot a point.',
-    code: [
-      { line: 'point = (3, 2)', highlight: true },
-      { line: 'x = 3', ann: '3 right' },
-      { line: 'y = 2', ann: '2 up' },
-    ]
-  },
-  { title: '2. Plot a point',
-    sub: 'Negative numbers go left and down.',
-    task: '🎯 Plot the point (5, -3).',
-    taskSub: 'Type x = 5, y = -3, then click Plot.',
-    why: 'Positive x goes right, negative x goes left. Positive y goes up, negative y goes down. So (5, -3) is 5 right and 3 DOWN.',
-    hint: 'x = 5, y = -3.',
-    isDone: () => cstate.plottedX === '5' && cstate.plottedY === '-3',
-    check: () => 'Plot the point (5, -3).',
-    code: [
-      { line: 'x = 5' },
-      { line: 'y = -3', highlight: true, ann: 'negative = down' },
-      { line: 'plot(x, y)' },
-    ]
-  },
-  { title: '3. Slope between two points',
-    sub: 'Slope = rise / run.',
-    task: '🎯 Look at the line from (1,1) to (4,5).',
-    taskSub: 'Click Next when ready.',
-    why: 'Slope tells how steep a line is. "Rise" = change in y. "Run" = change in x. Slope = rise ÷ run. A flat line has slope 0; a vertical line is undefined.',
-    hint: 'Just look at the picture.',
-    isDone: () => cstate.sawSlope === true,
-    check: () => 'Click Next.',
-    code: [
-      { line: 'a = (1, 1)' },
-      { line: 'b = (4, 5)' },
-      { line: 'rise = b[1] - a[1]', highlight: true, ann: '5 - 1 = 4' },
-      { line: 'run  = b[0] - a[0]', ann: '4 - 1 = 3' },
-      { line: 'slope = rise / run', ann: '4/3' },
-    ]
-  },
-  { title: '4. Distance with Pythagoras',
-    sub: 'a² + b² = c².',
-    task: '🎯 Click "Calculate distance".',
-    taskSub: 'Find the straight-line distance from (0,0) to (3,4).',
-    why: 'The Pythagorean theorem says: in a right triangle, the long side² = the sum of the two short sides². If we go 3 right and 4 up, the diagonal = √(9+16) = √25 = 5.',
-    hint: 'Click the orange button.',
-    isDone: () => cstate.distance > 0,
-    check: () => cstate.distance > 0 ? '' : 'Click "Calculate distance".',
-    code: [
-      { line: 'import math' },
-      { line: 'a = 3', ann: 'horizontal' },
-      { line: 'b = 4', ann: 'vertical' },
-      { line: 'c = math.sqrt(a*a + b*b)', highlight: true },
-      { line: 'print(c)', ann: '5.0' },
-    ]
-  },
-  { title: '5. Test your skills',
-    sub: 'Final challenge.',
-    task: '🎯 Answer all 4 questions to complete the project.',
-    taskSub: '',
-    why: 'You learned how computers, maps, and graphs locate things in 2D. Same idea works in 3D for video games and CAD.',
-    hint: 'Remember: (x, y) — x first.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: 'print("📍 Coordinate master!")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'What does (4, 0) mean?',
-    options: ['4 right, 0 up','0 right, 4 up','4 right, 4 up','4 down'], answer: '4 right, 0 up',
-    why: 'First number is x (right), second is y (up). y=0 means stay on the x-axis.' },
-  { q: 'Which point is in the bottom-left of the grid?',
-    options: ['(-3, -2)','(3, 2)','(-3, 2)','(3, -2)'], answer: '(-3, -2)',
-    why: 'Negative x = left. Negative y = down. So both negative = bottom-left.' },
-  { q: 'What is the slope from (0,0) to (2,6)?',
-    options: ['3','2','6','12'], answer: '3',
-    why: 'Rise = 6, run = 2. Slope = 6/2 = 3.' },
-  { q: 'Distance from (0,0) to (6,8)?',
-    options: ['10','14','100','7'], answer: '10',
-    why: 'sqrt(6² + 8²) = sqrt(36+64) = sqrt(100) = 10.' },
-];
-
-const PROJECT = {
-  title: 'Coordinate Plotter', icon: '📍', language: 'Python',
-  welcomeIcon: '📍', welcomeTitle: 'Welcome to Coordinate Plotter!',
-  welcomeBody: "Maps, video games, and graphs all use a coordinate grid. We'll plot points, measure slope, and use Pythagoras to find distances.",
-  youWill: ['What (x, y) means','How to plot any point','How to find slope between two points','How to calculate distance'],
-  duration: '12–15 min', gradeBand: 'Grade 6–7',
-  youLearned: ['x = right, y = up','Origin (0,0) is the center','Slope = rise / run','Distance uses Pythagoras: √(a² + b²)'],
-  upNext: 'Next: Probability Lab — rolling dice and flipping coins!'
+window.PROJECT = {
+  initialState: { plotted: 0 },
+  STEPS: [
+    {
+      title: "1. Plot a point",
+      sub: "Every point has (x, y).",
+      task: "🎯 Put 3 and 4 for x and y.",
+      taskSub: "x = right, y = up.",
+      why: "The point <b>(3, 4)</b> means: go 3 right, then 4 up from (0,0). x is horizontal, y is vertical.",
+      hint: "First blank: 3. Second: 4.",
+      code: [
+        { txt: "x = ", blank: { idx: 0, width: 50 } },
+        { txt: "y = ", blank: { idx: 1, width: 50 } },
+        { txt: 'print("Point is at (", x, ",", y, ")")' }
+      ],
+      blanks: [{ validator: v => v === "3" }, { validator: v => v === "4" }],
+      onRun: (vars, state) => { clearPoints(); addPoint(vars.x, vars.y); state.custom.plotted = 1; },
+      canAdvance: s => points.length === 1 && points[0][0] === 3 && points[0][1] === 4,
+      advanceMessage: '✓ Point at (3, 4)!'
+    },
+    {
+      title: "2. Plot a line of points",
+      sub: "Use a loop.",
+      task: "🎯 Put 6 to plot 6 points (0..5, same y).",
+      taskSub: "All points have y = 2. Makes a horizontal line.",
+      why: "<b>for i in range(6):</b> loops over 0..5. Each loop plots point (i, 2). Result: a line of 6 points at y = 2.",
+      hint: "Put 6 in the blank.",
+      code: [
+        { txt: "for x in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    y = 2" },
+        { txt: '    print("(", x, ",", y, ")")' }
+      ],
+      blanks: [{ validator: v => v === "6" }],
+      onRun: (vars, state) => { clearPoints(); for (let x = 0; x < 6; x++) addPoint(x, 2); state.custom.plotted = 6; },
+      canAdvance: s => points.length === 6,
+      advanceMessage: '✓ Horizontal line of 6!'
+    },
+    {
+      title: "3. Slope — y = x",
+      sub: "x and y grow together.",
+      task: "🎯 Put 8 to plot 8 diagonal points.",
+      taskSub: "The line y = x goes up at 45°.",
+      why: "When <b>y = x</b>, point (1,1), (2,2), (3,3)... makes a diagonal. This is slope 1 — y rises as fast as x moves.",
+      hint: "Put 8 in the blank.",
+      code: [
+        { txt: "for x in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    y = x" },
+        { txt: '    print("(", x, ",", y, ")")' }
+      ],
+      blanks: [{ validator: v => v === "8" }],
+      onRun: (vars, state) => { clearPoints(); for (let x = 0; x < 8; x++) addPoint(x, x); state.custom.plotted = 8; },
+      canAdvance: s => points.length === 8,
+      advanceMessage: '✓ Diagonal slope = 1!'
+    },
+    {
+      title: "4. Steeper line — y = 2x",
+      sub: "Multiply x by 2.",
+      task: "🎯 Put 2 as the multiplier.",
+      taskSub: "For every +1 in x, y goes up by 2.",
+      why: "<b>y = 2 * x</b> makes a steeper line. The <b>2</b> is the <b>slope</b> — how much y changes per step in x.",
+      hint: "Put 2 in the blank.",
+      code: [
+        { txt: "slope = ", blank: { idx: 0, width: 50 } },
+        { txt: "for x in range(5):" },
+        { txt: "    y = slope * x" },
+        { txt: '    print("(", x, ",", y, ")")' }
+      ],
+      blanks: [{ validator: v => v === "2" }],
+      onRun: (vars, state) => { clearPoints(); for (let x = 0; x < 5; x++) addPoint(x, 2*x); state.custom.plotted = 5; },
+      canAdvance: s => points.length === 5 && points[4][1] === 8,
+      advanceMessage: '✓ Steeper line, slope = 2!'
+    },
+    {
+      title: "5. Draw a square",
+      sub: "Plot the 4 corners.",
+      task: "🎯 Put 4 as the side length.",
+      taskSub: "Make a square from (0,0) to (s,s).",
+      why: "A square has 4 corners: (0,0), (s,0), (s,s), (0,s). You can trace it with just 4 points — Python handles the rest!",
+      hint: "Put 4 in the blank.",
+      code: [
+        { txt: "s = ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("(0, 0)")' },
+        { txt: 'print("(", s, ", 0)")' },
+        { txt: 'print("(", s, ",", s, ")")' },
+        { txt: 'print("(0,", s, ")")' },
+        { txt: 'print("🏆 Square drawn!")' }
+      ],
+      blanks: [{ validator: v => v === "4" }],
+      onRun: (vars, state) => { clearPoints(); addPoint(0,0); addPoint(vars.s,0); addPoint(vars.s,vars.s); addPoint(0,vars.s); addPoint(0,0); state.custom.plotted = 5; setTimeout(() => MC.celebrate(), 200); },
+      canAdvance: s => points.length >= 4 && points[2][0] === 4 && points[2][1] === 4,
+      advanceMessage: '✓ Square plotted! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { clearPoints(); s.custom.plotted = 0; },
+  summary: `<div class="ic">📍</div><h2>Plotting Complete!</h2><p>You placed points and drew lines with Python.</p><ul><li>(x, y) as variables</li><li>Loops to plot many points</li><li>Slope via multiplication</li><li>Built a square from 4 corners</li></ul><div class="next">Next: <b>Probability Lab</b> — roll dice!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+drawGrid();
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

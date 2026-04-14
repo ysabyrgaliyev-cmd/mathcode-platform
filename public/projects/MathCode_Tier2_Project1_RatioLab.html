@@ -1,206 +1,168 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ratio Lab — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .recipe { background:#fff8eb; border:2px dashed #f8d795; border-radius:12px; padding:20px;
-    max-width:380px; margin:14px auto; }
-  .recipe h4 { margin:0 0 12px; font-size:18px; }
-  .ingr { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #e3e7f3; font-size:16px; }
-  .ingr:last-child { border:0; }
-  .ingr .amt { font-weight:800; color:var(--primary); }
-  .scale-control { background:#f5f7fc; padding:14px; border-radius:10px; max-width:380px; margin:0 auto; }
-  .speed-bar { height:24px; background:#e3e7f3; border-radius:12px; overflow:hidden; max-width:300px; margin:8px auto; }
-  .speed-fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--accent)); transition:width .3s; }
+.jar{display:flex;gap:20px;align-items:flex-end}
+.bar{width:60px;background:white;border-radius:8px 8px 0 0;border:3px solid #1f2545;border-bottom:none;position:relative;display:flex;align-items:flex-end;overflow:hidden}
+.bar .fill{width:100%;transition:height .4s ease-out}
+.bar .lbl{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-weight:900;color:white;background:rgba(0,0,0,.5);padding:2px 8px;border-radius:6px;font-size:12px;white-space:nowrap}
+.ratio-chip{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);text-align:center}
+.ratio-chip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700}
+.stage-visual{background:linear-gradient(180deg,#ddd6fe,#a78bfa);min-height:280px}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
-<script>
-const cstate = { servings: 4, sawCookies: false, mphPick: '', mphCorrect: false, customCups: 2 };
-const recipe = { flour: 2, sugar: 1, butter: 0.5, choco: 1.5 }; // for 4 cookies
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>🍪 Cookie recipe (makes 4 cookies)</h3>
-      <div class="recipe"><h4>Ingredients for 4 cookies</h4>
-        <div class="ingr"><span>Flour</span><span class="amt">2 cups</span></div>
-        <div class="ingr"><span>Sugar</span><span class="amt">1 cup</span></div>
-        <div class="ingr"><span>Butter</span><span class="amt">0.5 cup</span></div>
-        <div class="ingr"><span>Chocolate chips</span><span class="amt">1.5 cups</span></div>
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">⚖️</div><h2>Welcome to Ratio Lab!</h2>
+  <p>Mix paints in perfect ratios using Python. Learn how 2:1 and 3:5 really work.</p>
+  <div class="pills"><div class="pill">⏱ 15 min</div><div class="pill">📚 Grade 4–7</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Write a <b>ratio</b> as two variables</li>
+    <li>Scale up with multiplication</li>
+    <li>Find the <b>unit rate</b> with division</li>
+    <li>Check proportions with <b>if</b></li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Start mixing! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">⚖️</div><div><h1>Ratio Lab</h1><div class="sub">Paint mixing with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="ratio-chip"><span class="lbl">Ratio Red : Blue</span><span id="ratioTxt">0 : 0</span></div>
+        <div class="jar">
+          <div class="bar" style="height:180px"><span class="lbl">Red</span><div class="fill" id="redBar" style="height:0%;background:#ef4444"></div></div>
+          <div class="bar" style="height:180px"><span class="lbl">Blue</span><div class="fill" id="blueBar" style="height:0%;background:#3b82f6"></div></div>
+        </div>
       </div>
-      <div class="stage-msg">A ratio compares amounts. Here, flour : sugar = 2 : 1 (twice as much flour as sugar).</div>`;
-    cstate.sawCookies = true; MC.refresh();
-  }
-  else if (step === 2) {
-    const scale = cstate.servings / 4;
-    stage.innerHTML = `<h3>📏 Scale to ${cstate.servings} cookies</h3>
-      <div class="recipe"><h4>For ${cstate.servings} cookies</h4>
-        <div class="ingr"><span>Flour</span><span class="amt">${(recipe.flour*scale).toFixed(2)} cups</span></div>
-        <div class="ingr"><span>Sugar</span><span class="amt">${(recipe.sugar*scale).toFixed(2)} cup${recipe.sugar*scale===1?'':'s'}</span></div>
-        <div class="ingr"><span>Butter</span><span class="amt">${(recipe.butter*scale).toFixed(2)} cup</span></div>
-        <div class="ingr"><span>Chocolate chips</span><span class="amt">${(recipe.choco*scale).toFixed(2)} cups</span></div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>ratio_lab.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
       </div>
-      <div class="scale-control">
-        <label>How many cookies do you want? <b style="color:var(--primary)">${cstate.servings}</b></label>
-        <input type="range" min="2" max="20" step="2" value="${cstate.servings}" id="srv" style="width:100%">
-        <div style="font-size:13px;color:var(--ink-soft);text-align:center;margin-top:4px">Multiplier: ×${scale.toFixed(2)}</div>
-      </div>
-      <div class="stage-msg">${cstate.servings >= 12 ? '✓ Perfect! You scaled the recipe up.' : 'Drag the slider to 12 or more cookies.'}</div>`;
-    MC.$('srv').oninput = (e) => { cstate.servings = +e.target.value; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    stage.innerHTML = `<h3>🚗 Unit rate: cost per item</h3>
-      <p style="text-align:center;font-size:16px">3 apples cost $1.50.<br>How much does 1 apple cost?</p>
-      <div style="font-size:48px;font-weight:900;color:var(--primary);text-align:center;margin:20px 0">
-        $1.50 ÷ 3 = $0.50
-      </div>
-      <div class="kv">
-        <div class="pair"><b>$1.50</b><span>total</span></div>
-        <div class="pair"><b>3</b><span>apples</span></div>
-        <div class="pair"><b>$0.50</b><span>per apple</span></div>
-      </div>
-      <div class="stage-msg">A "unit rate" tells you the cost (or value) for ONE thing. Just divide!</div>`;
-    cstate.sawUnit = true; MC.refresh();
-  }
-  else if (step === 4) {
-    stage.innerHTML = `<h3>🚙 Unit rate problem</h3>
-      <p style="text-align:center;font-size:16px">A car drives <b>180 miles</b> in <b>3 hours</b>.<br>What is the speed in miles per hour (mph)?</p>
-      <div class="row-controls">
-        <button class="btn" data-mph="60">60 mph</button>
-        <button class="btn" data-mph="540">540 mph</button>
-        <button class="btn" data-mph="183">183 mph</button>
-        <button class="btn" data-mph="30">30 mph</button>
-      </div>
-      <div class="stage-msg ${cstate.mphCorrect?'':cstate.mphPick?'bad':''}" id="msg">${cstate.mphCorrect ? '✓ Correct! 180 miles ÷ 3 hours = 60 mph.' : cstate.mphPick ? '✗ Try again — divide miles by hours.' : 'Pick the correct speed.'}</div>`;
-    stage.querySelectorAll('[data-mph]').forEach(b => b.onclick = () => {
-      cstate.mphPick = b.dataset.mph;
-      cstate.mphCorrect = b.dataset.mph === '60';
-      refreshStage(); MC.refresh();
-    });
-  }
-  else if (step === 5) {
-    const cups = cstate.customCups;
-    const eggsForRecipe = (cups / 2) * 1; // 1 egg per 2 cups flour
-    stage.innerHTML = `<h3>🧁 Use the ratio to predict</h3>
-      <p style="text-align:center;font-size:16px">A recipe says: <b>2 cups flour</b> needs <b>1 egg</b>.<br>How many eggs for <b>${cups} cups of flour</b>?</p>
-      <div style="font-size:40px;font-weight:900;color:var(--primary);text-align:center;margin:14px 0">
-        ${cups} ÷ 2 = ${eggsForRecipe} egg${eggsForRecipe===1?'':'s'}
-      </div>
-      <div class="scale-control">
-        <label>Cups of flour: <b style="color:var(--primary)">${cups}</b></label>
-        <input type="range" min="2" max="12" step="2" value="${cups}" id="cupSld" style="width:100%">
-      </div>
-      <div class="stage-msg">${cups >= 6 ? '✓ Great! You used the ratio to scale up.' : 'Try 6 cups or more.'}</div>`;
-    MC.$('cupSld').oninput = (e) => { cstate.customCups = +e.target.value; refreshStage(); MC.refresh(); };
-  }
+    </div>
+  </div>
+</div>
+
+<script>
+function setBars(red, blue) {
+  const max = Math.max(red, blue, 10);
+  document.getElementById('redBar').style.height = (red / max * 100) + '%';
+  document.getElementById('blueBar').style.height = (blue / max * 100) + '%';
+  document.getElementById('ratioTxt').textContent = red + ' : ' + blue;
 }
 
-const STEPS = [
-  { title: '1. Read a recipe',
-    sub: 'A recipe is a ratio of ingredients.',
-    task: '🎯 Look at the cookie recipe — it makes 4 cookies.',
-    taskSub: 'Click Next when ready.',
-    why: 'A ratio compares two quantities. Saying "2 cups flour for every 1 cup sugar" is a ratio of 2:1. The recipe is a perfect ratio of 4 ingredients designed to make 4 cookies taste good together.',
-    hint: 'Just look at the recipe.',
-    isDone: () => cstate.sawCookies === true,
-    check: () => 'Click Next to scale the recipe.',
-    code: [
-      { line: 'flour = 2', ann: 'cups' },
-      { line: 'sugar = 1' },
-      { line: 'butter = 0.5' },
-      { line: 'choco = 1.5' },
-      { line: 'cookies = 4', highlight: true },
-    ]
-  },
-  { title: '2. Scale the recipe',
-    sub: 'Multiply every ingredient by the same number.',
-    task: '🎯 Make the recipe big enough for 12 or more cookies.',
-    taskSub: 'Drag the slider to set how many cookies you want.',
-    why: 'To scale a recipe, find the multiplier (new ÷ original). For 12 cookies, multiplier = 12 ÷ 4 = 3. Then multiply EVERY ingredient by 3. Same ratio, more cookies.',
-    hint: 'Drag the slider to 12 or more.',
-    isDone: () => cstate.servings >= 12,
-    check: () => `Cookies: ${cstate.servings} (need 12 or more).`,
-    code: [
-      { line: `desired = ${cstate.servings}`, highlight: true },
-      { line: 'multiplier = desired / 4' },
-      { line: 'new_flour = flour * multiplier', highlight: true },
-      { line: 'new_sugar = sugar * multiplier' },
-    ]
-  },
-  { title: '3. Unit rate',
-    sub: 'Cost (or value) for ONE thing.',
-    task: '🎯 Read the example: 3 apples for $1.50 → $0.50 per apple.',
-    taskSub: 'Click Next when ready.',
-    why: 'When stores show price per pound, miles per gallon, or beats per minute — those are all unit rates. To find one, just divide total ÷ count.',
-    hint: 'Just look at the math.',
-    isDone: () => cstate.sawUnit === true,
-    check: () => 'Click Next to try one yourself.',
-    code: [
-      { line: 'total_cost = 1.50' },
-      { line: 'apples = 3' },
-      { line: 'price_each = total_cost / apples', highlight: true },
-      { line: 'print(price_each)', ann: '0.50' },
-    ]
-  },
-  { title: '4. Solve a unit rate',
-    sub: 'Distance ÷ Time = Speed.',
-    task: '🎯 The car drives 180 miles in 3 hours. Pick the speed.',
-    taskSub: 'Hint: divide miles by hours.',
-    why: 'Speed is a unit rate: miles per ONE hour. 180 ÷ 3 = 60 mph. The same logic works for any "per" question: pages per minute, dollars per pound, etc.',
-    hint: '180 ÷ 3 = ?',
-    isDone: () => cstate.mphCorrect === true,
-    check: () => cstate.mphCorrect ? '' : 'Pick the correct speed.',
-    code: [
-      { line: 'miles = 180' },
-      { line: 'hours = 3' },
-      { line: 'speed = miles / hours', highlight: true },
-      { line: 'print(speed, "mph")', ann: '60' },
-    ]
-  },
-  { title: '5. Use a ratio to predict',
-    sub: 'Same ratio applied to a new amount.',
-    task: '🎯 Use the slider to set 6 or more cups of flour.',
-    taskSub: 'Watch how the eggs needed scales with the ratio.',
-    why: 'Once you know a ratio (2 cups flour : 1 egg), you can predict ANY amount. Need 8 cups flour? 8 ÷ 2 = 4 eggs. This is what scientists, engineers, and chefs do every day.',
-    hint: 'Drag the slider to 6 or higher.',
-    isDone: () => cstate.customCups >= 6,
-    check: () => `Cups: ${cstate.customCups} (need 6 or more).`,
-    showChallenge: true,
-    code: [
-      { line: 'flour_per_egg = 2' },
-      { line: `cups = ${cstate.customCups}`, highlight: true },
-      { line: 'eggs_needed = cups / flour_per_egg' },
-      { line: 'print(eggs_needed)' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'A recipe for 6 muffins uses 3 eggs. How many eggs for 12 muffins?',
-    options: ['6','9','3','12'], answer: '6',
-    why: '12 ÷ 6 = 2 (the multiplier). 3 eggs × 2 = 6 eggs.' },
-  { q: '4 books cost $20. What is the price per book?',
-    options: ['$5','$4','$16','$24'], answer: '$5',
-    why: '$20 ÷ 4 = $5 per book.' },
-  { q: 'A car travels 240 miles in 4 hours. What is the speed?',
-    options: ['60 mph','244 mph','236 mph','120 mph'], answer: '60 mph',
-    why: '240 ÷ 4 = 60 mph.' },
-  { q: 'The ratio of cats to dogs is 2:3. If there are 6 cats, how many dogs?',
-    options: ['9','5','7','12'], answer: '9',
-    why: '2:3 means cats×3 ÷ 2. With 6 cats, multiplier is 3, so dogs = 3 × 3 = 9.' },
-];
-
-const PROJECT = {
-  title: 'Ratio Lab', icon: '🍪', language: 'Python',
-  welcomeIcon: '🍪', welcomeTitle: 'Welcome to Ratio Lab!',
-  welcomeBody: "Ratios are how recipes scale, how speed is measured, and how prices work. We'll bake virtual cookies and drive virtual cars to learn ratios and unit rates.",
-  youWill: ['What a ratio is','How to scale a recipe','What unit rate means','How to use ratios to predict'],
-  duration: '12–15 min', gradeBand: 'Grade 5–6',
-  youLearned: ['A ratio compares two amounts','Scale by multiplying every part by the same number','Unit rate = total ÷ count','Use ratios to predict new amounts'],
-  upNext: 'Next: Algebra Quest — solving for x with a balance scale!'
+window.PROJECT = {
+  initialState: { red: 0, blue: 0 },
+  STEPS: [
+    {
+      title: "1. Simple 2:1 ratio",
+      sub: "A ratio is two numbers.",
+      task: "🎯 Put 2 and 1 for a 2:1 mix.",
+      taskSub: "Twice as much red as blue.",
+      why: "A <b>ratio 2:1</b> means \"for every 2 parts red, 1 part blue.\" In Python we store each part in its own variable.",
+      hint: "First: 2. Second: 1.",
+      code: [
+        { txt: "red = ", blank: { idx: 0, width: 50 } },
+        { txt: "blue = ", blank: { idx: 1, width: 50 } },
+        { txt: 'print("Ratio:", red, ":", blue)' }
+      ],
+      blanks: [{ validator: v => v === "2" }, { validator: v => v === "1" }],
+      onRun: (vars, state) => { state.custom.red = vars.red; state.custom.blue = vars.blue; setBars(vars.red, vars.blue); },
+      canAdvance: s => s.custom.red === 2 && s.custom.blue === 1,
+      advanceMessage: '✓ 2:1 mixed!'
+    },
+    {
+      title: "2. Scale it up",
+      sub: "Multiply both by the same number.",
+      task: "🎯 Put 3 to scale up 3×.",
+      taskSub: "2:1 becomes 6:3 — still the same mix.",
+      why: "To scale a ratio, multiply <b>both</b> sides by the same number. 2×3=6 and 1×3=3, so 6:3 is the same as 2:1.",
+      hint: "Put 3 in the blank.",
+      code: [
+        { txt: "red = 2" },
+        { txt: "blue = 1" },
+        { txt: "scale = ", blank: { idx: 0, width: 50 } },
+        { txt: "red = red * scale" },
+        { txt: "blue = blue * scale" },
+        { txt: 'print("Now:", red, ":", blue)' }
+      ],
+      blanks: [{ validator: v => v === "3" }],
+      onRun: (vars, state) => { state.custom.red = vars.red; state.custom.blue = vars.blue; setBars(vars.red, vars.blue); },
+      canAdvance: s => s.custom.red === 6 && s.custom.blue === 3,
+      advanceMessage: '✓ Scaled to 6:3!'
+    },
+    {
+      title: "3. Unit rate",
+      sub: "How much per one?",
+      task: "🎯 Put 12 red, 4 blue. Find rate.",
+      taskSub: "red ÷ blue tells how much red per 1 blue.",
+      why: "The <b>unit rate</b> is how much of one thing per 1 of the other. <b>red / blue</b> gives 12/4 = 3 red per 1 blue.",
+      hint: "First: 12. Second: 4.",
+      code: [
+        { txt: "red = ", blank: { idx: 0, width: 50 } },
+        { txt: "blue = ", blank: { idx: 1, width: 50 } },
+        { txt: "rate = red / blue" },
+        { txt: 'print("Red per 1 blue:", rate)' }
+      ],
+      blanks: [{ validator: v => v === "12" }, { validator: v => v === "4" }],
+      onRun: (vars, state) => { state.custom.red = vars.red; state.custom.blue = vars.blue; setBars(vars.red, vars.blue); },
+      canAdvance: s => s.custom.red === 12 && s.custom.blue === 4,
+      advanceMessage: '✓ Rate = 3:1 per unit!'
+    },
+    {
+      title: "4. Is it the same mix?",
+      sub: "Cross-multiply with if.",
+      task: "🎯 Put 10 red, 5 blue.",
+      taskSub: "Check if 10:5 is the same as 2:1.",
+      why: "Two ratios are equal if <b>a * d == b * c</b>. Here: 10*1 == 5*2? Yes! 10 == 10 — same mix.",
+      hint: "First: 10. Second: 5.",
+      code: [
+        { txt: "red = ", blank: { idx: 0, width: 50 } },
+        { txt: "blue = ", blank: { idx: 1, width: 50 } },
+        { txt: "if red * 1 == blue * 2:" },
+        { txt: '    print("✓ Same as 2:1!")' },
+        { txt: "if red * 1 != blue * 2:" },
+        { txt: '    print("✗ Not the same")' }
+      ],
+      blanks: [{ validator: v => v === "10" }, { validator: v => v === "5" }],
+      onRun: (vars, state) => { state.custom.red = vars.red; state.custom.blue = vars.blue; setBars(vars.red, vars.blue); if (vars.red * 1 === vars.blue * 2) MC.celebrate(); },
+      canAdvance: s => s.custom.red === 10 && s.custom.blue === 5,
+      advanceMessage: '✓ Proportions match!'
+    },
+    {
+      title: "5. Recipe challenge",
+      sub: "Scale a recipe with a loop.",
+      task: "🎯 Put 7 to scale 3:2 seven times.",
+      taskSub: "Loops make scaling easy.",
+      why: "Real chefs scale recipes this way — loops let you make 7 batches by repeating the base mix 7 times.",
+      hint: "Put 7 in the blank.",
+      code: [
+        { txt: "red = 0" },
+        { txt: "blue = 0" },
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    red = red + 3" },
+        { txt: "    blue = blue + 2" },
+        { txt: 'print("Batch:", red, ":", blue)' }
+      ],
+      blanks: [{ validator: v => v === "7" }],
+      onRun: (vars, state) => { state.custom.red = vars.red; state.custom.blue = vars.blue; setBars(vars.red, vars.blue); setTimeout(() => MC.celebrate(), 400); },
+      canAdvance: s => s.custom.red === 21 && s.custom.blue === 14,
+      advanceMessage: '✓ 7 batches = 21:14! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.red = 0; s.custom.blue = 0; setBars(0,0); },
+  summary: `<div class="ic">⚖️</div><h2>Lab Complete!</h2><p>You mastered ratios with real Python.</p><ul><li>Variables for each part of a ratio</li><li>Multiplication to scale up</li><li>Division for unit rates</li><li>Cross-multiply to check proportions</li></ul><div class="next">Next: <b>Algebra Quest</b> — solve for x!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+setBars(0,0);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

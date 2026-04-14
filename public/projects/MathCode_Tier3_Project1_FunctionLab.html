@@ -1,221 +1,189 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Function Lab — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .graph-svg { background:#fafbff; border-radius:10px; }
-  .sl { background:#f5f7fc; padding:10px 14px; border-radius:8px; }
-  .sl label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
-  .sl b { color:var(--primary); font-size:18px; }
-  .controls { display:grid; gap:10px; grid-template-columns:1fr 1fr; max-width:380px; margin:14px auto 0; }
-  .fn-pick { display:flex; gap:8px; justify-content:center; margin:10px 0; flex-wrap:wrap; }
-  .fn-pick .btn.active { background:linear-gradient(135deg,var(--primary),var(--primary-2)); color:white; border:none; }
+.plot{width:340px;height:260px}
+.plot svg{width:100%;height:100%;background:white;border-radius:10px}
+.stage-visual{background:linear-gradient(180deg,#e0e7ff,#a5b4fc);min-height:300px}
+.fchip{position:absolute;top:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;font-family:monospace;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.fchip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
-<script>
-const cstate = { fnType: 'lin', m: 1, b: 0, a: 1, c: 0, base: 2, sawLin: false, sawQuad: false, sawExp: false };
 
-function plotFn(fn, color = '#7c5cff') {
-  const W = 320, H = 320, cx = W/2, cy = H/2, scale = 18;
-  let pts = [];
-  for (let px = 0; px <= W; px += 2) {
-    const x = (px - cx) / scale;
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">📈</div><h2>Welcome to Function Lab!</h2>
+  <p>Define functions in Python and plot them. See how f(x) changes shape.</p>
+  <div class="pills"><div class="pill">⏱ 18 min</div><div class="pill">📚 Grade 8–12</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Define a function with <b>def</b></li>
+    <li>Plot linear, quadratic, exponential</li>
+    <li>See how parameters transform shape</li>
+    <li>Compare function families</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Plot away! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">📈</div><div><h1>Function Lab</h1><div class="sub">f(x) with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="fchip"><span class="lbl">Function</span><span id="fchipTxt">y = ?</span></div>
+        <div class="plot"><svg id="plotSvg" viewBox="-10 -10 20 20" preserveAspectRatio="none"></svg></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>function_lab.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function plotFunction(fn, label, xMin=-10, xMax=10) {
+  const svg = document.getElementById('plotSvg');
+  svg.innerHTML = '';
+  // grid
+  for (let i = -10; i <= 10; i += 2) {
+    const vl = document.createElementNS('http://www.w3.org/2000/svg','line');
+    vl.setAttribute('x1', i); vl.setAttribute('y1', -10); vl.setAttribute('x2', i); vl.setAttribute('y2', 10);
+    vl.setAttribute('stroke', '#e3e7f3'); vl.setAttribute('stroke-width', '0.05');
+    svg.appendChild(vl);
+    const hl = document.createElementNS('http://www.w3.org/2000/svg','line');
+    hl.setAttribute('x1', -10); hl.setAttribute('y1', i); hl.setAttribute('x2', 10); hl.setAttribute('y2', i);
+    hl.setAttribute('stroke', '#e3e7f3'); hl.setAttribute('stroke-width', '0.05');
+    svg.appendChild(hl);
+  }
+  // axes
+  for (const [x1,y1,x2,y2] of [[-10,0,10,0],[0,-10,0,10]]) {
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke','#1f2545');l.setAttribute('stroke-width','0.1');
+    svg.appendChild(l);
+  }
+  // curve
+  let d = '';
+  for (let x = xMin; x <= xMax; x += 0.1) {
     let y;
     try { y = fn(x); } catch { continue; }
-    if (!isFinite(y)) continue;
-    const py = cy - y * scale;
-    if (py < -200 || py > H+200) continue;
-    pts.push([px, py]);
+    if (!isFinite(y) || y < -20 || y > 20) { d += ' M '; continue; }
+    d += (d === '' || d.endsWith(' M ') ? 'M ' : 'L ') + x + ' ' + (-y) + ' ';
   }
-  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  // grid
-  let g = '';
-  for (let i = -8; i <= 8; i++) {
-    g += `<line x1="${cx+i*scale}" y1="0" x2="${cx+i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
-    g += `<line x1="0" y1="${cy+i*scale}" x2="${W}" y2="${cy+i*scale}" stroke="#e8ecf6"/>`;
-  }
-  g += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-  g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-  return `<svg class="graph-svg" viewBox="0 0 ${W} ${H}" width="320" height="320">${g}<path d="${path}" fill="none" stroke="${color}" stroke-width="3"/></svg>`;
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d', d);
+  p.setAttribute('fill', 'none');
+  p.setAttribute('stroke', '#7c5cff');
+  p.setAttribute('stroke-width', '0.2');
+  svg.appendChild(p);
+  document.getElementById('fchipTxt').textContent = label || 'y = ?';
 }
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>📈 Linear function: y = mx + b</h3>
-      ${plotFn(x => cstate.m*x + cstate.b)}
-      <div class="controls">
-        <div class="sl"><label>m (slope) = <b>${cstate.m}</b></label>
-          <input type="range" min="-3" max="3" step="0.5" value="${cstate.m}" id="mSld" style="width:100%"></div>
-        <div class="sl"><label>b (y-intercept) = <b>${cstate.b}</b></label>
-          <input type="range" min="-5" max="5" step="0.5" value="${cstate.b}" id="bSld" style="width:100%"></div>
-      </div>
-      <div class="stage-msg">y = ${cstate.m}x + ${cstate.b}. ${cstate.sawLin ? '✓ You changed it!' : 'Move the sliders.'}</div>`;
-    MC.$('mSld').oninput = (e) => { cstate.m = +e.target.value; cstate.sawLin = true; refreshStage(); MC.refresh(); };
-    MC.$('bSld').oninput = (e) => { cstate.b = +e.target.value; cstate.sawLin = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 2) {
-    stage.innerHTML = `<h3>📊 Quadratic function: y = ax²</h3>
-      ${plotFn(x => cstate.a*x*x + cstate.c, '#fbbf24')}
-      <div class="controls">
-        <div class="sl"><label>a = <b>${cstate.a}</b></label>
-          <input type="range" min="-2" max="2" step="0.25" value="${cstate.a}" id="aSld" style="width:100%"></div>
-        <div class="sl"><label>shift up by c = <b>${cstate.c}</b></label>
-          <input type="range" min="-4" max="4" step="0.5" value="${cstate.c}" id="cSld" style="width:100%"></div>
-      </div>
-      <div class="stage-msg">y = ${cstate.a}x² + ${cstate.c}. ${cstate.sawQuad ? '✓ Notice the U-shape!' : 'Try a = -1 to flip it upside down.'}</div>`;
-    MC.$('aSld').oninput = (e) => { cstate.a = +e.target.value; cstate.sawQuad = true; refreshStage(); MC.refresh(); };
-    MC.$('cSld').oninput = (e) => { cstate.c = +e.target.value; cstate.sawQuad = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    stage.innerHTML = `<h3>🚀 Exponential function: y = base^x</h3>
-      ${plotFn(x => Math.pow(cstate.base, x), '#34d399')}
-      <div class="controls">
-        <div class="sl"><label>base = <b>${cstate.base}</b></label>
-          <input type="range" min="1.1" max="3" step="0.1" value="${cstate.base}" id="baseSld" style="width:100%"></div>
-      </div>
-      <div class="stage-msg">y = ${cstate.base}^x. ${cstate.sawExp ? '✓ This is how viruses, savings, and compound growth work!' : 'Move the slider — see the explosive growth.'}</div>`;
-    MC.$('baseSld').oninput = (e) => { cstate.base = +e.target.value; cstate.sawExp = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 4) {
-    // compare all three
-    const W = 320, H = 320, cx = W/2, cy = H/2, scale = 18;
-    function path(fn) {
-      let p = '';
-      for (let px = 0; px <= W; px += 2) {
-        const x = (px - cx) / scale;
-        let y; try { y = fn(x); } catch { continue; }
-        if (!isFinite(y) || Math.abs(y) > 12) continue;
-        const py = cy - y * scale;
-        p += (p ? 'L' : 'M') + px.toFixed(1) + ',' + py.toFixed(1);
-      }
-      return p;
+window.PROJECT = {
+  initialState: { last: null },
+  STEPS: [
+    {
+      title: "1. Define f(x) = x",
+      sub: "A function is a recipe for y.",
+      task: "🎯 Put x as the formula.",
+      taskSub: "f(x) = x is the identity line.",
+      why: "<b>def f(x): return x</b> defines a function. It takes any x and returns x — so f(3) = 3. The plot is a straight 45° line.",
+      hint: "Put x in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("f(2) =", f(2))' },
+        { txt: 'print("f(5) =", f(5))' }
+      ],
+      blanks: [{ validator: v => v.trim() === "x" }],
+      onRun: (vars, state) => { state.custom.last = 'identity'; plotFunction(x => x, 'y = x'); },
+      canAdvance: s => s.custom.last === 'identity',
+      advanceMessage: '✓ Linear y = x plotted!'
+    },
+    {
+      title: "2. Linear with slope",
+      sub: "f(x) = 2x + 1",
+      task: "🎯 Put 2 as the slope.",
+      taskSub: "Slope 2 = rises twice as fast.",
+      why: "<b>f(x) = m*x + b</b> is any line. <b>m</b> is slope (steepness), <b>b</b> is y-intercept (where it crosses y-axis).",
+      hint: "Put 2 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return ", blank: { idx: 0, width: 50 }, suffix: " * x + 1" },
+        { txt: 'print("f(0) =", f(0))' },
+        { txt: 'print("f(3) =", f(3))' }
+      ],
+      blanks: [{ validator: v => v === "2" }],
+      onRun: (vars, state) => { state.custom.last = 'linear2'; plotFunction(x => 2*x + 1, 'y = 2x + 1'); },
+      canAdvance: s => s.custom.last === 'linear2',
+      advanceMessage: '✓ Steeper line!'
+    },
+    {
+      title: "3. Quadratic — the parabola",
+      sub: "f(x) = x squared.",
+      task: "🎯 Put x * x for x squared.",
+      taskSub: "Makes a U-shape.",
+      why: "<b>x * x</b> (or x**2) is quadratic. The graph is a <b>parabola</b> — symmetric U-shape that opens upward.",
+      hint: "Put x * x in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return ", blank: { idx: 0, width: 80 } },
+        { txt: 'print("f(2) =", f(2))' },
+        { txt: 'print("f(-3) =", f(-3))' }
+      ],
+      blanks: [{ validator: v => v.replace(/\s/g,'') === "x*x" }],
+      onRun: (vars, state) => { state.custom.last = 'parabola'; plotFunction(x => x*x, 'y = x²', -5, 5); },
+      canAdvance: s => s.custom.last === 'parabola',
+      advanceMessage: '✓ Parabola plotted!'
+    },
+    {
+      title: "4. Shift up/down",
+      sub: "Add a constant.",
+      task: "🎯 Put 3 to shift up 3.",
+      taskSub: "x² + 3 moves the parabola up.",
+      why: "Adding a number to f(x) <b>shifts the whole graph up</b>. f(x) = x² + 3 is just x² but 3 units higher.",
+      hint: "Put 3 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return x * x + ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("Min value:", f(0))' }
+      ],
+      blanks: [{ validator: v => v === "3" }],
+      onRun: (vars, state) => { state.custom.last = 'shifted'; plotFunction(x => x*x + 3, 'y = x² + 3', -5, 5); },
+      canAdvance: s => s.custom.last === 'shifted',
+      advanceMessage: '✓ Shifted up by 3!'
+    },
+    {
+      title: "5. Evaluate at many points",
+      sub: "Loop through values.",
+      task: "🎯 Put 5 to print 5 values.",
+      taskSub: "Table of x and f(x).",
+      why: "Evaluating f(x) at many points is exactly what a graph is. Python computes each y value for you — no calculator needed!",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return x * x" },
+        { txt: "for x in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: '    print("f(", x, ") =", f(x))' },
+        { txt: 'print("🏆 Function mastered!")' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { state.custom.last = 'table'; plotFunction(x => x*x, 'y = x²', -5, 5); setTimeout(() => MC.celebrate(), 300); },
+      canAdvance: s => s.custom.last === 'table',
+      advanceMessage: '✓ Function table built! 🏆',
+      isLast: true
     }
-    let g = '';
-    for (let i = -8; i <= 8; i++) {
-      g += `<line x1="${cx+i*scale}" y1="0" x2="${cx+i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
-      g += `<line x1="0" y1="${cy+i*scale}" x2="${W}" y2="${cy+i*scale}" stroke="#e8ecf6"/>`;
-    }
-    g += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-    g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-    g += `<path d="${path(x => x)}" fill="none" stroke="#7c5cff" stroke-width="2.5"/>`;
-    g += `<path d="${path(x => x*x)}" fill="none" stroke="#fbbf24" stroke-width="2.5"/>`;
-    g += `<path d="${path(x => Math.pow(2, x))}" fill="none" stroke="#34d399" stroke-width="2.5"/>`;
-    stage.innerHTML = `<h3>🆚 Compare them all</h3>
-      <svg class="graph-svg" viewBox="0 0 ${W} ${H}" width="320" height="320">${g}</svg>
-      <div style="display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:13px;font-weight:700">
-        <span style="color:#7c5cff">━ Linear (y=x)</span>
-        <span style="color:#fbbf24">━ Quadratic (y=x²)</span>
-        <span style="color:#34d399">━ Exponential (y=2^x)</span>
-      </div>
-      <div class="stage-msg">Linear is steady. Quadratic curves up. Exponential explodes! ${cstate.sawAll ? '✓' : ''}</div>`;
-    cstate.sawAll = true; MC.refresh();
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🏆 Function Quiz</h3><div class="stage-msg">Answer the questions below.</div>`;
-  }
-}
-
-const STEPS = [
-  { title: '1. Linear functions',
-    sub: 'y = mx + b — straight lines.',
-    task: '🎯 Move both sliders to change the line.',
-    taskSub: 'Try negative slope.',
-    why: 'A linear function is a straight line. m is the slope (steepness). b is where the line crosses the y-axis. This shape models constant rates: speed × time, $20/hour × hours, etc.',
-    hint: 'Drag either slider.',
-    isDone: () => cstate.sawLin === true,
-    check: () => 'Move at least one slider.',
-    code: [
-      { line: `m = ${cstate.m}`, highlight: true },
-      { line: `b = ${cstate.b}` },
-      { line: 'def f(x):' },
-      { line: '    return m*x + b' },
-    ]
-  },
-  { title: '2. Quadratic functions',
-    sub: 'y = ax² — U-shaped parabola.',
-    task: '🎯 Move both sliders. Try a = -1.',
-    taskSub: 'Notice the U-shape (or upside-down U).',
-    why: 'Quadratic functions curve. They model anything where a value depends on the SQUARE of something: gravity (height = ½gt²), area (πr²), and projectile motion. Negative "a" flips the U upside down.',
-    hint: 'Try a = -1 to flip the parabola.',
-    isDone: () => cstate.sawQuad === true,
-    check: () => 'Move a slider.',
-    code: [
-      { line: `a = ${cstate.a}`, highlight: true },
-      { line: `c = ${cstate.c}` },
-      { line: 'def f(x):' },
-      { line: '    return a * x**2 + c' },
-    ]
-  },
-  { title: '3. Exponential functions',
-    sub: 'y = base^x — explosive growth.',
-    task: '🎯 Move the base slider.',
-    taskSub: 'See how fast it grows.',
-    why: 'Exponential functions explode upward. Money in a savings account, virus spread, computer power (Moore\'s Law) — all exponential. Tiny changes in base = HUGE changes in y for large x.',
-    hint: 'Drag the base slider.',
-    isDone: () => cstate.sawExp === true,
-    check: () => 'Move the slider.',
-    code: [
-      { line: `base = ${cstate.base}`, highlight: true },
-      { line: 'def f(x):' },
-      { line: '    return base ** x' },
-    ]
-  },
-  { title: '4. Compare them',
-    sub: 'Linear vs quadratic vs exponential.',
-    task: '🎯 Look at all three on one graph.',
-    taskSub: 'Click Next when ready.',
-    why: 'Linear grows steadily. Quadratic grows faster (squared). Exponential outgrows them ALL eventually. This is why a savings account compounds, why pandemics surge, and why 2^32 is over 4 billion.',
-    hint: 'Just look at the graph.',
-    isDone: () => cstate.sawAll === true,
-    check: () => 'Click Next.',
-    code: [
-      { line: 'linear      = lambda x: x' },
-      { line: 'quadratic   = lambda x: x**2', highlight: true },
-      { line: 'exponential = lambda x: 2**x' },
-    ]
-  },
-  { title: '5. Function quiz',
-    sub: 'Test your understanding.',
-    task: '🎯 Answer all 4 questions.',
-    taskSub: '',
-    why: 'These three function families describe most things in science and finance.',
-    hint: 'Match the shape to the type.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: 'print("📈 Function fluent!")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'In y = 2x + 1, what is the slope?',
-    options: ['2','1','-1','3'], answer: '2',
-    why: 'The number in front of x is the slope.' },
-  { q: 'A parabola (y = x²) is what shape?',
-    options: ['U','Straight line','Circle','Wave'], answer: 'U',
-    why: 'Quadratic functions form U-shaped parabolas.' },
-  { q: 'A savings account that doubles every year is:',
-    options: ['Exponential','Linear','Quadratic','Random'], answer: 'Exponential',
-    why: 'Multiplying by a fixed number each step = exponential growth.' },
-  { q: 'In y = -x², what does the graph look like?',
-    options: ['Upside-down U','U','Straight line','Wave'], answer: 'Upside-down U',
-    why: 'Negative "a" flips the parabola upside down.' },
-];
-
-const PROJECT = {
-  title: 'Function Lab', icon: '📈', language: 'Python',
-  welcomeIcon: '📈', welcomeTitle: 'Welcome to Function Lab!',
-  welcomeBody: "Functions describe how things change. We'll explore the three most important kinds — linear, quadratic, and exponential — and see how their shapes match real-world stories.",
-  youWill: ['Linear functions (lines)','Quadratic functions (parabolas)','Exponential functions (explosive growth)','How to tell them apart by shape'],
-  duration: '15 min', gradeBand: 'Grade 8–9',
-  youLearned: ['y = mx + b is a line','y = ax² is a parabola','y = base^x is exponential','Each function family models real things differently'],
-  upNext: 'Next: Trig Waves — sine and cosine!'
+  ],
+  onReset: s => { s.custom.last = null; plotFunction(() => 0, 'y = ?'); },
+  summary: `<div class="ic">📈</div><h2>Lab Done!</h2><p>You defined and plotted 5 functions in Python.</p><ul><li>def creates a function</li><li>Linear: y = mx + b</li><li>Quadratic: y = x²</li><li>Transformations: shift & stretch</li></ul><div class="next">Next: <b>Trig Waves</b> — sin and cos!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+plotFunction(() => 0, 'y = ?');
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

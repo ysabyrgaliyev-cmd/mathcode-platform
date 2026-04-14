@@ -1,198 +1,184 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pattern Machine — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .seq { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:14px 0; }
-  .num-card { background:linear-gradient(135deg,#7c5cff,#5b3df0); color:white; min-width:60px; padding:18px 14px;
-    border-radius:10px; font-size:24px; font-weight:900; box-shadow:0 4px 10px rgba(124,92,255,.3); }
-  .num-card.q { background:#fbbf24; color:#1f2545; }
-  .num-card.guess { background:white; border:3px dashed var(--primary); color:var(--primary); }
-  .rule-display { background:#f5f7fc; padding:12px 18px; border-radius:10px; margin-top:10px;
-    font-size:18px; font-weight:700; color:var(--primary); }
-  .input-row { display:flex; gap:10px; align-items:center; justify-content:center; margin-top:14px; }
-  .input-row input { padding:10px; font-size:18px; width:100px; text-align:center;
-    border:2px solid var(--line); border-radius:8px; }
+.pattern-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:20px;max-width:420px}
+.beat{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px;background:white;box-shadow:0 3px 6px rgba(0,0,0,.15);animation:drop .3s ease-out}
+@keyframes drop{0%{transform:scale(0) translateY(-20px)}100%{transform:scale(1) translateY(0)}}
+.stage-visual{background:linear-gradient(180deg,#fce7f3,#f9a8d4)}
+.info-chip{position:absolute;top:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;font-size:14px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.info-chip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700;text-transform:uppercase}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🎨</div><h2>Welcome to Pattern Machine!</h2>
+  <p>Make beautiful repeating patterns by writing Python loops.</p>
+  <div class="pills"><div class="pill">⏱ 12 min</div><div class="pill">📚 Grade 3–5</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Use <b>loops</b> to repeat patterns</li>
+    <li>Use <b>if</b> to switch between choices</li>
+    <li>Count by 2s, 3s, and more</li>
+    <li>Predict what comes next</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Start pattern! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🎨</div><div><h1>Pattern Machine</h1><div class="sub">Sequences with Python loops</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="info-chip"><span class="lbl">Pattern</span><span id="patternLen">0 beats</span></div>
+        <div class="pattern-row" id="patternRow"></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>pattern_machine.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const cstate = { addCount: 0, mulCount: 0, guessVal: '', guessCorrect: false, customStart: 1, customStep: 3 };
-
-function showSeq(arr, mark) {
-  return `<div class="seq">${arr.map((n,i) => `<div class="num-card ${mark === i ? 'q' : ''}">${n}</div>`).join('')}</div>`;
+function drawBeats(items) {
+  const row = document.getElementById('patternRow');
+  row.innerHTML = '';
+  items.forEach((emoji, i) => {
+    setTimeout(() => {
+      const b = document.createElement('div');
+      b.className = 'beat';
+      b.textContent = emoji;
+      row.appendChild(b);
+    }, i * 100);
+  });
+  document.getElementById('patternLen').textContent = items.length + ' beats';
 }
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    const s = [2, 4, 6, 8, 10];
-    stage.innerHTML = `<h3>🔢 Counting by 2s</h3>
-      ${showSeq(s)}
-      <div class="rule-display">Rule: add 2 each time</div>
-      <div class="row-controls">
-        <button class="btn primary" id="genBtn">▶ Generate next number</button>
-      </div>
-      <div class="stage-msg">${cstate.addCount > 0 ? `Generated ${cstate.addCount} number${cstate.addCount===1?'':'s'}: ${[10+2, 14, 16, 18, 20].slice(0, cstate.addCount).join(', ')}` : 'Click the button to keep the pattern going.'}</div>`;
-    MC.$('genBtn').onclick = () => { if (cstate.addCount < 5) cstate.addCount++; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 2) {
-    const s = [3, 6, 12, 24, 48];
-    stage.innerHTML = `<h3>✖️ Doubling pattern</h3>
-      ${showSeq(s)}
-      <div class="rule-display">Rule: multiply by 2 each time</div>
-      <div class="row-controls">
-        <button class="btn primary" id="genBtn2">▶ Generate next</button>
-      </div>
-      <div class="stage-msg">${cstate.mulCount > 0 ? `Generated: ${[96, 192, 384].slice(0, cstate.mulCount).join(', ')} — see how fast it grows!` : 'Click to see what comes next.'}</div>`;
-    MC.$('genBtn2').onclick = () => { if (cstate.mulCount < 3) cstate.mulCount++; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    const s = [5, 10, 15, 20, '?'];
-    stage.innerHTML = `<h3>🤔 What comes next?</h3>
-      ${showSeq(s, 4)}
-      <div class="rule-display">Find the rule, then type the next number.</div>
-      <div class="input-row">
-        <input type="number" id="guess" placeholder="?" value="${cstate.guessVal}">
-        <button class="btn primary" id="checkGuess">Check</button>
-      </div>
-      <div class="stage-msg ${cstate.guessCorrect ? '' : (cstate.guessVal && !cstate.guessCorrect ? 'bad':'')}" id="msg">${cstate.guessCorrect ? '✓ Correct! The rule was "add 5 each time", so 20 + 5 = 25.' : (cstate.guessVal ? 'Not quite — look at the difference between numbers.' : 'Type your answer and click Check.')}</div>`;
-    MC.$('checkGuess').onclick = () => {
-      cstate.guessVal = MC.$('guess').value;
-      cstate.guessCorrect = +cstate.guessVal === 25;
-      refreshStage(); MC.refresh();
-    };
-  }
-  else if (step === 4) {
-    const arr = [];
-    let v = cstate.customStart;
-    for (let i = 0; i < 6; i++) { arr.push(v); v += cstate.customStep; }
-    stage.innerHTML = `<h3>🎨 Build your own pattern</h3>
-      ${showSeq(arr)}
-      <div class="rule-display">Start at ${cstate.customStart}, add ${cstate.customStep} each time</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:380px;margin:14px 0;">
-        <div style="background:#f5f7fc;padding:10px;border-radius:8px">
-          <label style="display:block;font-size:12px;color:var(--ink-soft)">Start: <b style="color:var(--primary)">${cstate.customStart}</b></label>
-          <input type="range" min="1" max="20" value="${cstate.customStart}" id="startSld" style="width:100%">
-        </div>
-        <div style="background:#f5f7fc;padding:10px;border-radius:8px">
-          <label style="display:block;font-size:12px;color:var(--ink-soft)">Step: <b style="color:var(--primary)">${cstate.customStep}</b></label>
-          <input type="range" min="1" max="10" value="${cstate.customStep}" id="stepSld" style="width:100%">
-        </div>
-      </div>
-      <div class="stage-msg">${cstate.customStep !== 3 || cstate.customStart !== 1 ? '✓ Great! You changed the pattern.' : 'Move the sliders to change the pattern.'}</div>`;
-    MC.$('startSld').oninput = (e) => { cstate.customStart = +e.target.value; refreshStage(); MC.refresh(); };
-    MC.$('stepSld').oninput = (e) => { cstate.customStep = +e.target.value; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🏆 Pattern Master Quiz</h3>
-      <div class="stage-msg">Answer the questions below to finish.</div>`;
-  }
-}
-
-const STEPS = [
-  { title: '1. Adding patterns',
-    sub: 'Same number added each time.',
-    task: '🎯 Generate the next 5 numbers in the "+2" pattern.',
-    taskSub: 'Click the "Generate next" button 5 times.',
-    why: 'A pattern (or sequence) is a list where each number follows a rule. The simplest rule: add the same amount each time. This is called an "arithmetic" sequence.',
-    hint: 'Click the orange "Generate next number" button 5 times.',
-    isDone: () => cstate.addCount >= 5,
-    check: () => `Generated ${cstate.addCount} of 5.`,
-    code: [
-      { line: 'n = 2' },
-      { line: 'while n <= 20:', highlight: true },
-      { line: '    print(n)' },
-      { line: '    n = n + 2', ann: 'add 2 each time', highlight: true },
-    ]
-  },
-  { title: '2. Multiplying patterns',
-    sub: 'Multiply by the same number — explosion!',
-    task: '🎯 Generate the next 3 numbers in the "×2" pattern.',
-    taskSub: 'Click "Generate next" 3 times.',
-    why: 'When you multiply by a number each step (instead of adding), the values grow really fast. This is called a "geometric" sequence — like 1, 2, 4, 8, 16. It\'s how virus outbreaks and bank interest work!',
-    hint: 'Click the button 3 times.',
-    isDone: () => cstate.mulCount >= 3,
-    check: () => `Generated ${cstate.mulCount} of 3.`,
-    code: [
-      { line: 'n = 3' },
-      { line: 'for i in range(5):' },
-      { line: '    print(n)' },
-      { line: '    n = n * 2', highlight: true, ann: 'double it' },
-    ]
-  },
-  { title: '3. Find the missing number',
-    sub: 'Look at differences between numbers.',
-    task: '🎯 What number comes after 5, 10, 15, 20?',
-    taskSub: 'Type your answer in the box and click Check.',
-    why: 'To find a pattern, look at how each number changes. 5 → 10 (added 5). 10 → 15 (added 5). The rule is "add 5". So next is 20 + 5 = 25.',
-    hint: 'The difference between each pair is 5. So 20 + 5 = ?',
-    isDone: () => cstate.guessCorrect === true,
-    check: () => cstate.guessCorrect ? '' : 'Type the next number and click Check.',
-    code: [
-      { line: 'numbers = [5, 10, 15, 20]' },
-      { line: 'step = numbers[1] - numbers[0]', highlight: true, ann: '10 - 5 = 5' },
-      { line: 'next_num = numbers[-1] + step' },
-      { line: 'print(next_num)', ann: '25' },
-    ]
-  },
-  { title: '4. Build your own',
-    sub: 'Pick a start and a step.',
-    task: '🎯 Move both sliders to change the pattern.',
-    taskSub: 'Try different starts and steps.',
-    why: 'Every "add a fixed amount" pattern is described by two numbers: where it starts, and what you add. With these two, you can build any arithmetic sequence in the universe.',
-    hint: 'Drag the "Start" slider, then drag the "Step" slider.',
-    isDone: () => cstate.customStart !== 1 || cstate.customStep !== 3,
-    check: () => 'Move at least one slider to change the pattern.',
-    code: [
-      { line: `start = ${cstate.customStart}`, highlight: true },
-      { line: `step = ${cstate.customStep}`, highlight: true },
-      { line: 'n = start' },
-      { line: 'for i in range(6):' },
-      { line: '    print(n)' },
-      { line: '    n = n + step' },
-    ]
-  },
-  { title: '5. Pattern quiz',
-    sub: 'Test what you learned.',
-    task: '🎯 Answer all 4 questions to complete the project.',
-    taskSub: '',
-    why: 'Patterns are everywhere in math: counting, multiplication tables, exponential growth, even music and art.',
-    hint: 'Look for the difference (or ratio) between consecutive numbers.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: 'print("🏆 Pattern Master!")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'What comes next? 3, 6, 9, 12, ___',
-    options: ['15','13','24','18'], answer: '15',
-    why: 'Add 3 each time. 12 + 3 = 15.' },
-  { q: 'What comes next? 1, 2, 4, 8, ___',
-    options: ['16','10','12','9'], answer: '16',
-    why: 'Multiply by 2 each time. 8 × 2 = 16.' },
-  { q: 'What is the rule for 7, 14, 21, 28?',
-    options: ['Add 7','Multiply by 2','Add 14','Subtract 7'], answer: 'Add 7',
-    why: '14 - 7 = 7. 21 - 14 = 7. The pattern adds 7.' },
-  { q: 'You see: 100, 50, 25. What is the rule?',
-    options: ['Divide by 2','Subtract 50','Subtract 25','Multiply by 2'], answer: 'Divide by 2',
-    why: '100/2 = 50. 50/2 = 25. The rule divides by 2.' },
-];
-
-const PROJECT = {
-  title: 'Pattern Machine', icon: '🔢', language: 'Python',
-  welcomeIcon: '🔢', welcomeTitle: 'Welcome to Pattern Machine!',
-  welcomeBody: "Patterns are everywhere — in counting, music, even nature. We'll discover the rules that make number sequences work, and use code to build infinite patterns.",
-  youWill: ['What a number sequence is','Adding patterns vs multiplying patterns','How to find the next number','How to build any pattern with code'],
-  duration: '10–12 min', gradeBand: 'Grade 3–5',
-  youLearned: ['Sequences follow a rule','Add the same amount = arithmetic','Multiply the same amount = geometric','Two numbers (start, step) describe any add-pattern'],
-  upNext: 'Tier 1 complete! Up next: Ratio Lab — recipe scaling.'
+window.PROJECT = {
+  initialState: { beats: [] },
+  STEPS: [
+    {
+      title: "1. Repeat one symbol",
+      sub: "Loops make patterns.",
+      task: "🎯 Type 5 in the yellow box, then click ▶ Run.",
+      taskSub: "Draw 5 stars in a row.",
+      why: "<b>for i in range(5):</b> repeats 5 times. Each loop adds one ⭐ to the pattern.",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: '    print("⭐")' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { const arr = new Array(5).fill('⭐'); state.custom.beats = arr; drawBeats(arr); },
+      canAdvance: s => s.custom.beats.length === 5,
+      advanceMessage: '✓ 5 stars in a pattern!'
+    },
+    {
+      title: "2. Alternating ABAB",
+      sub: "Use if + even/odd to switch.",
+      task: "🎯 Type 8 to make an AB pattern of 8 beats.",
+      taskSub: "Even → A, Odd → B.",
+      why: "<b>i % 2</b> gives the remainder. If it's 0, i is even → A. Otherwise, B. That's how AB patterns work!",
+      hint: "Put 8 in the blank.",
+      code: [
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    if i % 2 == 0:" },
+        { txt: '        print("🔴")' },
+        { txt: "    if i % 2 == 1:" },
+        { txt: '        print("🔵")' }
+      ],
+      blanks: [{ validator: v => v === "8" }],
+      onRun: (vars, state) => {
+        const arr = [];
+        for (let i = 0; i < 8; i++) arr.push(i % 2 === 0 ? '🔴' : '🔵');
+        state.custom.beats = arr; drawBeats(arr);
+      },
+      canAdvance: s => s.custom.beats.length === 8,
+      advanceMessage: '✓ AB AB AB AB!'
+    },
+    {
+      title: "3. Skip counting by 3",
+      sub: "Every 3rd one is special.",
+      task: "🎯 Put 9 for a pattern of 9 beats.",
+      taskSub: "Every 3rd beat is a star.",
+      why: "<b>i % 3 == 2</b> means \"every third one\" (i=2, 5, 8…). This is how musicians build rhythms with emphasis on beat 3.",
+      hint: "Put 9 in the blank.",
+      code: [
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    if i % 3 == 2:" },
+        { txt: '        print("⭐")' },
+        { txt: "    if i % 3 != 2:" },
+        { txt: '        print("⚪")' }
+      ],
+      blanks: [{ validator: v => v === "9" }],
+      onRun: (vars, state) => {
+        const arr = [];
+        for (let i = 0; i < 9; i++) arr.push(i % 3 === 2 ? '⭐' : '⚪');
+        state.custom.beats = arr; drawBeats(arr);
+      },
+      canAdvance: s => s.custom.beats.length === 9,
+      advanceMessage: '✓ Rhythm of 3!'
+    },
+    {
+      title: "4. Growing pattern",
+      sub: "Numbers that count up.",
+      task: "🎯 Put 6 to print numbers 1 to 6.",
+      taskSub: "Loops can count, not just repeat.",
+      why: "<b>i + 1</b> uses the loop counter as the number to print. The loop variable <b>i</b> starts at 0, so we add 1 to start at 1.",
+      hint: "Put 6 in the blank.",
+      code: [
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: '    print(i + 1)' }
+      ],
+      blanks: [{ validator: v => v === "6" }],
+      onRun: (vars, state) => {
+        const arr = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'];
+        state.custom.beats = arr; drawBeats(arr);
+      },
+      canAdvance: s => s.custom.beats.length === 6,
+      advanceMessage: '✓ Counted 1 through 6!'
+    },
+    {
+      title: "5. Final pattern",
+      sub: "Make your own ABC pattern.",
+      task: "🎯 Put 9 for ABCABCABC.",
+      taskSub: "Three symbols, 9 beats total.",
+      why: "<b>i % 3</b> gives 0, 1, or 2 — perfect for a 3-symbol pattern. This is how traffic lights cycle R → Y → G → R!",
+      hint: "Put 9 in the blank.",
+      code: [
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    if i % 3 == 0:" },
+        { txt: '        print("🟥")' },
+        { txt: "    if i % 3 == 1:" },
+        { txt: '        print("🟨")' },
+        { txt: "    if i % 3 == 2:" },
+        { txt: '        print("🟩")' },
+        { txt: 'print("🏆 Pattern done!")' }
+      ],
+      blanks: [{ validator: v => v === "9" }],
+      onRun: (vars, state) => {
+        const syms = ['🟥','🟨','🟩'];
+        const arr = [];
+        for (let i = 0; i < 9; i++) arr.push(syms[i % 3]);
+        state.custom.beats = arr; drawBeats(arr); setTimeout(() => MC.celebrate(), 1100);
+      },
+      canAdvance: s => s.custom.beats.length === 9 && s.custom.beats[0] === '🟥',
+      advanceMessage: '✓ ABC pattern! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.beats = []; drawBeats([]); },
+  summary: `<div class="ic">🎨</div><h2>Pattern Complete!</h2><p>You built 5 patterns with loops and if-statements.</p><ul><li>Loops repeat any action</li><li>Modulo (%) picks every Nth beat</li><li>If-statements choose the symbol</li></ul><div class="next">Next tier: <b>Ratio Lab</b> — mix paints with Python!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+drawBeats([]);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

@@ -1,236 +1,214 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Calculus Explorer — MathCode</title>
-<link rel="stylesheet" href="/css/project-shared.css">
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-  .calc-svg { background:#fafbff; border-radius:10px; }
-  .sl { background:#f5f7fc; padding:10px 14px; border-radius:8px; }
-  .sl label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
-  .sl b { color:var(--primary); font-size:18px; }
-  .controls { display:grid; gap:10px; grid-template-columns:1fr 1fr; max-width:380px; margin:14px auto 0; }
+.calc-plot{width:360px;height:260px}
+.calc-plot svg{width:100%;height:100%;background:white;border-radius:10px}
+.chip{position:absolute;top:14px;left:14px;background:white;padding:8px 14px;border-radius:10px;font-weight:900;font-family:monospace;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);font-size:13px}
+.chip .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:700}
+.stage-visual{background:linear-gradient(180deg,#ede9fe,#c4b5fd);min-height:320px}
 </style></head><body>
-<script src="/js/project-framework.js"></script>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">∞</div><h2>Welcome to Calculus Explorer!</h2>
+  <p>Discover derivatives and slopes by writing Python. Calculus made visual.</p>
+  <div class="pills"><div class="pill">⏱ 20 min</div><div class="pill">📚 Grade 8–12</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Estimate a <b>slope</b> between two points</li>
+    <li>Shrink h → get the <b>derivative</b></li>
+    <li>Use a loop to find derivatives</li>
+    <li>Approximate areas (integral) with sums</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Explore! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">∞</div><div><h1>Calculus Explorer</h1><div class="sub">Derivatives with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="chip"><span class="lbl">f(x) & tangent</span><span id="calcLbl">—</span></div>
+        <div class="calc-plot"><svg id="calcSvg" viewBox="-5 -5 10 10" preserveAspectRatio="none"></svg></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>calculus.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const cstate = { x0: 1, slices: 4, sawCar: false, sawSlope: false, sawArea: false };
-
-function plotParabola(extra = '') {
-  const W = 320, H = 280, cx = W/2, cy = H - 30, scale = 26;
-  const f = x => 0.5 * x * x;
-  let pts = [];
-  for (let px = 0; px <= W; px += 2) {
-    const x = (px - cx) / scale;
-    const y = f(x);
-    const py = cy - y * scale;
-    if (py < 0 || py > H) continue;
-    pts.push([px, py]);
-  }
-  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  let g = '';
+function drawPlot(fn, tangentAt, slope, label) {
+  const svg = document.getElementById('calcSvg');
+  svg.innerHTML = '';
+  // grid + axes
   for (let i = -5; i <= 5; i++) {
-    g += `<line x1="${cx+i*scale}" y1="0" x2="${cx+i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
+    const v = document.createElementNS('http://www.w3.org/2000/svg','line');
+    v.setAttribute('x1',i);v.setAttribute('y1',-5);v.setAttribute('x2',i);v.setAttribute('y2',5);
+    v.setAttribute('stroke','#e3e7f3');v.setAttribute('stroke-width','0.02');
+    svg.appendChild(v);
+    const h = document.createElementNS('http://www.w3.org/2000/svg','line');
+    h.setAttribute('x1',-5);h.setAttribute('y1',i);h.setAttribute('x2',5);h.setAttribute('y2',i);
+    h.setAttribute('stroke','#e3e7f3');h.setAttribute('stroke-width','0.02');
+    svg.appendChild(h);
   }
-  for (let i = 0; i <= 8; i++) g += `<line x1="0" y1="${cy-i*scale}" x2="${W}" y2="${cy-i*scale}" stroke="#e8ecf6"/>`;
-  g += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-  g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-  return `<svg class="calc-svg" viewBox="0 0 ${W} ${H}" width="320" height="280">${g}<path d="${path}" fill="none" stroke="#7c5cff" stroke-width="3"/>${extra}</svg>`;
+  for (const pts of [[-5,0,5,0],[0,-5,0,5]]) {
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',pts[0]);l.setAttribute('y1',pts[1]);l.setAttribute('x2',pts[2]);l.setAttribute('y2',pts[3]);
+    l.setAttribute('stroke','#1f2545');l.setAttribute('stroke-width','0.05');
+    svg.appendChild(l);
+  }
+  // curve
+  let d = '';
+  for (let x = -5; x <= 5; x += 0.05) {
+    let y; try { y = fn(x); } catch { continue; }
+    if (!isFinite(y) || y < -10 || y > 10) { d += ' M '; continue; }
+    d += (d === '' || d.endsWith(' M ') ? 'M ' : 'L ') + x + ' ' + (-y) + ' ';
+  }
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#7c5cff'); p.setAttribute('stroke-width', '0.08');
+  svg.appendChild(p);
+  // tangent line
+  if (tangentAt !== null && slope !== null) {
+    const y0 = fn(tangentAt);
+    const xL = tangentAt - 2, xR = tangentAt + 2;
+    const yL = y0 + slope * (xL - tangentAt);
+    const yR = y0 + slope * (xR - tangentAt);
+    const tl = document.createElementNS('http://www.w3.org/2000/svg','line');
+    tl.setAttribute('x1', xL); tl.setAttribute('y1', -yL); tl.setAttribute('x2', xR); tl.setAttribute('y2', -yR);
+    tl.setAttribute('stroke', '#fbbf24'); tl.setAttribute('stroke-width', '0.08');
+    svg.appendChild(tl);
+    const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx', tangentAt); dot.setAttribute('cy', -y0); dot.setAttribute('r', 0.15); dot.setAttribute('fill', '#ef4444');
+    svg.appendChild(dot);
+  }
+  document.getElementById('calcLbl').textContent = label;
 }
 
-function refreshStage() {
-  const stage = MC.$('stage'); if (!stage) return;
-  const step = MC.state.step;
-  if (step === 1) {
-    stage.innerHTML = `<h3>🚗 Speed = how fast position changes</h3>
-      <p style="text-align:center;font-size:15px;max-width:340px">A car drives 60 miles in 1 hour. Its speed is 60 mph.<br><br>
-      Now: a car's position changes following y = x². How fast is it moving at any time?<br><br>
-      That's what calculus answers — the <b style="color:var(--primary)">derivative</b>.</p>
-      <div class="row-controls">
-        <button class="btn primary" id="ackBtn" ${cstate.sawCar?'disabled':''}>Got it!</button>
-      </div>
-      <div class="stage-msg">${cstate.sawCar ? '✓ Click Next.' : 'Click "Got it!".'}</div>`;
-    MC.$('ackBtn').onclick = () => { cstate.sawCar = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 2) {
-    const W = 320, H = 280, cx = W/2, cy = H - 30, scale = 26;
-    const f = x => 0.5*x*x;
-    const fp = x => x; // derivative of 0.5x² = x
-    const x0 = cstate.x0;
-    const y0 = f(x0);
-    const slope = fp(x0);
-    const px0 = cx + x0*scale, py0 = cy - y0*scale;
-    // tangent line: y - y0 = slope*(x - x0)
-    const t = 1.5;
-    const x1 = x0 - t, y1 = y0 - slope*t;
-    const x2 = x0 + t, y2 = y0 + slope*t;
-    const tangent = `<line x1="${cx+x1*scale}" y1="${cy-y1*scale}" x2="${cx+x2*scale}" y2="${cy-y2*scale}" stroke="#fbbf24" stroke-width="3"/>
-      <circle cx="${px0}" cy="${py0}" r="6" fill="#fbbf24"/>`;
-    stage.innerHTML = `<h3>📏 Slope at one point = derivative</h3>
-      ${plotParabola(tangent)}
-      <div class="controls">
-        <div class="sl"><label>x = <b>${x0.toFixed(1)}</b></label>
-          <input type="range" min="-3" max="3" step="0.1" value="${x0}" id="xSld" style="width:100%"></div>
-        <div class="sl"><label>slope = <b>${slope.toFixed(2)}</b></label></div>
-      </div>
-      <div class="stage-msg">${cstate.sawSlope ? '✓ The yellow tangent line shows the slope at this point. Slope changes as x changes!' : 'Move the slider — see the slope (derivative) change.'}</div>`;
-    MC.$('xSld').oninput = (e) => { cstate.x0 = +e.target.value; cstate.sawSlope = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 3) {
-    // area under y = 0.5x² from 0 to 2 using rectangles
-    const W = 320, H = 280, cx = 30, cy = H - 30, scale = 30;
-    const f = x => 0.5*x*x;
-    const a = 0, b = 2;
-    const n = cstate.slices;
-    const dx = (b - a) / n;
-    let rects = '';
-    let area = 0;
-    for (let i = 0; i < n; i++) {
-      const xi = a + i*dx;
-      const h = f(xi + dx/2); // midpoint
-      area += h * dx;
-      const px = cx + xi*scale, pw = dx*scale, ph = h*scale;
-      rects += `<rect x="${px}" y="${cy - ph}" width="${pw}" height="${ph}" fill="#7c5cff44" stroke="#7c5cff"/>`;
+window.PROJECT = {
+  initialState: { last: null },
+  STEPS: [
+    {
+      title: "1. Slope between 2 points",
+      sub: "Rise over run.",
+      task: "🎯 Put (y2 - y1) / (x2 - x1).",
+      taskSub: "Classic slope formula.",
+      why: "The slope between (1,1) and (3,9) on y=x²: (9-1)/(3-1) = 4. This is the <b>average rate of change</b> between two points.",
+      hint: "Put y2 - y1 in the blank.",
+      code: [
+        { txt: "x1 = 1" },
+        { txt: "y1 = 1" },
+        { txt: "x2 = 3" },
+        { txt: "y2 = 9" },
+        { txt: "slope = (", blank: { idx: 0, width: 100 }, suffix: ") / (x2 - x1)" },
+        { txt: 'print("Average slope:", slope)' }
+      ],
+      blanks: [{ validator: v => v.replace(/\s/g,'') === "y2-y1" }],
+      onRun: (vars, state) => { state.custom.last = 'avg'; drawPlot(x => x*x, 2, 4, 'y=x², avg slope 1→3 = 4'); },
+      canAdvance: s => s.custom.last === 'avg',
+      advanceMessage: '✓ Slope = 4!'
+    },
+    {
+      title: "2. Shrink the gap",
+      sub: "Smaller h → true slope.",
+      task: "🎯 Put 0.01 as h.",
+      taskSub: "Smaller h = closer to the real tangent slope.",
+      why: "As <b>h</b> shrinks to 0, the slope between (x, f(x)) and (x+h, f(x+h)) becomes the <b>derivative</b>. This is the magic of calculus.",
+      hint: "Put 0.01 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return x * x" },
+        { txt: "x = 2" },
+        { txt: "h = ", blank: { idx: 0, width: 80 } },
+        { txt: "slope = (f(x + h) - f(x)) / h" },
+        { txt: 'print("Slope at x=2 is ~", slope)' }
+      ],
+      blanks: [{ validator: v => v === "0.01" }],
+      onRun: (vars, state) => { state.custom.last = 'der'; drawPlot(x => x*x, 2, 4, 'slope@x=2 ≈ 4.01'); },
+      canAdvance: s => s.custom.last === 'der',
+      advanceMessage: '✓ Slope at x=2 ≈ 4!'
+    },
+    {
+      title: "3. Derivative function",
+      sub: "A function that gives slopes.",
+      task: "🎯 Put h = 0.001.",
+      taskSub: "Get the derivative at any x.",
+      why: "Wrap the slope in a function: <b>df(x)</b> returns the slope of f at x. For f(x)=x², df(x) ≈ 2x. Python discovered the rule!",
+      hint: "Put 0.001 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return x * x" },
+        { txt: "def df(x):" },
+        { txt: "    h = ", blank: { idx: 0, width: 80 } },
+        { txt: "    return (f(x + h) - f(x)) / h" },
+        { txt: 'print("df(3) =", df(3))' }
+      ],
+      blanks: [{ validator: v => v === "0.001" }],
+      onRun: (vars, state) => { state.custom.last = 'derfn'; drawPlot(x => x*x, 3, 6, 'df(3) ≈ 6 (true: 2·3)'); },
+      canAdvance: s => s.custom.last === 'derfn',
+      advanceMessage: '✓ df(3) ≈ 6 = 2·3!'
+    },
+    {
+      title: "4. Find the peak",
+      sub: "Where slope = 0.",
+      task: "🎯 Loop over x from 0 to 10.",
+      taskSub: "Look for where df(x) is near zero.",
+      why: "At a <b>peak or valley</b>, the slope is 0. For f(x) = -(x-5)², the peak is at x=5. Python finds it by scanning!",
+      hint: "Put 10 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return -(x - 5) * (x - 5)" },
+        { txt: "def df(x):" },
+        { txt: "    h = 0.001" },
+        { txt: "    return (f(x + h) - f(x)) / h" },
+        { txt: "for x in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    if abs(df(x)) < 0.5:" },
+        { txt: '        print("🎯 Peak near x =", x)' }
+      ],
+      blanks: [{ validator: v => v === "10" }],
+      onRun: (vars, state) => { state.custom.last = 'peak'; drawPlot(x => -(x-5)*(x-5)/5, 5, 0, 'peak at x=5, slope=0'); },
+      canAdvance: s => s.custom.last === 'peak',
+      advanceMessage: '✓ Found peak at x=5!'
+    },
+    {
+      title: "5. Area under curve",
+      sub: "Sum many skinny rectangles.",
+      task: "🎯 Put 100 as the number of slices.",
+      taskSub: "More slices = better area estimate.",
+      why: "The <b>integral</b> is the area under a curve. Split into N skinny rectangles of width 1/N and sum heights. That's a <b>Riemann sum</b>!",
+      hint: "Put 100 in the blank.",
+      code: [
+        { txt: "def f(x):" },
+        { txt: "    return x * x" },
+        { txt: "N = ", blank: { idx: 0, width: 50 } },
+        { txt: "dx = 1.0 / N" },
+        { txt: "area = 0" },
+        { txt: "for i in range(N):" },
+        { txt: "    x = i * dx" },
+        { txt: "    area = area + f(x) * dx" },
+        { txt: 'print("Area under x² from 0 to 1 ≈", area)' },
+        { txt: 'print("🏆 True answer is 1/3 = 0.333")' }
+      ],
+      blanks: [{ validator: v => v === "100" }],
+      onRun: (vars, state) => { state.custom.last = 'integral'; drawPlot(x => x*x, null, null, 'Area ≈ 0.328 ≈ 1/3'); setTimeout(() => MC.celebrate(), 300); },
+      canAdvance: s => s.custom.last === 'integral',
+      advanceMessage: '✓ Area ≈ 1/3! 🏆',
+      isLast: true
     }
-    // curve
-    let pts = [];
-    for (let px = cx; px <= cx + 4*scale; px += 2) {
-      const x = (px - cx) / scale;
-      pts.push([px, cy - f(x)*scale]);
-    }
-    const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-    let g = '';
-    for (let i = 0; i <= 4; i++) g += `<line x1="${cx + i*scale}" y1="0" x2="${cx + i*scale}" y2="${H}" stroke="#e8ecf6"/>`;
-    g += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#1f2545" stroke-width="2"/>`;
-    g += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#1f2545" stroke-width="2"/>`;
-    stage.innerHTML = `<h3>🌊 Area under curve = integral</h3>
-      <svg class="calc-svg" viewBox="0 0 ${W} ${H}" width="320" height="280">${g}${rects}<path d="${path}" fill="none" stroke="#1f2545" stroke-width="3"/></svg>
-      <div class="controls">
-        <div class="sl"><label>slices = <b>${n}</b></label>
-          <input type="range" min="2" max="40" value="${n}" id="slSld" style="width:100%"></div>
-        <div class="sl"><label>estimated area = <b>${area.toFixed(3)}</b></label></div>
-      </div>
-      <div class="stage-msg">${cstate.sawArea ? '✓ More slices = better estimate. The TRUE area = 1.333 (= 4/3). This is integration!' : `Drag the slider up. Watch the area get more accurate.`}</div>`;
-    MC.$('slSld').oninput = (e) => { cstate.slices = +e.target.value; if (cstate.slices >= 20) cstate.sawArea = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 4) {
-    stage.innerHTML = `<h3>🧠 The two big ideas of calculus</h3>
-      <div style="max-width:340px;margin:0 auto;font-size:15px;line-height:1.7">
-        <p><b style="color:var(--primary)">Derivative</b> = how fast a function changes (the slope at a point).<br>
-        Real life: speed, growth rate, marginal cost.</p>
-        <p><b style="color:var(--accent)">Integral</b> = total accumulated amount (area under the curve).<br>
-        Real life: distance traveled, total revenue, water in a tank.</p>
-        <p style="background:#f5f7fc;padding:14px;border-radius:10px;margin-top:14px">
-        <b>Fundamental Theorem of Calculus:</b><br>
-        Derivative and integral are <b>opposites</b> — one undoes the other!
-        </p>
-      </div>
-      <div class="row-controls">
-        <button class="btn primary" id="ackBtn">I understand!</button>
-      </div>`;
-    MC.$('ackBtn').onclick = () => { cstate.sawIdeas = true; refreshStage(); MC.refresh(); };
-  }
-  else if (step === 5) {
-    stage.innerHTML = `<h3>🏆 Calculus Quiz</h3><div class="stage-msg">Final challenge!</div>`;
-  }
-}
-
-const STEPS = [
-  { title: '1. Why calculus?',
-    sub: 'It answers "how fast?" and "how much?"',
-    task: '🎯 Read the example, then click "Got it!"',
-    taskSub: '',
-    why: 'Calculus was invented (by Newton and Leibniz) to describe motion. Whenever something is changing, calculus measures HOW it changes (derivative) or accumulates how much TOTAL changed (integral).',
-    hint: 'Click the orange button.',
-    isDone: () => cstate.sawCar === true,
-    check: () => cstate.sawCar ? '' : 'Click "Got it!".',
-    code: [
-      { line: '# Calculus = math of change' },
-      { line: 'derivative  = "how fast"', highlight: true },
-      { line: 'integral    = "how much"' },
-    ]
-  },
-  { title: '2. The derivative',
-    sub: 'Slope of the curve at a point.',
-    task: '🎯 Move the slider — see how the slope changes.',
-    taskSub: 'The yellow line shows the tangent at x.',
-    why: 'A curve doesn\'t have ONE slope — it changes at every point. The derivative is a NEW function that gives the slope at any x. For y = ½x², the derivative is y\' = x.',
-    hint: 'Drag the slider.',
-    isDone: () => cstate.sawSlope === true,
-    check: () => cstate.sawSlope ? '' : 'Move the slider.',
-    code: [
-      { line: 'def f(x):  return 0.5 * x**2' },
-      { line: 'def df(x): return x', highlight: true, ann: 'derivative' },
-      { line: 'slope_at_2 = df(2)', ann: 'returns 2' },
-    ]
-  },
-  { title: '3. The integral',
-    sub: 'Area under the curve.',
-    task: '🎯 Drag the slices slider to 20 or more.',
-    taskSub: 'Watch the rectangles approximate the curve area.',
-    why: 'To find the total distance from a speed graph, calculate the area underneath. We approximate it with rectangles (this is called a "Riemann sum"). More rectangles = closer to the true integral.',
-    hint: 'Drag slices to 20 or higher.',
-    isDone: () => cstate.slices >= 20,
-    check: () => `Slices: ${cstate.slices} (need 20 or more).`,
-    code: [
-      { line: 'a, b, n = 0, 2, 100' },
-      { line: 'dx = (b - a) / n' },
-      { line: 'area = 0' },
-      { line: 'for i in range(n):', highlight: true },
-      { line: '    x = a + (i+0.5)*dx' },
-      { line: '    area += f(x) * dx' },
-    ]
-  },
-  { title: '4. Two big ideas',
-    sub: 'Derivative ↔ Integral.',
-    task: '🎯 Read both definitions, then click "I understand!"',
-    taskSub: '',
-    why: 'The Fundamental Theorem of Calculus says derivative and integral are opposite operations — like + and -, or × and ÷. If you integrate then differentiate, you get back the original.',
-    hint: 'Click the orange button.',
-    isDone: () => cstate.sawIdeas === true,
-    check: () => cstate.sawIdeas ? '' : 'Click the button.',
-    code: [
-      { line: '# d/dx and ∫ are inverse operations' },
-      { line: 'integral_of_derivative = original', highlight: true },
-    ]
-  },
-  { title: '5. Calculus quiz',
-    sub: 'You made it!',
-    task: '🎯 Answer all 4 questions to finish.',
-    taskSub: '',
-    why: 'You just touched the foundation of physics, engineering, economics, and machine learning.',
-    hint: 'Derivative = slope. Integral = area.',
-    isDone: (s) => s.challengeIdx >= 4,
-    check: (s) => `Question ${s.challengeIdx + 1} of 4`,
-    showChallenge: true,
-    code: [
-      { line: 'print("🧮 Calculus complete!")' },
-    ]
-  }
-];
-
-const CHALLENGES = [
-  { q: 'The derivative measures:',
-    options: ['Rate of change','Total area','Average','Probability'], answer: 'Rate of change',
-    why: 'Derivative = slope = how fast the function is changing.' },
-  { q: 'The integral measures:',
-    options: ['Total area under curve','Highest point','Lowest point','Slope'], answer: 'Total area under curve',
-    why: 'Integral accumulates area = total amount.' },
-  { q: 'If position is f(t), what does the derivative f\'(t) represent?',
-    options: ['Speed (velocity)','Distance','Time','Mass'], answer: 'Speed (velocity)',
-    why: 'Speed = how fast position is changing = derivative of position.' },
-  { q: 'In a Riemann sum, what happens as we use MORE rectangles?',
-    options: ['Estimate gets more accurate','Less accurate','No change','Becomes negative'], answer: 'Estimate gets more accurate',
-    why: 'Thinner rectangles fit the curve better → closer to true area.' },
-];
-
-const PROJECT = {
-  title: 'Calculus Explorer', icon: '🧮', language: 'Python',
-  welcomeIcon: '🧮', welcomeTitle: 'Welcome to Calculus Explorer!',
-  welcomeBody: "Calculus is the math of change. We'll explore the two big ideas — derivatives (how fast?) and integrals (how much?) — using interactive graphs.",
-  youWill: ['What a derivative is (slope at a point)','What an integral is (area under curve)','How to approximate area with rectangles','The Fundamental Theorem of Calculus'],
-  duration: '15 min', gradeBand: 'Grade 11–12',
-  youLearned: ['Calculus = math of change','Derivative = instantaneous rate of change','Integral = accumulated total','Derivative and integral are inverse operations'],
-  upNext: '🎉 You finished MathCode! Time to build your own projects.'
+  ],
+  onReset: s => { s.custom.last = null; drawPlot(() => 0, null, null, '—'); },
+  summary: `<div class="ic">∞</div><h2>Calculus Complete!</h2><p>You used Python to discover calculus.</p><ul><li>Slope between 2 points</li><li>Shrinking h → derivative</li><li>Finding peaks where df=0</li><li>Riemann sums for area</li></ul><div class="next">🎓 You completed all 12 MathCode projects!</div>`
 };
-
-MC.init({ project: PROJECT, steps: STEPS, challenges: CHALLENGES, renderStage: refreshStage });
-refreshStage();
-</script></body></html>
+drawPlot(() => 0, null, null, '—');
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>
