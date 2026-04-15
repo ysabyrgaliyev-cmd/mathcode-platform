@@ -1,0 +1,503 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tier 1 · Chapter 4: Sharing and Fractions — MathCode Book</title>
+<style>
+:root{
+  --ink:#1f2545;--ink-soft:#5a6190;--bg:#fdfaf3;--paper:#fffef9;--line:#e8dfc9;
+  --primary:#7c5cff;--primary-2:#5b3df0;--accent:#fbbf24;--good:#34d399;--bad:#f87171;
+  --code-bg:#1c2238;--code-fg:#e6e9f5;--kw:#c084fc;--fn:#60a5fa;--num:#fbbf24;--str:#86efac;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.7}
+.book{max-width:780px;margin:0 auto;padding:24px}
+.book-hdr{display:flex;align-items:center;gap:14px;border-bottom:2px solid var(--line);padding-bottom:14px;margin-bottom:24px}
+.book-hdr .crest{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900}
+.book-hdr h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.3px}
+.book-hdr .sub{color:var(--ink-soft);font-size:13px;font-style:italic}
+.book-hdr .home{margin-left:auto;color:var(--primary);text-decoration:none;font-size:13px;font-weight:700}
+.book-hdr .home:hover{text-decoration:underline}
+
+.page{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:38px 44px;box-shadow:0 6px 18px rgba(120,90,30,.07);min-height:520px;display:none;animation:turn .3s ease-out}
+.page.on{display:block}
+@keyframes turn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.page .pn{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;font-family:-apple-system,sans-serif;margin-bottom:6px}
+.page h2{font-family:Georgia,serif;font-size:34px;line-height:1.2;margin:0 0 18px;color:var(--ink)}
+.page h2 .em{font-size:42px;display:inline-block;margin-right:8px}
+.page p{font-size:17px;margin:0 0 14px}
+.page p .hl{background:#fff3c4;padding:0 4px;border-radius:3px}
+.page p b{color:var(--primary-2)}
+.page .quote{background:#eef0fb;border-left:4px solid var(--primary);padding:14px 18px;border-radius:8px;font-style:italic;margin:16px 0;font-size:16px;font-family:"SF Mono",Menlo,monospace}
+.page .ill{text-align:center;font-size:96px;margin:18px 0;line-height:1}
+.page .key{background:#fff8eb;border:2px dashed var(--accent);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:16px}
+.page .key .lbl{font-family:-apple-system,sans-serif;font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;display:block;margin-bottom:4px}
+.page .key b{color:#92400e}
+.page .vocab{display:flex;align-items:center;gap:14px;margin:14px 0;padding:12px;background:#f5f7fc;border-radius:10px}
+.page .vocab .word{font-family:"SF Mono",Menlo,monospace;font-weight:700;color:var(--primary);background:white;padding:6px 12px;border-radius:6px;font-size:14px;border:1px solid var(--line);white-space:nowrap}
+.page .vocab .meaning{font-size:15px;color:var(--ink-soft)}
+
+.cover{text-align:center;padding-top:60px}
+.cover .em-big{font-size:140px;line-height:1;margin-bottom:8px}
+.cover .badge{display:inline-block;background:var(--primary);color:white;padding:6px 14px;border-radius:24px;font-family:-apple-system,sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.cover h2{font-size:42px;margin:0 0 6px}
+.cover .tagline{color:var(--ink-soft);font-style:italic;font-size:18px;margin:0 0 28px}
+.cover .meta{display:flex;gap:18px;justify-content:center;font-size:13px;color:var(--ink-soft);font-family:-apple-system,sans-serif;flex-wrap:wrap}
+.cover .meta .pip{display:flex;align-items:center;gap:6px;background:white;padding:6px 14px;border-radius:24px;border:1px solid var(--line)}
+
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding:0 4px;font-family:-apple-system,sans-serif}
+.nav button{background:var(--primary);color:white;border:none;padding:10px 22px;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px}
+.nav button:hover{background:var(--primary-2)}
+.nav button:disabled{opacity:.3;cursor:not-allowed}
+.nav .progress{display:flex;gap:6px}
+.nav .pdot{width:10px;height:10px;border-radius:50%;background:var(--line);cursor:pointer;border:none;padding:0}
+.nav .pdot.on{background:var(--primary)}
+.nav .pdot.done{background:var(--good)}
+
+.try-it{background:#0f1320;color:#e6e9f5;border-radius:14px;margin:22px 0;overflow:hidden;font-family:-apple-system,sans-serif;border:3px solid var(--accent)}
+.try-it .head{background:var(--accent);color:#1c2238;padding:8px 16px;font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;display:flex;align-items:center;gap:8px}
+.try-it .ex-prompt{padding:14px 18px 8px;font-family:Georgia,serif;font-size:16px;color:#fef3c7;font-style:italic}
+.try-it .ex-stage{background:linear-gradient(180deg,#ffe4c4,#ffb74d);min-height:160px;display:flex;align-items:center;justify-content:center;position:relative;padding:18px;color:var(--ink);font-family:-apple-system,sans-serif;flex-wrap:wrap;gap:14px}
+.try-it .ex-editor{background:#1c2238;padding:14px 18px;font-family:"SF Mono",Menlo,Monaco,monospace;font-size:14px;line-height:1.7}
+.try-it .ex-editor .line{display:flex;gap:14px;align-items:baseline}
+.try-it .ex-editor .ln{color:#4a5168;width:18px;text-align:right;flex-shrink:0;font-size:12px}
+.try-it .ex-editor .code{flex:1;white-space:pre-wrap}
+.try-it .blank{display:inline-block;background:#fbbf24;color:#1c2238;border:0;border-radius:4px;padding:2px 8px;font-family:inherit;font-size:14px;font-weight:700;text-align:center;outline:none;width:60px}
+.try-it .blank.ok{background:var(--good)}
+.try-it .blank.bad{background:var(--bad);color:white}
+.try-it .controls{background:#0a0e18;padding:10px 16px;display:flex;gap:10px;align-items:center;border-top:1px solid #2a3148}
+.try-it .run{background:var(--good);color:#0a2c1a;border:none;padding:8px 18px;border-radius:8px;font-weight:900;cursor:pointer;font-size:13px;font-family:-apple-system,sans-serif}
+.try-it .run:hover{background:#10b981;color:white}
+.try-it .run:disabled{opacity:.4;cursor:not-allowed;background:#3a4060;color:#7a8bb8}
+.try-it .out{padding:10px 16px;font-family:monospace;font-size:13px;color:#86efac;min-height:24px;background:#0a0e18;white-space:pre-wrap}
+.try-it .out:empty::after{content:'› (output appears here)';color:#4a5168;font-style:italic}
+.try-it .feedback{padding:10px 16px;background:#1c2238;color:#fbbf24;font-size:13px;font-family:-apple-system,sans-serif;font-weight:600;display:none}
+.try-it .feedback.win{display:block;background:#064e3b;color:#a7f3d0}
+.try-it .feedback.miss{display:block;background:#471c1c;color:#fecaca}
+.try-it .kw{color:var(--kw)}.try-it .fn{color:var(--fn)}.try-it .num{color:var(--num)}.try-it .str{color:var(--str)}
+
+.pizza-canvas{background:white;border-radius:50%;padding:8px;box-shadow:0 3px 6px rgba(0,0,0,.08)}
+.pizza-canvas svg{width:200px;height:200px}
+.share-card{background:white;border-radius:12px;padding:12px 16px;font-family:-apple-system,sans-serif;font-size:14px;box-shadow:0 3px 6px rgba(0,0,0,.08);min-width:140px;text-align:center}
+.share-card .num{font-size:28px;font-weight:900;color:var(--primary);font-family:Georgia,serif}
+.share-card .lbl{font-size:11px;color:var(--ink-soft);text-transform:uppercase;font-weight:700}
+
+.chap-end{text-align:center;padding:40px 24px}
+.chap-end h2{font-size:34px;margin:0 0 10px}
+.chap-end .em-big{font-size:100px;line-height:1}
+.chap-end .recap{background:#eef0fb;border-radius:14px;padding:20px;text-align:left;display:inline-block;margin:18px auto;max-width:480px}
+.chap-end .recap h3{margin:0 0 8px;color:var(--primary-2)}
+.chap-end .recap ul{margin:0;padding-left:20px;font-size:16px}
+.chap-end .recap li{margin:6px 0}
+.chap-end .next-chip{background:var(--accent);color:#1c2238;padding:10px 20px;border-radius:24px;font-weight:700;font-family:-apple-system,sans-serif;display:inline-block;margin-top:14px}
+</style></head><body>
+
+<div class="book">
+
+  <div class="book-hdr">
+    <div class="crest">📖</div>
+    <div>
+      <h1>The MathCode Book — Volume 1</h1>
+      <div class="sub">For curious kids in grades K–3 · By Yerbol Sabyrgaliyev</div>
+    </div>
+    <a href="/" class="home">← Home</a>
+  </div>
+
+  <div id="pages">
+
+    <!-- COVER -->
+    <section class="page cover on" data-page="0">
+      <div class="em-big">🍕</div>
+      <div class="badge">Volume 1 · Chapter 4</div>
+      <h2>Sharing and Fractions</h2>
+      <p class="tagline">Mango, Kiwi, and a pizza</p>
+      <div class="meta">
+        <div class="pip">⏱ 25 minutes</div>
+        <div class="pip">📚 5 sections</div>
+        <div class="pip">🎯 4 exercises</div>
+        <div class="pip">🐍 Python</div>
+      </div>
+      <p style="margin-top:36px;font-size:16px;color:var(--ink-soft)">A fair share is a math problem. Click <b>Begin →</b>.</p>
+    </section>
+
+    <!-- SECTION 1: Sharing fairly -->
+    <section class="page" data-page="1">
+      <div class="pn">Section 1 of 5</div>
+      <h2><span class="em">🍕</span>The pizza problem.</h2>
+
+      <p>Hi! 🐵 Today is pizza day. I made <b>1 pizza</b>. Kiwi 🐨 came over. Now we have <b>2 friends</b> and <b>1 pizza</b>.</p>
+
+      <p>If we share fairly, how big is each piece? <span class="hl">Half a pizza each</span> — because there are 2 of us.</p>
+
+      <div class="ill">🍕</div>
+
+      <p>That's <b>division</b>: <span class="hl">"sharing one thing into equal parts."</span> In Python, the divide sign is <b>/</b> (a slash). To split 1 pizza between 2 friends:</p>
+
+      <div class="quote">share = 1 / 2</div>
+
+      <p>Python says <b>0.5</b>. That's "half." It's the same as the fraction <b>½</b>. They mean the same thing — just written differently.</p>
+
+      <div class="vocab"><span class="word">/</span><span class="meaning">Divide. "Split this into equal parts."</span></div>
+      <div class="vocab"><span class="word">0.5</span><span class="meaning">A decimal — another way to write ½ (one-half).</span></div>
+      <div class="vocab"><span class="word">fraction</span><span class="meaning">A way to write part of a whole. ½ = 1 piece out of 2.</span></div>
+
+      <p>Turn the page and we'll have Python do the splitting. →</p>
+    </section>
+
+    <!-- SECTION 2: Divide -->
+    <section class="page" data-page="2">
+      <div class="pn">Section 2 of 5</div>
+      <h2><span class="em">➗</span>Splitting with /</h2>
+
+      <p>Let's actually divide a pizza. We have 1 pizza, 2 friends. Each one gets <b>1 / 2</b>.</p>
+
+      <p>Try it. Type <b>2</b> in the yellow box (we have 2 friends). The pizza on the side will cut itself in half.</p>
+
+      <div class="try-it" id="ex1">
+        <div class="head">🎯 Exercise 1 — Split 1 pizza between 2 friends</div>
+        <div class="ex-prompt">Type <b>2</b> for two friends, then Run.</div>
+        <div class="ex-stage">
+          <div class="pizza-canvas"><svg id="ex1Pizza" viewBox="-100 -100 200 200"></svg></div>
+          <div class="share-card"><div class="lbl">Each friend gets</div><div class="num" id="ex1Share">?</div><div class="lbl" style="margin-top:4px">of a pizza</div></div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code">pizza = <span class="num">1</span></span></div>
+          <div class="line"><span class="ln">2</span><span class="code">friends = <input class="blank" data-ex="1" data-val="2"></span></div>
+          <div class="line"><span class="ln">3</span><span class="code">share = pizza / friends</span></div>
+          <div class="line"><span class="ln">4</span><span class="code"><span class="fn">print</span>(<span class="str">"Each friend gets"</span>, share, <span class="str">"of a pizza."</span>)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="1" disabled>▶ Run code</button></div>
+        <div class="out" id="ex1Out"></div>
+        <div class="feedback" id="ex1Fb"></div>
+      </div>
+
+      <p style="margin-top:18px"><b>0.5</b> means half. Two halves make one whole. ✨</p>
+    </section>
+
+    <!-- SECTION 3: More friends -->
+    <section class="page" data-page="3">
+      <div class="pn">Section 3 of 5</div>
+      <h2><span class="em">👨‍👩‍👧‍👦</span>What if more friends come?</h2>
+
+      <p>Word spreads. Now <b>4 friends</b> show up. Same one pizza. How big is each piece now?</p>
+
+      <p>The fraction is <b>1 / 4</b> — one piece out of four. We call it <b>"one-quarter"</b> or <b>"one-fourth."</b> Python writes it <b>0.25</b>.</p>
+
+      <div class="key">
+        <span class="lbl">Compare</span>
+        <p style="margin:0">More friends = <b>smaller pieces</b>. Same pizza, divided more ways. 1/2 = 0.5. 1/4 = 0.25. 1/8 = 0.125. The bottom number gets bigger, the piece gets smaller!</p>
+      </div>
+
+      <p>Try it: split <b>1 pizza</b> between <b>4 friends</b>. Type <b>4</b> in the box. Watch the pizza cut into 4 equal slices.</p>
+
+      <div class="try-it" id="ex2">
+        <div class="head">🎯 Exercise 2 — Split 1 pizza between 4 friends</div>
+        <div class="ex-prompt">Type <b>4</b>, then Run. Each piece is one-quarter (0.25).</div>
+        <div class="ex-stage">
+          <div class="pizza-canvas"><svg id="ex2Pizza" viewBox="-100 -100 200 200"></svg></div>
+          <div class="share-card"><div class="lbl">Each friend gets</div><div class="num" id="ex2Share">?</div><div class="lbl" style="margin-top:4px">= one-quarter</div></div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code">pizza = <span class="num">1</span></span></div>
+          <div class="line"><span class="ln">2</span><span class="code">friends = <input class="blank" data-ex="2" data-val="4"></span></div>
+          <div class="line"><span class="ln">3</span><span class="code">share = pizza / friends</span></div>
+          <div class="line"><span class="ln">4</span><span class="code"><span class="fn">print</span>(<span class="str">"Each piece is"</span>, share, <span class="str">"of a pizza."</span>)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="2" disabled>▶ Run code</button></div>
+        <div class="out" id="ex2Out"></div>
+        <div class="feedback" id="ex2Fb"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Several pizzas -->
+    <section class="page" data-page="4">
+      <div class="pn">Section 4 of 5</div>
+      <h2><span class="em">🍕🍕🍕</span>What if we have more pizzas?</h2>
+
+      <p>Now imagine I have <b>3 pizzas</b> and <b>4 friends</b>. Sharing is still fair: every friend gets the same. The math is just <b>3 / 4</b>.</p>
+
+      <div class="quote">share = 3 / 4   # → 0.75</div>
+
+      <p>That's <b>"three-quarters"</b>, written <b>¾</b>, or <b>0.75</b> as a decimal. Three out of four pieces — almost a whole pizza each! 🎉</p>
+
+      <div class="vocab"><span class="word">3 / 4</span><span class="meaning">Three pieces out of four. Same as ¾ or 0.75.</span></div>
+
+      <p>Your turn. We have <b>3 pizzas</b> and <b>4 friends</b>. Type <b>3</b> as the pizzas and <b>4</b> as the friends.</p>
+
+      <div class="try-it" id="ex3">
+        <div class="head">🎯 Exercise 3 — Share 3 pizzas between 4 friends</div>
+        <div class="ex-prompt">Box 1: <b>3</b> pizzas. Box 2: <b>4</b> friends. Then Run.</div>
+        <div class="ex-stage">
+          <div style="display:flex;gap:6px">
+            <div class="pizza-canvas" style="padding:4px"><svg width="60" height="60" viewBox="-100 -100 200 200"><circle r="95" fill="#fbbf24" stroke="#92400e" stroke-width="6"/></svg></div>
+            <div class="pizza-canvas" style="padding:4px"><svg width="60" height="60" viewBox="-100 -100 200 200"><circle r="95" fill="#fbbf24" stroke="#92400e" stroke-width="6"/></svg></div>
+            <div class="pizza-canvas" style="padding:4px"><svg width="60" height="60" viewBox="-100 -100 200 200"><circle r="95" fill="#fbbf24" stroke="#92400e" stroke-width="6"/></svg></div>
+          </div>
+          <div style="font-size:32px;font-weight:900">→</div>
+          <div class="share-card"><div class="lbl">Each gets</div><div class="num" id="ex3Share">?</div><div class="lbl" style="margin-top:4px">of a pizza</div></div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code">pizzas = <input class="blank" data-ex="3" data-val="3" data-i="0"></span></div>
+          <div class="line"><span class="ln">2</span><span class="code">friends = <input class="blank" data-ex="3" data-val="4" data-i="1"></span></div>
+          <div class="line"><span class="ln">3</span><span class="code">share = pizzas / friends</span></div>
+          <div class="line"><span class="ln">4</span><span class="code"><span class="fn">print</span>(<span class="str">"Each friend gets"</span>, share, <span class="str">"of a pizza."</span>)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="3" disabled>▶ Run code</button></div>
+        <div class="out" id="ex3Out"></div>
+        <div class="feedback" id="ex3Fb"></div>
+      </div>
+
+      <p style="margin-top:18px"><b>0.75</b> = three-quarters. Almost a whole pizza each!</p>
+    </section>
+
+    <!-- SECTION 5: Even share check -->
+    <section class="page" data-page="5">
+      <div class="pn">Section 5 of 5</div>
+      <h2><span class="em">⚖️</span>Was the share even?</h2>
+
+      <p>Sometimes the share comes out to a <b>whole number</b> (like 2 pizzas ÷ 2 friends = 1 each). Sometimes it doesn't (like 1 ÷ 3 = 0.333... it never ends!).</p>
+
+      <p>Python has a special check called <b>%</b> (percent sign) — it tells you the <b>leftover</b> after dividing. If the leftover is <b>0</b>, the share was even.</p>
+
+      <div class="quote">leftover = 10 % 5   # 0 — even share!<br>leftover = 10 % 3   # 1 — uneven, 1 left over</div>
+
+      <div class="vocab"><span class="word">%</span><span class="meaning">"Modulo" — the leftover after dividing.</span></div>
+
+      <p>Last challenge! We have <b>12 cookies</b> 🍪 and want to split them into <b>3 equal piles</b>. Use <b>/</b> to find each pile, and <b>%</b> to check the share is even. Type <b>12</b> on top and <b>3</b> below.</p>
+
+      <div class="try-it" id="ex4">
+        <div class="head">🎯 Exercise 4 — Share 12 cookies into 3 piles</div>
+        <div class="ex-prompt">Box 1: <b>12</b> cookies. Box 2: <b>3</b> piles. Then Run.</div>
+        <div class="ex-stage">
+          <div class="share-card"><div class="lbl">Each pile</div><div class="num" id="ex4Each">?</div><div class="lbl">cookies</div></div>
+          <div class="share-card"><div class="lbl">Leftover</div><div class="num" id="ex4Left">?</div><div class="lbl">cookies</div></div>
+          <div class="share-card" id="ex4Verdict"><div class="lbl">Verdict</div><div class="num" style="font-size:18px">?</div></div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code">cookies = <input class="blank" data-ex="4" data-val="12" data-i="0"></span></div>
+          <div class="line"><span class="ln">2</span><span class="code">piles = <input class="blank" data-ex="4" data-val="3" data-i="1"></span></div>
+          <div class="line"><span class="ln">3</span><span class="code">each = cookies / piles</span></div>
+          <div class="line"><span class="ln">4</span><span class="code">leftover = cookies % piles</span></div>
+          <div class="line"><span class="ln">5</span><span class="code"><span class="fn">print</span>(<span class="str">"Each pile:"</span>, each)</span></div>
+          <div class="line"><span class="ln">6</span><span class="code"><span class="fn">print</span>(<span class="str">"Leftover:"</span>, leftover)</span></div>
+          <div class="line"><span class="ln">7</span><span class="code"><span class="kw">if</span> leftover == <span class="num">0</span>:</span></div>
+          <div class="line"><span class="ln">8</span><span class="code">    <span class="fn">print</span>(<span class="str">"🎉 Fair share!"</span>)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="4" disabled>▶ Run code</button></div>
+        <div class="out" id="ex4Out"></div>
+        <div class="feedback" id="ex4Fb"></div>
+      </div>
+
+      <p style="margin-top:18px">When you see <b>"Fair share!"</b> — turn the page for the chapter trophy. 🏆</p>
+    </section>
+
+    <!-- END -->
+    <section class="page" data-page="6">
+      <div class="chap-end">
+        <div class="em-big">🏆</div>
+        <h2>Chapter 4 complete!</h2>
+        <p style="font-size:18px;color:var(--ink-soft);font-style:italic">You learned to <b>share fairly with code</b> — and met fractions for the first time!</p>
+
+        <div class="recap">
+          <h3>What you learned</h3>
+          <ul>
+            <li><b>/</b> means divide — split into equal parts.</li>
+            <li><b>1/2 = 0.5</b> is "half." Same as the fraction ½.</li>
+            <li>More friends = smaller pieces (<b>1/4 = 0.25</b>).</li>
+            <li>You can divide more than one whole: <b>3/4 = 0.75</b>.</li>
+            <li><b>%</b> tells you the <b>leftover</b> after dividing.</li>
+            <li>If leftover is 0, the share is fair!</li>
+          </ul>
+        </div>
+
+        <p style="margin-top:24px"><b>Next up — Chapter 5: Yes-or-No Questions.</b><br>We'll teach Mango to make decisions with <b>if</b>, <b>else</b>, and comparisons. 🤔</p>
+        <div class="next-chip">📘 Chapter 5 coming soon</div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="nav">
+    <button id="prev">← Back</button>
+    <div class="progress" id="progress"></div>
+    <button id="next">Begin →</button>
+  </div>
+
+</div>
+
+<script>
+const TOTAL_PAGES = 7;
+let cur = 0;
+const exState = { 1: { win: false }, 2: { win: false }, 3: { win: false }, 4: { win: false } };
+
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  const pg = document.querySelector('.page[data-page="' + n + '"]');
+  if (pg) pg.classList.add('on');
+  cur = n;
+  document.getElementById('prev').disabled = n === 0;
+  document.getElementById('next').textContent = n === 0 ? 'Begin →' : (n === TOTAL_PAGES - 1 ? '✓ Done' : 'Next →');
+  document.getElementById('next').disabled = n === TOTAL_PAGES - 1 || (n === 5 && !exState[4].win);
+  renderProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function renderProgress() {
+  const p = document.getElementById('progress');
+  p.innerHTML = '';
+  for (let i = 0; i < TOTAL_PAGES; i++) {
+    const b = document.createElement('button');
+    b.className = 'pdot' + (i === cur ? ' on' : '') + (i < cur ? ' done' : '');
+    b.title = 'Page ' + (i + 1);
+    b.onclick = () => showPage(i);
+    p.appendChild(b);
+  }
+}
+document.getElementById('next').onclick = () => { if (cur < TOTAL_PAGES - 1) showPage(cur + 1); };
+document.getElementById('prev').onclick = () => { if (cur > 0) showPage(cur - 1); };
+
+// Mini Python (with /, %, if)
+function runPython(code, initialVars) {
+  const out = [];
+  const vars = Object.assign({}, initialVars || {});
+  const lines = code.split('\n').map(l => ({ raw: l, indent: l.match(/^(\s*)/)[1].length, body: l.trim() })).filter(l => l.body && !l.body.startsWith('#'));
+  function evalExpr(expr) {
+    const keys = Object.keys(vars);
+    const vals = keys.map(k => vars[k]);
+    return Function(...keys, `return (${expr})`)(...vals);
+  }
+  function execBlock(startIdx, parentIndent) {
+    let idx = startIdx;
+    while (idx < lines.length && lines[idx].indent > parentIndent) {
+      const line = lines[idx], body = line.body;
+      if (/^print\s*\(/.test(body)) {
+        const inner = body.match(/^print\s*\(([\s\S]*)\)\s*$/)[1];
+        const parts = splitTop(inner);
+        const e = parts.map(p => {
+          p = p.trim();
+          if (/^"[^"]*"$/.test(p) || /^'[^']*'$/.test(p)) return p.slice(1, -1);
+          try { return evalExpr(p); } catch { return p; }
+        });
+        out.push(e.join(' '));
+        idx++;
+      }
+      else if (/^if\s+(.+?)\s*:/.test(body)) {
+        const cond = body.match(/^if\s+(.+?)\s*:/)[1];
+        const t = evalExpr(cond);
+        const bs = idx + 1, bi = line.indent;
+        let ei = bs; while (ei < lines.length && lines[ei].indent > bi) ei++;
+        if (t) execBlock(bs, bi);
+        idx = ei;
+      }
+      else if (/^(\w+)\s*=\s*(.+)$/.test(body) && !/^(\w+)\s*==/.test(body)) {
+        const m = body.match(/^(\w+)\s*=\s*(.+)$/);
+        vars[m[1]] = evalExpr(m[2]); idx++;
+      }
+      else { idx++; }
+    }
+  }
+  execBlock(0, -1);
+  return { vars, out };
+}
+function splitTop(s){const p=[];let d=0,c='',ins=false,sc='';for(const x of s){if(ins){c+=x;if(x===sc)ins=false;continue}if(x==='"'||x==="'"){ins=true;sc=x;c+=x;continue}if(x==='('||x==='[')d++;if(x===')'||x===']')d--;if(x===','&&d===0){p.push(c);c='';continue}c+=x}if(c)p.push(c);return p}
+
+function setFb(id, msg, kind) { const el = document.getElementById(id); el.textContent = msg; el.className = 'feedback ' + kind; }
+function setOut(id, lines) { const el = document.getElementById(id); el.innerHTML = lines.map(l => '› ' + l).join('<br>'); }
+
+function drawPizza(svgId, slices) {
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  // crust
+  const crust = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  crust.setAttribute('r', 95); crust.setAttribute('fill', '#92400e');
+  svg.appendChild(crust);
+  const cheese = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  cheese.setAttribute('r', 88); cheese.setAttribute('fill', '#fbbf24');
+  svg.appendChild(cheese);
+  // toppings (sprinkle a few red circles)
+  const reds = [[20,-30],[-30,20],[40,40],[-50,-40],[10,55],[-15,-60]];
+  for (const [x,y] of reds) {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 8); c.setAttribute('fill', '#dc2626');
+    svg.appendChild(c);
+  }
+  // slice lines
+  const colors = ['#7c5cff','#34d399','#f59e0b','#ec4899','#06b6d4','#a3e635','#fb7185','#8b5cf6'];
+  for (let i = 0; i < slices; i++) {
+    const angle = (i / slices) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(angle) * 88;
+    const y = Math.sin(angle) * 88;
+    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1', 0); l.setAttribute('y1', 0); l.setAttribute('x2', x); l.setAttribute('y2', y);
+    l.setAttribute('stroke', '#92400e'); l.setAttribute('stroke-width', 4);
+    svg.appendChild(l);
+  }
+}
+
+// Initial pizzas (uncut)
+drawPizza('ex1Pizza', 0);
+drawPizza('ex2Pizza', 0);
+
+function checkExBlanks(ex) {
+  const blanks = document.querySelectorAll('.blank[data-ex="' + ex + '"]');
+  let allOk = true;
+  blanks.forEach(b => {
+    const ok = b.value === b.dataset.val;
+    b.classList.toggle('ok', ok);
+    b.classList.toggle('bad', !ok && b.value.length > 0);
+    if (!ok) allOk = false;
+  });
+  document.querySelector('.run[data-ex="' + ex + '"]').disabled = !allOk;
+}
+document.querySelectorAll('.blank').forEach(inp => {
+  inp.addEventListener('input', () => checkExBlanks(inp.dataset.ex));
+});
+
+document.querySelectorAll('.run').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ex = btn.dataset.ex;
+    if (ex === '1') {
+      const r = runPython('pizza = 1\nfriends = 2\nshare = pizza / friends\nprint("Each friend gets", share, "of a pizza.")');
+      setOut('ex1Out', r.out);
+      document.getElementById('ex1Share').textContent = r.vars.share;
+      drawPizza('ex1Pizza', 2);
+      exState[1].win = true;
+      setFb('ex1Fb', '✓ 1 ÷ 2 = 0.5 = ½. A fair half each!', 'win');
+    }
+    else if (ex === '2') {
+      const r = runPython('pizza = 1\nfriends = 4\nshare = pizza / friends\nprint("Each piece is", share, "of a pizza.")');
+      setOut('ex2Out', r.out);
+      document.getElementById('ex2Share').textContent = r.vars.share;
+      drawPizza('ex2Pizza', 4);
+      exState[2].win = true;
+      setFb('ex2Fb', '✓ 1 ÷ 4 = 0.25 = ¼. Smaller pieces, more friends.', 'win');
+    }
+    else if (ex === '3') {
+      const r = runPython('pizzas = 3\nfriends = 4\nshare = pizzas / friends\nprint("Each friend gets", share, "of a pizza.")');
+      setOut('ex3Out', r.out);
+      document.getElementById('ex3Share').textContent = r.vars.share;
+      exState[3].win = true;
+      setFb('ex3Fb', '✓ 3 ÷ 4 = 0.75 = ¾. Almost a whole pizza each!', 'win');
+    }
+    else if (ex === '4') {
+      const r = runPython('cookies = 12\npiles = 3\neach = cookies / piles\nleftover = cookies % piles\nprint("Each pile:", each)\nprint("Leftover:", leftover)\nif leftover == 0:\n    print("🎉 Fair share!")');
+      setOut('ex4Out', r.out);
+      document.getElementById('ex4Each').textContent = r.vars.each;
+      document.getElementById('ex4Left').textContent = r.vars.leftover;
+      const v = document.getElementById('ex4Verdict').querySelector('.num');
+      if (r.vars.leftover === 0) {
+        v.textContent = '✓ Fair';
+        v.style.color = 'var(--good)';
+        exState[4].win = true;
+        setFb('ex4Fb', '🏆 12 ÷ 3 = 4, with 0 leftover. Fair share! Turn the page.', 'win');
+        document.getElementById('next').disabled = false;
+      } else {
+        v.textContent = '✗ Uneven';
+        v.style.color = 'var(--bad)';
+        setFb('ex4Fb', 'Leftover is ' + r.vars.leftover + '. Not a fair share.', 'miss');
+      }
+    }
+  });
+});
+
+renderProgress();
+</script>
+</body></html>
