@@ -163,23 +163,7 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
 
       <div class="quote">print("Mango has", bananas, "bananas!")</div>
 
-      <p>Try it yourself! Click the green <b>▶ Run code</b> button below — no typing needed. Watch what happens. ↓</p>
-
-      <div class="try-it" id="ex1">
-        <div class="head">🎯 Exercise 1 — Make your first variable</div>
-        <div class="ex-prompt">No typing needed. Just click ▶ Run code and meet your variable.</div>
-        <div class="ex-stage">
-          <span class="mango-img">🐵</span>
-          <span class="count-bubble">Bananas: <span id="ex1Count">?</span></span>
-        </div>
-        <div class="ex-editor">
-          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">bananas</span> = <span class="num">0</span></span></div>
-          <div class="line"><span class="ln">2</span><span class="code"><span class="fn">print</span>(<span class="str">"Mango has"</span>, bananas, <span class="str">"bananas!"</span>)</span></div>
-        </div>
-        <div class="controls"><button class="run" data-ex="1">▶ Run code</button></div>
-        <div class="out" id="ex1Out"></div>
-        <div class="feedback" id="ex1Fb"></div>
-      </div>
+      <p>Don't worry — you'll get to make your <b>own</b> variable in a moment. First, let's see what else we can do with the box. Turn the page. →</p>
     </section>
 
     <!-- SECTION 3: Math on the variable -->
@@ -198,26 +182,7 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
         <p style="margin:0">In math class, <b>x = x + 1</b> would be silly — no number equals itself plus one. But in code, <b>=</b> means <b>"put this in here,"</b> not "equals." So this works perfectly!</p>
       </div>
 
-      <p>Now you try. The yellow box is empty — type a <b>1</b> in it (just press the number key). The Run button will wake up. Click it, and watch a banana fly to me. Click again to add another. And another.</p>
-
-      <div class="try-it" id="ex2">
-        <div class="head">🎯 Exercise 2 — Type 1 in the yellow box, then Run</div>
-        <div class="ex-prompt">Each Run adds one banana. Try clicking Run a few times!</div>
-        <div class="ex-stage">
-          <span class="mango-img">🐵</span>
-          <span class="count-bubble">Bananas: <span id="ex2Count">0</span></span>
-          <div class="pile" id="ex2Pile" style="margin-left:14px"></div>
-        </div>
-        <div class="ex-editor">
-          <div class="line"><span class="ln">1</span><span class="code">bananas = bananas + <input class="blank" data-ex="2" data-val="1"></span></div>
-          <div class="line"><span class="ln">2</span><span class="code"><span class="fn">print</span>(<span class="str">"Now I have"</span>, bananas, <span class="str">"bananas!"</span>)</span></div>
-        </div>
-        <div class="controls"><button class="run" data-ex="2" disabled>▶ Run code</button></div>
-        <div class="out" id="ex2Out"></div>
-        <div class="feedback" id="ex2Fb"></div>
-      </div>
-
-      <p style="margin-top:20px">See? The same line, run many times, slowly fills my basket. That's already real coding!</p>
+      <p>That's already real coding! But running the same line over and over to add bananas is slow. On the next page, I'll show you a faster trick. →</p>
     </section>
 
     <!-- SECTION 4: Loops -->
@@ -236,11 +201,67 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
       <div class="vocab"><span class="word">for i in range(5):</span><span class="meaning">"Do this 5 times." The <b>i</b> is just a counter — 0, 1, 2, 3, 4.</span></div>
       <div class="vocab"><span class="word">    bananas = ...</span><span class="meaning">The 4 spaces at the front say "I belong inside the loop."</span></div>
 
-      <p>Now <b>you</b> tell the computer how many times to repeat. Type a number from 1 to 10 in the yellow box. (Try 7!)</p>
+      <p>A loop is the superpower of code — one short instruction, many actions. You'll get to try it yourself in just a moment. →</p>
+    </section>
+
+    <!-- SECTION 5: Putting it together -->
+    <section class="page" data-page="5">
+      <div class="pn">Section 5 of 5</div>
+      <h2><span class="em">🏆</span>Putting it all together</h2>
+
+      <p>You've learned three big things in this chapter:</p>
+
+      <p>🟣 A <b>variable</b> is a box that holds a number.<br>
+         🟡 You can do <b>math</b> on the box to grow or shrink the number.<br>
+         🟢 A <b>loop</b> repeats lines for you.</p>
+
+      <p>Now it's time to <b>try it for yourself</b>. The next page is the <b>Practice Lab</b> — you'll do four short exercises that use everything you just read. Take your time. The chapter trophy waits at the end.</p>
+
+      <p style="text-align:center;margin-top:24px;font-size:18px">Turn the page to start practicing. →</p>
+    </section>
+
+    <!-- PRACTICE LAB -->
+    <section class="page" data-page="6">
+      <div class="pn">Practice Lab — 4 exercises</div>
+      <h2><span class="em">🧪</span>Practice what you read.</h2>
+      <p>Do them in order. Each exercise uses something from the chapter. The trophy unlocks when all four are done.</p>
+
+      <div class="try-it" id="ex1">
+        <div class="head">🎯 Exercise 1 of 4 — Make your first variable</div>
+        <div class="ex-prompt">From Section 2. No typing needed. Just click ▶ Run code and meet your variable.</div>
+        <div class="ex-stage">
+          <span class="mango-img">🐵</span>
+          <span class="count-bubble">Bananas: <span id="ex1Count">?</span></span>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">bananas</span> = <span class="num">0</span></span></div>
+          <div class="line"><span class="ln">2</span><span class="code"><span class="fn">print</span>(<span class="str">"Mango has"</span>, bananas, <span class="str">"bananas!"</span>)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="1">▶ Run code</button></div>
+        <div class="out" id="ex1Out"></div>
+        <div class="feedback" id="ex1Fb"></div>
+      </div>
+
+      <div class="try-it" id="ex2">
+        <div class="head">🎯 Exercise 2 of 4 — Type 1 in the yellow box, then Run</div>
+        <div class="ex-prompt">From Section 3. Each Run adds one banana. Click Run a few times!</div>
+        <div class="ex-stage">
+          <span class="mango-img">🐵</span>
+          <span class="count-bubble">Bananas: <span id="ex2Count">0</span></span>
+          <div class="pile" id="ex2Pile" style="margin-left:14px"></div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code">bananas = bananas + <input class="blank" data-ex="2" data-val="1"></span></div>
+          <div class="line"><span class="ln">2</span><span class="code"><span class="fn">print</span>(<span class="str">"Now I have"</span>, bananas, <span class="str">"bananas!"</span>)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="2" disabled>▶ Run code</button></div>
+        <div class="out" id="ex2Out"></div>
+        <div class="feedback" id="ex2Fb"></div>
+      </div>
 
       <div class="try-it" id="ex3">
-        <div class="head">🎯 Exercise 3 — Type a number 1–10, then Run</div>
-        <div class="ex-prompt">Watch the bananas appear all at once. One click of Run = many bananas!</div>
+        <div class="head">🎯 Exercise 3 of 4 — Type a number 1–10, then Run</div>
+        <div class="ex-prompt">From Section 4. One click of Run = many bananas!</div>
         <div class="ex-stage">
           <span class="mango-img">🐵</span>
           <span class="count-bubble">Bananas: <span id="ex3Count">0</span></span>
@@ -257,27 +278,9 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
         <div class="feedback" id="ex3Fb"></div>
       </div>
 
-      <p style="margin-top:20px">A loop turned 1 click into many bananas. That's the superpower of code.</p>
-    </section>
-
-    <!-- SECTION 5: Putting it together -->
-    <section class="page" data-page="5">
-      <div class="pn">Section 5 of 5</div>
-      <h2><span class="em">🏆</span>Putting it all together</h2>
-
-      <p>You've learned three big things in this chapter:</p>
-
-      <p>🟣 A <b>variable</b> is a box that holds a number.<br>
-         🟡 You can do <b>math</b> on the box to grow or shrink the number.<br>
-         🟢 A <b>loop</b> repeats lines for you.</p>
-
-      <p>Let's use all three at once! Help me reach exactly <b>10 bananas</b> using a loop.</p>
-
-      <div class="quote">Pick the loop number that gets <b>bananas</b> to exactly 10.</div>
-
       <div class="try-it" id="ex4">
-        <div class="head">🎯 Exercise 4 — Use a loop to get exactly 10 bananas</div>
-        <div class="ex-prompt">The loop adds 1 each time. So range(__) should be __? Try it!</div>
+        <div class="head">🎯 Exercise 4 of 4 — Get exactly 10 bananas</div>
+        <div class="ex-prompt">From Section 5. The loop adds 1 each time. Pick the right number.</div>
         <div class="ex-stage">
           <span class="mango-img">🐵</span>
           <span class="count-bubble">Bananas: <span id="ex4Count">0</span></span>
@@ -295,11 +298,11 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
         <div class="feedback" id="ex4Fb"></div>
       </div>
 
-      <p style="margin-top:18px">When you get the message "Perfect ten!" — turn the page for your reward.</p>
+      <p style="margin-top:18px;text-align:center">When all four say ✓ — turn the page for your trophy. 🏆</p>
     </section>
 
     <!-- END -->
-    <section class="page" data-page="6">
+    <section class="page" data-page="7">
       <div class="chap-end">
         <div class="em-big">🏆</div>
         <h2>Chapter 1 complete!</h2>
@@ -334,7 +337,8 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
 
 <script>
 // ====== Page navigation ======
-const TOTAL_PAGES = 7;
+const TOTAL_PAGES = 8;
+const PRACTICE_PAGE = 6;
 let cur = 0;
 const completedExs = new Set();
 
@@ -345,9 +349,18 @@ function showPage(n) {
   cur = n;
   document.getElementById('prev').disabled = n === 0;
   document.getElementById('next').textContent = n === 0 ? 'Begin →' : (n === TOTAL_PAGES - 1 ? '✓ Done' : 'Next →');
-  document.getElementById('next').disabled = n === TOTAL_PAGES - 1;
+  // On the practice page, Next is gated by all 4 exercises being done
+  let disabled = n === TOTAL_PAGES - 1;
+  if (n === PRACTICE_PAGE) disabled = completedExs.size < 4;
+  document.getElementById('next').disabled = disabled;
   renderProgress();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function refreshNextGate() {
+  if (cur === PRACTICE_PAGE) {
+    document.getElementById('next').disabled = completedExs.size < 4;
+  }
 }
 
 function renderProgress() {
@@ -471,6 +484,7 @@ document.querySelectorAll('.run').forEach(btn => {
       document.getElementById('ex1Count').textContent = r.vars.bananas;
       setFb('ex1Fb', '✓ You ran your first Python program!', 'win');
       exState[1].ran = true;
+      completedExs.add(1); refreshNextGate();
     }
     else if (ex === '2') {
       exState[2].ran++;
@@ -481,8 +495,8 @@ document.querySelectorAll('.run').forEach(btn => {
       setOut('ex2Out', r.out);
       document.getElementById('ex2Count').textContent = exState[2].bananas;
       renderPile('ex2Pile', exState[2].bananas);
-      if (exState[2].ran >= 3) setFb('ex2Fb', '✓ Great! You ran the same line ' + exState[2].ran + ' times.', 'win');
-      else setFb('ex2Fb', 'Click Run a couple more times to add more bananas!', 'miss');
+      if (exState[2].ran >= 3) { setFb('ex2Fb', '✓ Great! You ran the same line ' + exState[2].ran + ' times.', 'win'); completedExs.add(2); refreshNextGate(); }
+      else setFb('ex2Fb', 'Click Run a couple more times to add more bananas! (' + exState[2].ran + ' of 3)', 'miss');
     }
     else if (ex === '3') {
       const inp = document.querySelector('.blank[data-ex="3"]');
@@ -494,6 +508,7 @@ document.querySelectorAll('.run').forEach(btn => {
       renderPile('ex3Pile', r.vars.bananas);
       exState[3].ran = true;
       setFb('ex3Fb', '✓ One click → ' + r.vars.bananas + ' bananas. That\'s a loop!', 'win');
+      completedExs.add(3); refreshNextGate();
     }
     else if (ex === '4') {
       const inp = document.querySelector('.blank[data-ex="4"]');
@@ -506,7 +521,7 @@ document.querySelectorAll('.run').forEach(btn => {
       if (r.vars.bananas === 10) {
         exState[4].win = true;
         setFb('ex4Fb', '🏆 You did it! Chapter 1 mastered. Turn the page!', 'win');
-        document.getElementById('next').disabled = false;
+        completedExs.add(4); refreshNextGate();
       } else {
         setFb('ex4Fb', 'Got ' + r.vars.bananas + ' bananas. We need exactly 10.', 'miss');
       }

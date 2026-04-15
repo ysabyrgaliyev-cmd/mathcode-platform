@@ -167,24 +167,7 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
       <div class="vocab"><span class="word">stop</span><span class="meaning">The number you don't reach. (Sneaky! It's "before this.")</span></div>
       <div class="vocab"><span class="word">step</span><span class="meaning">How big each jump is.</span></div>
 
-      <p>Try it. Type <b>2</b> in the yellow box so the loop counts by 2s. Watch the number line below light up.</p>
-
-      <div class="try-it" id="ex1">
-        <div class="head">🎯 Exercise 1 — Count by 2s</div>
-        <div class="ex-prompt">Type <b>2</b> as the step, then click ▶ Run.</div>
-        <div class="ex-stage">
-          <div class="number-line">
-            <div class="nl-row" id="ex1Line"></div>
-          </div>
-        </div>
-        <div class="ex-editor">
-          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">20</span>, <input class="blank" data-ex="1" data-val="2">):</span></div>
-          <div class="line"><span class="ln">2</span><span class="code">    <span class="fn">print</span>(i)</span></div>
-        </div>
-        <div class="controls"><button class="run" data-ex="1" disabled>▶ Run code</button></div>
-        <div class="out" id="ex1Out"></div>
-        <div class="feedback" id="ex1Fb"></div>
-      </div>
+      <p>You'll get to make Python count by 2s yourself in the practice lab at the end. Next, what about 5s and 10s? Turn the page. →</p>
     </section>
 
     <!-- SECTION 3: Counting by 5s and 10s -->
@@ -203,26 +186,7 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
         <p style="margin:0">Count nickels: 5, 10, 15, 20 cents. That's exactly <b>range(5, 25, 5)</b>! Code matches real life.</p>
       </div>
 
-      <p>Your turn — make Python count by <b>10s</b> from 10 up to (but not including) 100. The first box is the <b>start</b> (10), the second is the <b>jump</b> (10).</p>
-
-      <div class="try-it" id="ex2">
-        <div class="head">🎯 Exercise 2 — Count by 10s up to 100</div>
-        <div class="ex-prompt">Box 1: type <b>10</b> (start). Box 2: type <b>10</b> (step).</div>
-        <div class="ex-stage">
-          <div class="number-line">
-            <div class="nl-row" id="ex2Line"></div>
-          </div>
-        </div>
-        <div class="ex-editor">
-          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<input class="blank" data-ex="2" data-val="10" data-i="0">, <span class="num">100</span>, <input class="blank" data-ex="2" data-val="10" data-i="1">):</span></div>
-          <div class="line"><span class="ln">2</span><span class="code">    <span class="fn">print</span>(i)</span></div>
-        </div>
-        <div class="controls"><button class="run" data-ex="2" disabled>▶ Run code</button></div>
-        <div class="out" id="ex2Out"></div>
-        <div class="feedback" id="ex2Fb"></div>
-      </div>
-
-      <p style="margin-top:18px">Did you see <b>10, 20, 30, 40, 50, 60, 70, 80, 90</b>? That's nine numbers — and counting them by hand to 100 would have taken much longer.</p>
+      <p>You'll get to count by 10s up to 100 in the practice lab — that's <b>nine</b> jumps in a single line of code. Next, a sneaky way the same trick gives you <b>multiplication</b>. Turn the page. →</p>
     </section>
 
     <!-- SECTION 4: Times tables preview -->
@@ -240,27 +204,7 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
 
       <div class="vocab"><span class="word">*</span><span class="meaning">Multiply (like the × in math class).</span></div>
 
-      <p>Now you build the <b>3 times table</b> from 1 to 5. Type <b>3</b> in <b>both</b> yellow boxes (one is the number we multiply by, one is what we print).</p>
-
-      <div class="try-it" id="ex3">
-        <div class="head">🎯 Exercise 3 — Build the 3 times table</div>
-        <div class="ex-prompt">Both boxes need <b>3</b>. Then Run.</div>
-        <div class="ex-stage">
-          <div style="background:white;padding:14px 20px;border-radius:12px;font-family:-apple-system,sans-serif;font-size:15px;min-width:240px" id="ex3Tbl">
-            <div style="color:var(--ink-soft);font-size:12px;text-transform:uppercase;font-weight:700;margin-bottom:6px">3 × Table</div>
-            <div id="ex3Rows" style="font-family:'SF Mono',monospace;line-height:1.8">(run code to fill)</div>
-          </div>
-        </div>
-        <div class="ex-editor">
-          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">6</span>):</span></div>
-          <div class="line"><span class="ln">2</span><span class="code">    <span class="fn">print</span>(<input class="blank" data-ex="3" data-val="3" data-i="0">, <span class="str">"×"</span>, i, <span class="str">"="</span>, <input class="blank" data-ex="3" data-val="3" data-i="1"> * i)</span></div>
-        </div>
-        <div class="controls"><button class="run" data-ex="3" disabled>▶ Run code</button></div>
-        <div class="out" id="ex3Out"></div>
-        <div class="feedback" id="ex3Fb"></div>
-      </div>
-
-      <p style="margin-top:18px">Five lines: <b>3, 6, 9, 12, 15.</b> You just made a multiplication table out of a loop!</p>
+      <p>You'll build the <b>3 times table</b> in the practice lab — five lines of <b>3, 6, 9, 12, 15</b> from a single loop. One last surprise: a turtle who draws shapes. Turn the page. →</p>
     </section>
 
     <!-- SECTION 5: Turtle draws -->
@@ -281,7 +225,71 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
         <p style="margin:0">For <b>any</b> shape with N equal sides, the turn is <b>360 / N</b> degrees. A triangle (3 sides) → 120°. A square (4) → 90°. A hexagon (6) → 60°.</p>
       </div>
 
-      <p>Your turn. Type <b>4</b> for the loop and <b>90</b> for the turn — then watch Tully draw a square.</p>
+      <p>You'll get to watch Tully draw a square yourself in the practice lab.</p>
+
+      <div class="key">
+        <span class="lbl">What's next</span>
+        <p style="margin:0">Turn the page for the <b>Practice Lab</b> 🧪 — four exercises in a row. Finish them all to earn the chapter trophy. 🏆</p>
+      </div>
+    </section>
+
+    <!-- PRACTICE LAB -->
+    <section class="page" data-page="6">
+      <div class="pn">Practice Lab 🧪</div>
+      <h2><span class="em">🧪</span>Try them all!</h2>
+      <p>Four exercises. Finish them in order. The <b>Next →</b> button unlocks when all four are done.</p>
+
+      <div class="try-it" id="ex1">
+        <div class="head">🎯 Exercise 1 — Count by 2s</div>
+        <div class="ex-prompt">Type <b>2</b> as the step, then click ▶ Run.</div>
+        <div class="ex-stage">
+          <div class="number-line">
+            <div class="nl-row" id="ex1Line"></div>
+          </div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">20</span>, <input class="blank" data-ex="1" data-val="2">):</span></div>
+          <div class="line"><span class="ln">2</span><span class="code">    <span class="fn">print</span>(i)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="1" disabled>▶ Run code</button></div>
+        <div class="out" id="ex1Out"></div>
+        <div class="feedback" id="ex1Fb"></div>
+      </div>
+
+      <div class="try-it" id="ex2">
+        <div class="head">🎯 Exercise 2 — Count by 10s up to 100</div>
+        <div class="ex-prompt">Box 1: type <b>10</b> (start). Box 2: type <b>10</b> (step).</div>
+        <div class="ex-stage">
+          <div class="number-line">
+            <div class="nl-row" id="ex2Line"></div>
+          </div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<input class="blank" data-ex="2" data-val="10" data-i="0">, <span class="num">100</span>, <input class="blank" data-ex="2" data-val="10" data-i="1">):</span></div>
+          <div class="line"><span class="ln">2</span><span class="code">    <span class="fn">print</span>(i)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="2" disabled>▶ Run code</button></div>
+        <div class="out" id="ex2Out"></div>
+        <div class="feedback" id="ex2Fb"></div>
+      </div>
+
+      <div class="try-it" id="ex3">
+        <div class="head">🎯 Exercise 3 — Build the 3 times table</div>
+        <div class="ex-prompt">Both boxes need <b>3</b>. Then Run.</div>
+        <div class="ex-stage">
+          <div style="background:white;padding:14px 20px;border-radius:12px;font-family:-apple-system,sans-serif;font-size:15px;min-width:240px" id="ex3Tbl">
+            <div style="color:var(--ink-soft);font-size:12px;text-transform:uppercase;font-weight:700;margin-bottom:6px">3 × Table</div>
+            <div id="ex3Rows" style="font-family:'SF Mono',monospace;line-height:1.8">(run code to fill)</div>
+          </div>
+        </div>
+        <div class="ex-editor">
+          <div class="line"><span class="ln">1</span><span class="code"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">6</span>):</span></div>
+          <div class="line"><span class="ln">2</span><span class="code">    <span class="fn">print</span>(<input class="blank" data-ex="3" data-val="3" data-i="0">, <span class="str">"×"</span>, i, <span class="str">"="</span>, <input class="blank" data-ex="3" data-val="3" data-i="1"> * i)</span></div>
+        </div>
+        <div class="controls"><button class="run" data-ex="3" disabled>▶ Run code</button></div>
+        <div class="out" id="ex3Out"></div>
+        <div class="feedback" id="ex3Fb"></div>
+      </div>
 
       <div class="try-it" id="ex4">
         <div class="head">🎯 Exercise 4 — Make Tully draw a square</div>
@@ -299,11 +307,11 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
         <div class="feedback" id="ex4Fb"></div>
       </div>
 
-      <p style="margin-top:18px">When you see Tully finish her square — turn the page for Chapter 3's trophy.</p>
+      <p style="margin-top:18px;text-align:center;color:var(--ink-soft);font-style:italic">Finish all four to unlock the trophy. 🏆</p>
     </section>
 
     <!-- END -->
-    <section class="page" data-page="6">
+    <section class="page" data-page="7">
       <div class="chap-end">
         <div class="em-big">🏆</div>
         <h2>Chapter 3 complete!</h2>
@@ -338,7 +346,9 @@ body{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;background:
 
 <script>
 // ====== Page navigation ======
-const TOTAL_PAGES = 7;
+const TOTAL_PAGES = 8;
+const PRACTICE_PAGE = 6;
+const completedExs = new Set();
 let cur = 0;
 
 function showPage(n) {
@@ -348,9 +358,16 @@ function showPage(n) {
   cur = n;
   document.getElementById('prev').disabled = n === 0;
   document.getElementById('next').textContent = n === 0 ? 'Begin →' : (n === TOTAL_PAGES - 1 ? '✓ Done' : 'Next →');
-  document.getElementById('next').disabled = n === TOTAL_PAGES - 1 || (n === 5 && !exState[4].win);
+  let disabled = n === TOTAL_PAGES - 1;
+  if (n === PRACTICE_PAGE) disabled = completedExs.size < 4;
+  document.getElementById('next').disabled = disabled;
   renderProgress();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function refreshNextGate() {
+  if (cur === PRACTICE_PAGE) {
+    document.getElementById('next').disabled = completedExs.size < 4;
+  }
 }
 
 function renderProgress() {
@@ -494,6 +511,7 @@ document.querySelectorAll('.run').forEach(btn => {
       const hits = r.out.map(s => parseInt(s));
       renderNumberLine('ex1Line', 20, hits);
       exState[1].win = true;
+      completedExs.add(1); refreshNextGate();
       setFb('ex1Fb', '✓ ' + hits.join(', ') + ' — counted by 2s!', 'win');
     }
     else if (ex === '2') {
@@ -502,6 +520,7 @@ document.querySelectorAll('.run').forEach(btn => {
       const hits = r.out.map(s => parseInt(s));
       renderNumberLine('ex2Line', 100, hits);
       exState[2].win = true;
+      completedExs.add(2); refreshNextGate();
       setFb('ex2Fb', '✓ Nine jumps of 10. ' + hits.join(', ') + '.', 'win');
     }
     else if (ex === '3') {
@@ -509,6 +528,7 @@ document.querySelectorAll('.run').forEach(btn => {
       setOut('ex3Out', r.out);
       document.getElementById('ex3Rows').innerHTML = r.out.join('<br>');
       exState[3].win = true;
+      completedExs.add(3); refreshNextGate();
       setFb('ex3Fb', '✓ The 3 times table — built by code!', 'win');
     }
     else if (ex === '4') {
@@ -546,8 +566,8 @@ document.querySelectorAll('.run').forEach(btn => {
       svg.appendChild(turtle);
       setOut('ex4Out', ['(Tully drew a square — 4 sides, 90° turns)']);
       exState[4].win = true;
+      completedExs.add(4); refreshNextGate();
       setFb('ex4Fb', '🏆 A perfect square! You programmed a turtle. Turn the page!', 'win');
-      document.getElementById('next').disabled = false;
     }
   });
 });
