@@ -1,512 +1,537 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathCode Tier 1 — Number Quest: Counting Adventure</title>
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Quest — MathCode</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
+:root{
+  --primary:#7c5cff;--primary-2:#5b3df0;--accent:#fbbf24;--good:#34d399;--bad:#f87171;
+  --ink:#1f2545;--ink-soft:#5a6190;--bg:#f5f7fc;--card:#ffffff;--line:#e3e7f3;
+  --code-bg:#1c2238;--code-fg:#e6e9f5;--kw:#c084fc;--fn:#60a5fa;--num:#fbbf24;--str:#86efac;--com:#7a8bb8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.app{max-width:1200px;margin:0 auto;padding:18px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hdr .icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--primary-2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.hdr h1{margin:0;font-size:22px}
+.hdr .sub{color:var(--ink-soft);font-size:13px}
+.hdr .lang{margin-left:auto;background:#eef0fb;color:var(--primary);padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px}
+.shell{display:grid;gap:18px;grid-template-columns:minmax(320px,360px) 1fr}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--line)}
+.lesson .step-no{font-size:11px;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.lesson h2{margin:6px 0 4px;font-size:20px}
+.lesson .sub{color:var(--ink-soft);font-size:13px;margin-bottom:14px}
+.lesson .task{background:#fff8eb;border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;margin-bottom:10px;font-weight:700}
+.lesson .task .ts{font-weight:400;color:var(--ink-soft);font-size:13px;margin-top:4px;display:block}
+.lesson .why{background:#eef0fb;padding:12px 14px;border-radius:8px;font-size:14px;color:var(--ink);margin-bottom:10px;line-height:1.55}
+.lesson .why b{color:var(--primary)}
+.lesson .hint-btn{background:transparent;color:var(--primary);border:1px dashed var(--primary);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;margin-bottom:10px}
+.lesson .hint-box{background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:13px;color:#92400e;margin-bottom:10px;display:none}
+.lesson .hint-box.on{display:block}
+.lesson .nav{display:flex;gap:10px;margin-top:14px;align-items:center}
+.btn{padding:10px 18px;border:1px solid var(--line);background:white;color:var(--ink);border-radius:8px;cursor:pointer;font-weight:700;font-size:14px}
+.btn:hover{background:#f5f7fc}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border:none}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed}
+.dots{display:flex;gap:6px;margin-left:auto}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dot.active{background:var(--primary)}
+.dot.done{background:var(--good)}
+.stage{display:flex;flex-direction:column;gap:14px}
+.stage-visual{background:linear-gradient(180deg,#dbeafe,#a7d8ff);border-radius:14px;padding:24px;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.basket{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:160px;height:80px;background:linear-gradient(180deg,#b8651a,#7a3a07);border-radius:0 0 70px 70px / 0 0 60px 60px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px}
+.banana-pile{display:flex;flex-wrap:wrap;justify-content:center;gap:1px;width:140px;max-height:60px;overflow:hidden}
+.banana{font-size:20px;animation:pop .3s ease-out}
+@keyframes pop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
+.mango{position:absolute;bottom:14px;left:14px;font-size:60px;animation:wiggle 2s infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.counter{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:24px;font-weight:900;font-size:18px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);text-align:center}
+.counter .lbl{font-size:10px;color:var(--ink-soft);font-weight:600;display:block;text-transform:uppercase}
+.flying-banana{position:absolute;font-size:30px;animation:fly 0.7s ease-in forwards;pointer-events:none}
+@keyframes fly{0%{top:-20px;opacity:0}30%{opacity:1}100%{top:160px;opacity:0}}
+.celebration{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;animation:celebrate 1.2s ease-out;pointer-events:none}
+@keyframes celebrate{0%{transform:scale(0) rotate(-180deg)}50%{transform:scale(1.6) rotate(15deg)}100%{transform:scale(1) rotate(0)}}
+.editor{background:var(--code-bg);color:var(--code-fg);border-radius:12px;padding:0;font-family:"SF Mono",Menlo,Monaco,Consolas,monospace;font-size:14px;overflow:hidden}
+.editor-hdr{background:#0f1320;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#8a93b8}
+.editor-hdr .dots-cd{display:flex;gap:5px}
+.editor-hdr .dots-cd span{width:9px;height:9px;border-radius:50%}
+.editor-hdr .dots-cd span:nth-child(1){background:#ff5f57}
+.editor-hdr .dots-cd span:nth-child(2){background:#febc2e}
+.editor-hdr .dots-cd span:nth-child(3){background:#28c840}
+.editor-body{padding:14px 18px;min-height:80px;line-height:1.65}
+.editor-body .line{display:flex;gap:14px;align-items:baseline}
+.editor-body .ln{color:#4a5168;width:18px;text-align:right;user-select:none;flex-shrink:0;font-size:12px}
+.editor-body .code-line{flex:1;white-space:pre-wrap}
+.kw{color:var(--kw)}.fn{color:var(--fn)}.num{color:var(--num)}.str{color:var(--str)}.op{color:#ff79c6}
+.blank{display:inline-block;background:#fbbf24;color:#1c2238;border:0;border-radius:4px;padding:2px 8px;font-family:inherit;font-size:14px;font-weight:700;text-align:center;outline:none;vertical-align:baseline}
+.blank:focus{box-shadow:0 0 0 2px #fff}
+.blank.ok{background:var(--good)}
+.blank.bad{background:var(--bad);color:white}
+.run-row{background:#0f1320;padding:10px 14px;display:flex;gap:10px;align-items:center;border-top:1px solid #2a3148}
+.run-btn{background:var(--good);color:#0a2c1a;border:none;padding:8px 18px;border-radius:8px;font-weight:900;cursor:pointer;font-size:14px}
+.run-btn:hover{background:#10b981;color:white}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;background:#3a4060;color:#7a8bb8}
+.reset-btn{background:transparent;color:#8a93b8;border:1px solid #2a3148;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
+.reset-btn:hover{color:#e6e9f5}
+.console{background:#0a0e18;color:#86efac;padding:10px 14px;font-family:monospace;font-size:13px;min-height:36px;border-top:1px solid #2a3148;max-height:140px;overflow-y:auto}
+.console:empty::after{content:"› (output will appear here when you click Run)";color:#4a5168;font-style:italic}
+.console .out{margin:2px 0;white-space:pre-wrap}
+.console .err{color:var(--bad)}
+.modal-bg{position:fixed;inset:0;background:rgba(31,37,69,.75);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px}
+.modal{background:white;border-radius:16px;max-width:520px;width:100%;padding:30px;text-align:center;box-shadow:0 16px 36px rgba(0,0,0,.3)}
+.modal .ic{font-size:64px;margin-bottom:8px}
+.modal h2{margin:0 0 8px;font-size:24px}
+.modal p{color:var(--ink-soft);font-size:15px;line-height:1.55;margin:0 0 16px}
+.modal .pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0 20px;font-size:12px}
+.modal .pill{background:#eef0fb;color:var(--primary);padding:6px 12px;border-radius:24px;font-weight:700}
+.modal .youwill{background:#fff8eb;border-radius:10px;padding:14px;text-align:left;font-size:14px;margin-bottom:18px}
+.modal .youwill h4{margin:0 0 6px;font-size:13px;color:#92400e;text-transform:uppercase;letter-spacing:.5px}
+.modal .youwill ul{margin:0;padding-left:20px;color:var(--ink)}
+.modal .youwill li{margin:4px 0}
+.summary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border-radius:14px;padding:24px;text-align:center;margin-top:14px}
+.summary .ic{font-size:48px;margin-bottom:6px}
+.summary h2{margin:0 0 8px}
+.summary ul{text-align:left;display:inline-block;margin:10px auto;padding-left:20px}
+.summary li{margin:4px 0}
+.summary .next{background:rgba(255,255,255,.15);padding:10px 14px;border-radius:8px;margin-top:14px;font-size:14px}
+</style></head><body>
 
-  .header { background: linear-gradient(135deg, #1a1a4e, #2d1b69); padding: 20px 30px; border-bottom: 3px solid #6c5ce7; }
-  .header h1 { font-size: 1.6em; color: #a29bfe; }
-  .header .subtitle { font-size: 0.9em; color: #74b9ff; margin-top: 4px; }
-  .header .meta { font-size: 0.75em; color: #888; margin-top: 8px; }
-
-  .main { display: flex; min-height: calc(100vh - 100px); }
-
-  .code-panel { width: 45%; background: #1e1e3f; padding: 20px; border-right: 2px solid #333; display: flex; flex-direction: column; }
-  .game-panel { width: 55%; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-
-  .panel-title { font-size: 1.1em; color: #ffd93d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-  .panel-title .icon { font-size: 1.3em; }
-
-  .code-editor { flex: 1; background: #0d0d2b; border-radius: 10px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; overflow-y: auto; }
-
-  .code-line { display: flex; margin-bottom: 2px; min-height: 22px; align-items: center; }
-  .line-num { color: #555; width: 30px; text-align: right; margin-right: 12px; font-size: 12px; flex-shrink: 0; }
-  .code-text { color: #ddd; white-space: pre; }
-  .code-text .keyword { color: #c792ea; }
-  .code-text .function { color: #82aaff; }
-  .code-text .string { color: #c3e88d; }
-  .code-text .number { color: #f78c6c; }
-  .code-text .comment { color: #546e7a; font-style: italic; }
-  .code-text .variable { color: #ffcb6b; }
-  .code-text .operator { color: #89ddff; }
-
-  .highlight-line { background: rgba(108, 92, 231, 0.15); border-left: 3px solid #6c5ce7; margin-left: -15px; padding-left: 12px; border-radius: 0 4px 4px 0; }
-
-  .controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-run { background: #00b894; color: #fff; }
-  .btn-run:hover { background: #00a381; transform: scale(1.03); }
-  .btn-step { background: #6c5ce7; color: #fff; }
-  .btn-step:hover { background: #5a4bd1; transform: scale(1.03); }
-  .btn-reset { background: #d63031; color: #fff; }
-  .btn-reset:hover { background: #c02020; transform: scale(1.03); }
-  .btn-challenge { background: #fdcb6e; color: #2d3436; }
-  .btn-challenge:hover { background: #f9bf3b; transform: scale(1.03); }
-
-  .game-canvas { background: #141432; border-radius: 15px; border: 2px solid #333; width: 100%; max-width: 500px; aspect-ratio: 4/3; position: relative; overflow: hidden; }
-
-  .game-object { position: absolute; transition: all 0.3s ease; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2em; }
-  .game-object:hover { transform: scale(1.15); }
-  .game-object.collected { animation: collect 0.5s ease forwards; }
-  @keyframes collect {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.5); opacity: 0.7; }
-    100% { transform: scale(0); opacity: 0; }
-  }
-
-  .score-display { margin-top: 15px; background: #1e1e3f; border-radius: 10px; padding: 15px 25px; text-align: center; width: 100%; max-width: 500px; }
-  .score-label { font-size: 0.85em; color: #888; }
-  .score-value { font-size: 2.5em; font-weight: bold; color: #ffd93d; }
-  .score-equation { font-size: 1.1em; color: #74b9ff; margin-top: 5px; font-family: 'Courier New', monospace; }
-
-  .explanation { margin-top: 15px; background: rgba(116, 185, 255, 0.1); border-left: 3px solid #74b9ff; border-radius: 0 8px 8px 0; padding: 12px 15px; font-size: 0.85em; color: #b2bec3; line-height: 1.5; width: 100%; max-width: 500px; }
-  .explanation strong { color: #74b9ff; }
-
-  .challenge-box { margin-top: 15px; background: rgba(253, 203, 110, 0.1); border: 2px dashed #fdcb6e; border-radius: 10px; padding: 15px; width: 100%; max-width: 500px; display: none; }
-  .challenge-box h3 { color: #fdcb6e; font-size: 1em; margin-bottom: 8px; }
-  .challenge-box p { color: #dfe6e9; font-size: 0.85em; line-height: 1.4; }
-  .challenge-input { display: flex; gap: 8px; margin-top: 10px; }
-  .challenge-input input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 2px solid #444; background: #1e1e3f; color: #fff; font-size: 16px; font-family: 'Courier New', monospace; }
-  .challenge-input button { padding: 8px 16px; border-radius: 6px; border: none; background: #00b894; color: #fff; font-weight: 600; cursor: pointer; }
-  .challenge-feedback { margin-top: 8px; font-size: 0.85em; min-height: 20px; }
-
-  .level-indicator { display: flex; gap: 6px; margin-top: 10px; width: 100%; max-width: 500px; justify-content: center; }
-  .level-dot { width: 12px; height: 12px; border-radius: 50%; background: #333; transition: background 0.3s; }
-  .level-dot.active { background: #ffd93d; }
-  .level-dot.completed { background: #00b894; }
-
-  .level-complete-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 46, 0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; border-radius: 15px; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .level-complete-overlay h2 { color: #ffd93d; font-size: 1.6em; margin-bottom: 6px; }
-  .level-complete-overlay p { color: #b2bec3; font-size: 0.95em; margin-bottom: 18px; }
-  .btn-next { padding: 12px 28px; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; background: #00b894; color: #fff; transition: all 0.2s; }
-  .btn-next:hover { background: #00a381; transform: scale(1.05); }
-  .btn-final { background: #ffd93d; color: #2d3436; }
-  .btn-final:hover { background: #f9bf3b; }
-</style>
-</head>
-<body>
-
-<div class="header">
-  <h1>MathCode Project: Number Quest</h1>
-  <div class="subtitle">Tier 1 — Unit 1: Counting & Number Sense (Grades K-2, Ages 5-7)</div>
-  <div class="meta">MathCode Methodology | TAS&BA LLC | Learning Objective: Students understand counting as accumulation by coding a collection game</div>
+<div id="welcomeModal" class="modal-bg">
+  <div class="modal">
+    <div class="ic">🐵🍌</div>
+    <h2>Welcome to Number Quest!</h2>
+    <p>Mango the Monkey is hungry! Help him collect bananas by writing real Python code.</p>
+    <div class="pills">
+      <div class="pill">⏱ 12 min</div>
+      <div class="pill">📚 Grade 3–5</div>
+      <div class="pill">🐍 Python</div>
+    </div>
+    <div class="youwill">
+      <h4>You will learn to:</h4>
+      <ul>
+        <li>Store numbers in a <b>variable</b></li>
+        <li>Add, count, and update numbers</li>
+        <li>Use a <b>loop</b> to repeat actions</li>
+        <li>Use <b>if</b> to make decisions</li>
+      </ul>
+    </div>
+    <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's start! →</button>
+  </div>
 </div>
 
-<div class="main">
-  <div class="code-panel">
-    <div class="panel-title"><span class="icon">&#128187;</span> Your Code</div>
-    <div class="code-editor" id="codeEditor"></div>
-    <div class="controls">
-      <button class="btn btn-run" onclick="runCode()">&#9654; Run Code</button>
-      <button class="btn btn-step" onclick="stepCode()">&#9654;&#9654; Step</button>
-      <button class="btn btn-reset" onclick="resetGame()">&#8635; Reset</button>
-      <button class="btn btn-challenge" onclick="showChallenge()">&#9733; Challenge</button>
+<div class="app">
+  <div class="hdr">
+    <div class="icon">🐵</div>
+    <div>
+      <h1>Number Quest</h1>
+      <div class="sub">Collect bananas by writing Python code</div>
     </div>
+    <div class="lang">🐍 Python</div>
   </div>
 
-  <div class="game-panel">
-    <div class="panel-title"><span class="icon">&#127918;</span> Your Game</div>
-    <div class="game-canvas" id="gameCanvas"></div>
-    <div class="score-display">
-      <div class="score-label">Stars Collected</div>
-      <div class="score-value" id="scoreValue">0</div>
-      <div class="score-equation" id="scoreEquation">score = 0</div>
-    </div>
-    <div class="level-indicator" id="levelDots"></div>
-    <div class="explanation" id="explanation">
-      <strong>What's happening:</strong> Press <strong>Run Code</strong> to start your game! Stars will appear on the screen. Click each star to collect it. Watch how the code counts each star you collect — that's how computers count, one at a time, just like you do!
-    </div>
-    <div class="challenge-box" id="challengeBox">
-      <h3>&#9733; Code Challenge!</h3>
-      <p id="challengeText"></p>
-      <div class="challenge-input">
-        <input type="number" id="challengeAnswer" placeholder="Type your answer...">
-        <button onclick="checkChallenge()">Check</button>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="counter"><span class="lbl">🍌 Bananas</span><span id="bananaCount">0</span></div>
+        <div class="mango">🐵</div>
+        <div class="basket"><div class="banana-pile" id="pile"></div></div>
       </div>
-      <div class="challenge-feedback" id="challengeFeedback"></div>
+      <div class="editor">
+        <div class="editor-hdr">
+          <div class="dots-cd"><span></span><span></span><span></span></div>
+          <div class="file">number_quest.py</div>
+        </div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset bananas</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-const codeLines = [
-  { text: '# Number Quest — Counting Game', type: 'comment' },
-  { text: '', type: 'blank' },
-  { text: '# Set up our game', type: 'comment' },
-  { text: 'score = 0', type: 'variable-assign', parts: [
-    { text: 'score', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '0', cls: 'number' }
-  ]},
-  { text: 'stars_to_find = 5', type: 'variable-assign', parts: [
-    { text: 'stars_to_find', cls: 'variable' }, { text: ' = ', cls: 'operator' }, { text: '5', cls: 'number' }
-  ]},
-  { text: '', type: 'blank' },
-  { text: '# Place stars on the screen', type: 'comment' },
-  { text: 'for each star in range(stars_to_find):', type: 'loop', parts: [
-    { text: 'for each ', cls: 'keyword' }, { text: 'star', cls: 'variable' }, { text: ' in ', cls: 'keyword' },
-    { text: 'range', cls: 'function' }, { text: '(', cls: '' }, { text: 'stars_to_find', cls: 'variable' }, { text: '):', cls: '' }
-  ]},
-  { text: '    place_star(random_spot())', type: 'function-call', parts: [
-    { text: '    ', cls: '' }, { text: 'place_star', cls: 'function' }, { text: '(', cls: '' },
-    { text: 'random_spot', cls: 'function' }, { text: '())', cls: '' }
-  ]},
-  { text: '', type: 'blank' },
-  { text: '# When player clicks a star:', type: 'comment' },
-  { text: 'when star_clicked:', type: 'event', parts: [
-    { text: 'when ', cls: 'keyword' }, { text: 'star_clicked', cls: 'function' }, { text: ':', cls: '' }
-  ]},
-  { text: '    score = score + 1', type: 'counting', parts: [
-    { text: '    ', cls: '' }, { text: 'score', cls: 'variable' }, { text: ' = ', cls: 'operator' },
-    { text: 'score', cls: 'variable' }, { text: ' + ', cls: 'operator' }, { text: '1', cls: 'number' }
-  ]},
-  { text: '    show(score)', type: 'function-call', parts: [
-    { text: '    ', cls: '' }, { text: 'show', cls: 'function' }, { text: '(', cls: '' },
-    { text: 'score', cls: 'variable' }, { text: ')', cls: '' }
-  ]},
-  { text: '    play_sound("ding")', type: 'function-call', parts: [
-    { text: '    ', cls: '' }, { text: 'play_sound', cls: 'function' }, { text: '(', cls: '' },
-    { text: '"ding"', cls: 'string' }, { text: ')', cls: '' }
-  ]},
-  { text: '', type: 'blank' },
-  { text: '# Check if we found them all', type: 'comment' },
-  { text: '    if score == stars_to_find:', type: 'conditional', parts: [
-    { text: '    ', cls: '' }, { text: 'if ', cls: 'keyword' }, { text: 'score', cls: 'variable' },
-    { text: ' == ', cls: 'operator' }, { text: 'stars_to_find', cls: 'variable' }, { text: ':', cls: '' }
-  ]},
-  { text: '        show("You found them all!")', type: 'function-call', parts: [
-    { text: '        ', cls: '' }, { text: 'show', cls: 'function' }, { text: '(', cls: '' },
-    { text: '"You found them all!"', cls: 'string' }, { text: ')', cls: '' }
-  ]},
+const state = { step: 0, bananas: 0, ranThisStep: false, completed: [] };
+
+const STEPS = [
+  {
+    title: "1. Make a variable",
+    sub: "A variable is a box that holds a number.",
+    task: "🎯 Click ▶ Run code to make a banana counter.",
+    taskSub: "We will create a number called bananas and set it to 0.",
+    why: "In Python, <b>bananas = 0</b> means: \"make a box called bananas and put 0 inside.\" The = sign doesn't mean equals — it means \"put this in here.\"",
+    hint: "Just click the green ▶ Run code button. No typing needed yet!",
+    code: [
+      { txt: "bananas = 0" },
+      { txt: 'print("Mango has", bananas, "bananas!")' }
+    ],
+    blanks: [],
+    onRun: (vars) => { state.bananas = vars.bananas || 0; renderBananas(); },
+    canAdvance: () => state.ranThisStep === true,
+    advanceMessage: '✓ You ran your first Python program!'
+  },
+  {
+    title: "2. Add 1 banana",
+    sub: "Use math to grow the number.",
+    task: "🎯 Type 1 in the yellow box, then click ▶ Run.",
+    taskSub: "Click Run a few times — watch bananas grow!",
+    why: "<b>bananas = bananas + 1</b> means: \"take what's in the bananas box, add 1, put it back.\" Each time you click Run, it adds another banana.",
+    hint: "Type the number 1 in the yellow blank.",
+    code: [
+      { txt: "bananas = bananas + ", blank: { idx: 0, width: 50 } },
+      { txt: 'print("Mango grabs a banana! Total:", bananas)' }
+    ],
+    blanks: [{ validator: v => v === "1" }],
+    runMode: 'persistBananas',
+    onRun: (vars) => { state.bananas = vars.bananas; renderBananas(); spawnFlyingBanana(); },
+    canAdvance: () => state.bananas >= 3,
+    advanceMessage: '✓ Got 3+ bananas! Time to learn loops.'
+  },
+  {
+    title: "3. Use a loop",
+    sub: "Repeat code many times — automatically.",
+    task: "🎯 Type 5 in the yellow box, then click ▶ Run.",
+    taskSub: "Mango will grab 5 bananas with one click!",
+    why: "<b>for i in range(5):</b> means \"do this 5 times.\" The indented line is what gets repeated. Loops save you from clicking Run over and over.",
+    hint: "Put 5 in the blank.",
+    code: [
+      { txt: "bananas = 0" },
+      { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+      { txt: "    bananas = bananas + 1" },
+      { txt: 'print("Total bananas:", bananas)' }
+    ],
+    blanks: [{ validator: v => v === "5" }],
+    onRun: (vars) => { state.bananas = vars.bananas; animateLoopBananas(5); },
+    canAdvance: () => state.bananas >= 5,
+    advanceMessage: '✓ 5 bananas in one click! Loops are powerful.'
+  },
+  {
+    title: "4. Make a choice with if",
+    sub: "Tell the computer when to do something.",
+    task: "🎯 Type 10 in the yellow box, then click ▶ Run.",
+    taskSub: "Mango will celebrate when he has enough bananas!",
+    why: "<b>if bananas >= 10:</b> means \"only do this if bananas is 10 or more.\" The computer checks the rule and only runs the indented line when it's true.",
+    hint: "Put 10 in the blank.",
+    code: [
+      { txt: "bananas = ", blank: { idx: 0, width: 50 } },
+      { txt: "if bananas >= 10:" },
+      { txt: '    print("🎉 Mango is full and happy!")' }
+    ],
+    blanks: [{ validator: v => v === "10" }],
+    onRun: (vars) => { state.bananas = vars.bananas; renderBananas(); if (vars.bananas >= 10) celebrate(); },
+    canAdvance: () => state.bananas >= 10,
+    advanceMessage: '✓ Mango is celebrating! You used if.'
+  },
+  {
+    title: "5. Final challenge",
+    sub: "Put it all together.",
+    task: "🎯 Fill BOTH yellow boxes: 0 (start) and 7 (loop times).",
+    taskSub: "Then click ▶ Run to win the quest!",
+    why: "You're now writing real Python! Variables, loops, and if-statements are the foundation of every program.",
+    hint: "First blank = 0 (start). Second blank = 7 (loop count).",
+    code: [
+      { txt: "bananas = ", blank: { idx: 0, width: 50 } },
+      { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+      { txt: "    bananas = bananas + 1" },
+      { txt: "if bananas == 7:" },
+      { txt: '    print("🏆 Perfect! Quest complete!")' }
+    ],
+    blanks: [{ validator: v => v === "0" }, { validator: v => v === "7" }],
+    onRun: (vars) => { state.bananas = vars.bananas; animateLoopBananas(7); if (vars.bananas === 7) setTimeout(celebrate, 2400); },
+    canAdvance: () => state.bananas === 7,
+    advanceMessage: '✓ Quest complete! 🏆',
+    isLast: true
+  }
 ];
 
-const starsPerLevel = [5, 7, 9, 12, 15];
-let gameState = { score: 0, totalStars: 5, stars: [], running: false, currentStep: -1, level: 1 };
-let highlightedLine = -1;
+// ====== Mini Python interpreter ======
+function runPython(code, initialVars) {
+  const out = [];
+  const vars = Object.assign({}, initialVars || {});
+  const lines = code.split('\n').map(l => ({ raw: l, indent: l.match(/^(\s*)/)[1].length, body: l.trim() })).filter(l => l.body && !l.body.startsWith('#'));
+
+  function evalExpr(expr) {
+    const keys = Object.keys(vars);
+    const vals = keys.map(k => vars[k]);
+    return Function(...keys, `return (${expr})`)(...vals);
+  }
+
+  function execBlock(startIdx, parentIndent) {
+    let idx = startIdx;
+    while (idx < lines.length && lines[idx].indent > parentIndent) {
+      const line = lines[idx];
+      const body = line.body;
+
+      if (/^print\s*\(/.test(body)) {
+        const inner = body.match(/^print\s*\(([\s\S]*)\)\s*$/)[1];
+        const parts = splitTopLevel(inner);
+        const evaled = parts.map(p => {
+          p = p.trim();
+          if (/^"[^"]*"$/.test(p) || /^'[^']*'$/.test(p)) return p.slice(1, -1);
+          try { return evalExpr(p); } catch { return p; }
+        });
+        out.push(evaled.join(' '));
+        idx++;
+      }
+      else if (/^for\s+(\w+)\s+in\s+range\s*\(\s*(.+?)\s*\)\s*:/.test(body)) {
+        const m = body.match(/^for\s+(\w+)\s+in\s+range\s*\(\s*(.+?)\s*\)\s*:/);
+        const v = m[1], n = evalExpr(m[2]);
+        const loopStart = idx + 1;
+        const loopIndent = line.indent;
+        // find end of loop body
+        let endIdx = loopStart;
+        while (endIdx < lines.length && lines[endIdx].indent > loopIndent) endIdx++;
+        for (let k = 0; k < n; k++) {
+          vars[v] = k;
+          execBlock(loopStart, loopIndent);
+        }
+        idx = endIdx;
+      }
+      else if (/^if\s+(.+?)\s*:/.test(body)) {
+        const cond = body.match(/^if\s+(.+?)\s*:/)[1];
+        const truthy = evalExpr(cond);
+        const blockStart = idx + 1;
+        const blockIndent = line.indent;
+        let endIdx = blockStart;
+        while (endIdx < lines.length && lines[endIdx].indent > blockIndent) endIdx++;
+        if (truthy) execBlock(blockStart, blockIndent);
+        idx = endIdx;
+      }
+      else if (/^(\w+)\s*=\s*(.+)$/.test(body) && !/^(\w+)\s*==/.test(body)) {
+        const m = body.match(/^(\w+)\s*=\s*(.+)$/);
+        vars[m[1]] = evalExpr(m[2]);
+        idx++;
+      }
+      else {
+        idx++;
+      }
+    }
+  }
+  execBlock(0, -1);
+  return { vars, out };
+}
+
+function splitTopLevel(s) {
+  const parts = [];
+  let depth = 0, cur = '', inStr = false, strCh = '';
+  for (const c of s) {
+    if (inStr) { cur += c; if (c === strCh) inStr = false; continue; }
+    if (c === '"' || c === "'") { inStr = true; strCh = c; cur += c; continue; }
+    if (c === '(' || c === '[') depth++;
+    if (c === ')' || c === ']') depth--;
+    if (c === ',' && depth === 0) { parts.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  if (cur) parts.push(cur);
+  return parts;
+}
+
+// ====== Rendering ======
+function renderLesson() {
+  const s = STEPS[state.step];
+  const el = document.getElementById('lesson');
+  const dots = STEPS.map((_, i) => `<div class="dot ${i === state.step ? 'active' : (state.completed[i] ? 'done' : '')}"></div>`).join('');
+  const advanceOk = s.canAdvance();
+  const isLast = s.isLast;
+  el.innerHTML = `
+    <div class="step-no">Step ${state.step + 1} of ${STEPS.length}</div>
+    <h2>${s.title}</h2>
+    <div class="sub">${s.sub}</div>
+    <div class="task">${s.task}<span class="ts">${s.taskSub}</span></div>
+    <div class="why">${s.why}</div>
+    <button class="hint-btn" onclick="document.getElementById('hintBox').classList.toggle('on')">💡 Need a hint?</button>
+    <div class="hint-box" id="hintBox">${s.hint}</div>
+    <div class="nav">
+      ${state.step > 0 ? '<button class="btn" onclick="goPrev()">← Back</button>' : ''}
+      <button class="btn primary" onclick="goNext()" ${advanceOk ? '' : 'disabled'}>${isLast && advanceOk ? '🏆 Finish' : 'Next →'}</button>
+      <div class="dots">${dots}</div>
+    </div>
+    ${advanceOk ? `<div style="background:#dcfce7;color:#166534;padding:8px 12px;border-radius:8px;margin-top:10px;font-size:13px;font-weight:700;text-align:center">${s.advanceMessage}</div>` : ''}
+  `;
+  renderCode();
+}
 
 function renderCode() {
-  const editor = document.getElementById('codeEditor');
-  editor.innerHTML = '';
-  codeLines.forEach((line, i) => {
-    const div = document.createElement('div');
-    div.className = 'code-line' + (i === highlightedLine ? ' highlight-line' : '');
-
-    const num = document.createElement('span');
-    num.className = 'line-num';
-    num.textContent = i + 1;
-    div.appendChild(num);
-
-    const code = document.createElement('span');
-    code.className = 'code-text';
-
-    if (line.parts) {
-      line.parts.forEach(part => {
-        const span = document.createElement('span');
-        span.className = part.cls;
-        span.textContent = part.text;
-        code.appendChild(span);
-      });
-    } else if (line.type === 'comment') {
-      const span = document.createElement('span');
-      span.className = 'comment';
-      span.textContent = line.text;
-      code.appendChild(span);
-    } else {
-      code.textContent = line.text;
+  const s = STEPS[state.step];
+  const area = document.getElementById('codeArea');
+  let html = '';
+  s.code.forEach((line, i) => {
+    let inner = colorize(line.txt);
+    if (line.blank) {
+      const cur = state['blank_'+line.blank.idx] || '';
+      const valid = s.blanks[line.blank.idx].validator(cur);
+      const cls = cur === '' ? '' : (valid ? 'ok' : 'bad');
+      inner += `<input class="blank ${cls}" id="blank_${line.blank.idx}" style="width:${line.blank.width}px" value="${cur}" oninput="onBlankInput(${line.blank.idx})">`;
     }
-
-    div.appendChild(code);
-    editor.appendChild(div);
+    if (line.suffix) inner += colorize(line.suffix);
+    html += `<div class="line"><span class="ln">${i+1}</span><span class="code-line">${inner}</span></div>`;
   });
+  area.innerHTML = html;
+  document.getElementById('runBtn').disabled = !blanksValid();
 }
 
-function placeStars() {
-  const canvas = document.getElementById('gameCanvas');
-  canvas.innerHTML = '';
-  gameState.stars = [];
+function colorize(txt) {
+  return escape(txt)
+    .replace(/(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span class="str">$1</span>')
+    .replace(/("[^"]*"|'[^']*')/g, '<span class="str">$1</span>')
+    .replace(/\b(for|in|if|else|elif|while|def|return|True|False|None)\b/g, '<span class="kw">$1</span>')
+    .replace(/\b(print|range|len|input|int|str|float)\b/g, '<span class="fn">$1</span>')
+    .replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
+}
 
-  const emojis = ['&#11088;', '&#127775;', '&#10024;', '&#128171;', '&#127752;'];
-  const starCount = gameState.totalStars;
+function escape(s) { return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-  for (let i = 0; i < starCount; i++) {
-    const star = document.createElement('div');
-    star.className = 'game-object';
-    star.innerHTML = emojis[i % emojis.length];
+function blanksValid() {
+  const s = STEPS[state.step];
+  if (!s.blanks || !s.blanks.length) return true;
+  return s.blanks.every((b, i) => b.validator(state['blank_'+i] || ''));
+}
 
-    const x = 10 + Math.random() * 75;
-    const y = 10 + Math.random() * 75;
-    star.style.left = x + '%';
-    star.style.top = y + '%';
-    star.style.fontSize = (1.8 + Math.random() * 0.8) + 'em';
-    star.dataset.index = i;
-    star.onclick = () => collectStar(star, i);
+window.onBlankInput = function(idx) {
+  const inp = document.getElementById('blank_'+idx);
+  state['blank_'+idx] = inp.value;
+  const s = STEPS[state.step];
+  const valid = s.blanks[idx].validator(inp.value);
+  inp.classList.toggle('ok', valid);
+  inp.classList.toggle('bad', !valid && inp.value.length > 0);
+  document.getElementById('runBtn').disabled = !blanksValid();
+};
 
-    canvas.appendChild(star);
-    gameState.stars.push({ el: star, collected: false });
+function assembleCode() {
+  const s = STEPS[state.step];
+  return s.code.map(line => {
+    let txt = line.txt;
+    if (line.blank) txt += (state['blank_'+line.blank.idx] || '');
+    if (line.suffix) txt += line.suffix;
+    return txt;
+  }).join('\n');
+}
+
+document.getElementById('runBtn').addEventListener('click', () => {
+  const s = STEPS[state.step];
+  const code = assembleCode();
+  const console_ = document.getElementById('console');
+  console_.innerHTML = '';
+  document.getElementById('runStatus').textContent = 'Running...';
+  try {
+    const initial = s.runMode === 'persistBananas' ? { bananas: state.bananas } : {};
+    const { vars, out } = runPython(code, initial);
+    out.forEach(o => {
+      const div = document.createElement('div');
+      div.className = 'out';
+      div.textContent = '› ' + o;
+      console_.appendChild(div);
+    });
+    document.getElementById('runStatus').textContent = '✓ Ran successfully';
+    state.ranThisStep = true;
+    s.onRun(vars);
+    setTimeout(() => renderLesson(), 100);
+  } catch (e) {
+    const div = document.createElement('div');
+    div.className = 'out err';
+    div.textContent = '✗ Error: ' + e.message;
+    console_.appendChild(div);
+    document.getElementById('runStatus').textContent = '✗ Error';
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  state.bananas = 0;
+  state.ranThisStep = false;
+  renderBananas();
+  document.getElementById('console').innerHTML = '';
+  document.getElementById('runStatus').textContent = '';
+  renderLesson();
+});
+
+function renderBananas() {
+  document.getElementById('bananaCount').textContent = state.bananas;
+  const pile = document.getElementById('pile');
+  pile.innerHTML = '';
+  for (let i = 0; i < Math.min(state.bananas, 30); i++) {
+    const b = document.createElement('span');
+    b.className = 'banana';
+    b.textContent = '🍌';
+    pile.appendChild(b);
   }
 }
 
-function collectStar(el, index) {
-  if (!gameState.running || gameState.stars[index].collected) return;
-
-  gameState.stars[index].collected = true;
-  el.classList.add('collected');
-  gameState.score++;
-
-  // Highlight the counting line
-  highlightedLine = 12; // score = score + 1
-  renderCode();
-
-  updateScore();
-
-  setTimeout(() => {
-    highlightedLine = 17; // if score == stars_to_find
-    renderCode();
-
-    if (gameState.score === gameState.totalStars) {
-      setTimeout(() => {
-        highlightedLine = 18;
-        renderCode();
-
-        const additionChain = Array(gameState.totalStars).fill('1').join(' + ');
-        document.getElementById('explanation').innerHTML =
-          '<strong>You did it!</strong> You collected all ' + gameState.totalStars + ' stars! ' +
-          'The code counted each one: <em>score = score + 1</em> happened ' + gameState.totalStars + ' times. ' +
-          'That means: 0 + ' + additionChain + ' = <strong>' + gameState.totalStars + '</strong>. ' +
-          'This is how computers count — they add 1 each time something happens.';
-
-        showLevelCompleteOverlay();
-      }, 300);
-    }
-  }, 500);
-
-  // Explain what just happened
-  const remaining = gameState.totalStars - gameState.score;
-  if (remaining > 0) {
-    document.getElementById('explanation').innerHTML =
-      '<strong>Line 13 just ran!</strong> <code>score = score + 1</code> means: ' +
-      'take the old score (' + (gameState.score - 1) + '), add 1, and save the new score (' + gameState.score + '). ' +
-      'You have <strong>' + remaining + ' more</strong> star' + (remaining > 1 ? 's' : '') + ' to find!';
-  }
+function spawnFlyingBanana() {
+  const stage = document.getElementById('stage');
+  const fly = document.createElement('div');
+  fly.className = 'flying-banana';
+  fly.textContent = '🍌';
+  fly.style.left = (50 + (Math.random() - 0.5) * 30) + '%';
+  stage.appendChild(fly);
+  setTimeout(() => fly.remove(), 800);
 }
 
-function updateScore() {
-  document.getElementById('scoreValue').textContent = gameState.score;
-
-  let equation = 'score = 0';
-  for (let i = 0; i < gameState.score; i++) {
-    equation += ' + 1';
-  }
-  equation += ' = ' + gameState.score;
-  document.getElementById('scoreEquation').textContent = equation;
-}
-
-function runCode() {
-  gameState.score = 0;
-  gameState.running = true;
-  updateScore();
-
-  // Animate through setup lines
-  highlightedLine = 3;
-  renderCode();
-
-  setTimeout(() => {
-    highlightedLine = 4;
-    renderCode();
-
+function animateLoopBananas(n) {
+  state.bananas = 0;
+  renderBananas();
+  for (let i = 0; i < n; i++) {
     setTimeout(() => {
-      highlightedLine = 7;
-      renderCode();
-
-      setTimeout(() => {
-        highlightedLine = 8;
-        renderCode();
-        placeStars();
-
-        document.getElementById('explanation').innerHTML =
-          '<strong>Code is running!</strong> First, we set <code>score = 0</code> (we start with nothing). ' +
-          'Then <code>stars_to_find = ' + gameState.totalStars + '</code> tells the game how many stars to place. ' +
-          'The <code>for</code> loop placed ' + gameState.totalStars + ' stars in random spots. ' +
-          'Now <strong>click the stars</strong> to collect them and watch the code count!';
-      }, 400);
-    }, 400);
-  }, 400);
-}
-
-let stepIndex = 0;
-const stepSequence = [3, 4, 7, 8];
-
-function stepCode() {
-  if (stepIndex < stepSequence.length) {
-    highlightedLine = stepSequence[stepIndex];
-    renderCode();
-
-    const explanations = [
-      '<strong>score = 0</strong> — We create a variable called "score" and set it to zero. A variable is like a box with a label. Right now the box labeled "score" has 0 inside it.',
-      '<strong>stars_to_find = 5</strong> — We create another variable that tells our game how many stars to place. Try changing this number in the challenge!',
-      '<strong>for each star...</strong> — This is a LOOP. It means "do the next line multiple times." How many times? As many as stars_to_find (which is ' + gameState.totalStars + '). Loops save us from writing the same line over and over.',
-      '<strong>place_star(random_spot())</strong> — This line runs inside the loop. Each time it runs, it places one star in a random spot. The loop runs it ' + gameState.totalStars + ' times, so we get ' + gameState.totalStars + ' stars!'
-    ];
-
-    document.getElementById('explanation').innerHTML = explanations[stepIndex];
-
-    if (stepIndex === stepSequence.length - 1) {
-      gameState.running = true;
-      gameState.score = 0;
-      updateScore();
-      placeStars();
-    }
-    stepIndex++;
-  } else {
-    document.getElementById('explanation').innerHTML = '<strong>All setup steps done!</strong> Now click the stars to see the counting code in action!';
+      state.bananas++;
+      renderBananas();
+      spawnFlyingBanana();
+      if (state.bananas === n) renderLesson();
+    }, 200 + i * 280);
   }
 }
 
-function resetGame() {
-  gameState.score = 0;
-  gameState.totalStars = starsPerLevel[0];
-  gameState.level = 1;
-  gameState.running = false;
-  gameState.stars = [];
-  highlightedLine = -1;
-  stepIndex = 0;
-
-  // Reset code display to original star count
-  codeLines[4].parts[2].text = String(gameState.totalStars);
-  codeLines[4].text = 'stars_to_find = ' + gameState.totalStars;
-
-  document.getElementById('gameCanvas').innerHTML = '';
-  updateScore();
-  renderCode();
-  updateLevelDots();
-  document.getElementById('challengeBox').style.display = 'none';
-  document.getElementById('explanation').innerHTML =
-    '<strong>What\'s happening:</strong> Press <strong>Run Code</strong> to start your game! Stars will appear on the screen. Click each star to collect it. Watch how the code counts each star you collect — that\'s how computers count, one at a time, just like you do!';
+function celebrate() {
+  const stage = document.getElementById('stage');
+  const c = document.createElement('div');
+  c.className = 'celebration';
+  c.textContent = '🎉';
+  stage.appendChild(c);
+  setTimeout(() => c.remove(), 1300);
 }
 
-let currentChallenge = null;
-
-function showChallenge() {
-  const box = document.getElementById('challengeBox');
-  box.style.display = 'block';
-  document.getElementById('challengeFeedback').textContent = '';
-  document.getElementById('challengeAnswer').value = '';
-
-  const challenges = [
-    {
-      text: 'If you change stars_to_find to 8, and you collect all the stars, what will score equal?',
-      answer: 8,
-      explanation: 'Correct! If there are 8 stars and you collect them all, score = score + 1 happens 8 times. Starting from 0: 0 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 8!'
-    },
-    {
-      text: 'If score starts at 0 and you click 3 stars, what does score equal? (Hint: score = score + 1 runs once per click)',
-      answer: 3,
-      explanation: 'Correct! Each click runs score = score + 1. After 3 clicks: 0 → 1 → 2 → 3. Score equals 3!'
-    },
-    {
-      text: 'If we change the code to say score = score + 2 (instead of + 1), and you click 4 stars, what would score be?',
-      answer: 8,
-      explanation: 'Correct! If each click adds 2 instead of 1: 0 + 2 + 2 + 2 + 2 = 8. This is like counting by 2s!'
-    },
-    {
-      text: 'If stars_to_find = 10, how many times does the loop run to place stars?',
-      answer: 10,
-      explanation: 'Correct! The loop runs as many times as stars_to_find. If stars_to_find = 10, the loop runs 10 times and places 10 stars!'
-    }
-  ];
-
-  currentChallenge = challenges[Math.floor(Math.random() * challenges.length)];
-  document.getElementById('challengeText').textContent = currentChallenge.text;
-}
-
-function checkChallenge() {
-  const answer = parseInt(document.getElementById('challengeAnswer').value);
-  const feedback = document.getElementById('challengeFeedback');
-
-  if (isNaN(answer)) {
-    feedback.textContent = 'Type a number!';
-    feedback.style.color = '#fdcb6e';
-    return;
+window.goNext = function() {
+  state.completed[state.step] = true;
+  if (STEPS[state.step].isLast) { showSummary(); return; }
+  state.step++;
+  state.ranThisStep = false;
+  document.getElementById('console').innerHTML = '';
+  document.getElementById('runStatus').textContent = '';
+  if (STEPS[state.step].runMode !== 'persistBananas') {
+    state.bananas = 0;
+    renderBananas();
   }
+  renderLesson();
+};
 
-  if (answer === currentChallenge.answer) {
-    feedback.textContent = currentChallenge.explanation;
-    feedback.style.color = '#00b894';
-  } else {
-    feedback.textContent = 'Not quite! Think about it: if score starts at 0 and we add 1 each time... Try again!';
-    feedback.style.color = '#d63031';
-  }
+window.goPrev = function() {
+  if (state.step > 0) state.step--;
+  state.ranThisStep = false;
+  renderLesson();
+};
+
+function showSummary() {
+  document.querySelector('.shell').style.display = 'none';
+  const summary = document.createElement('div');
+  summary.className = 'summary';
+  summary.innerHTML = `
+    <div class="ic">🏆</div>
+    <h2>Quest Complete!</h2>
+    <p>You wrote real Python code and helped Mango collect bananas.</p>
+    <ul>
+      <li>You used a <b>variable</b> to store numbers</li>
+      <li>You did <b>math</b> on your variable</li>
+      <li>You used a <b>loop</b> to repeat code</li>
+      <li>You used <b>if</b> to make a decision</li>
+    </ul>
+    <div class="next">Next up: <b>Fraction Feast</b> — slice pizzas with code!</div>
+  `;
+  document.querySelector('.app').appendChild(summary);
 }
 
-function updateLevelDots() {
-  const container = document.getElementById('levelDots');
-  container.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'level-dot' + (i < gameState.level ? ' completed' : '') + (i === gameState.level ? ' active' : '');
-    container.appendChild(dot);
-  }
-}
-
-function showLevelCompleteOverlay() {
-  gameState.running = false;
-  const canvas = document.getElementById('gameCanvas');
-  const overlay = document.createElement('div');
-  overlay.className = 'level-complete-overlay';
-  overlay.id = 'levelOverlay';
-
-  if (gameState.level < 5) {
-    const nextStars = starsPerLevel[gameState.level]; // next level index = current level (0-based after increment)
-    overlay.innerHTML =
-      '<h2>&#127775; Level ' + gameState.level + ' Complete!</h2>' +
-      '<p>You counted to ' + gameState.totalStars + '! Next up: ' + nextStars + ' stars.</p>' +
-      '<button class="btn-next" onclick="nextLevel()">Next Level &#9654;</button>';
-  } else {
-    overlay.innerHTML =
-      '<h2>&#127942; All 5 Levels Complete!</h2>' +
-      '<p>Amazing! You mastered counting from 5 all the way to ' + gameState.totalStars + '!</p>' +
-      '<button class="btn-next btn-final" onclick="resetGame()">Play Again</button>';
-  }
-
-  canvas.appendChild(overlay);
-
-  if (gameState.level < 5) {
-    gameState.level++;
-  }
-  updateLevelDots();
-}
-
-function nextLevel() {
-  // Remove overlay
-  const overlay = document.getElementById('levelOverlay');
-  if (overlay) overlay.remove();
-
-  // Update star count for new level
-  gameState.totalStars = starsPerLevel[gameState.level - 1];
-  gameState.score = 0;
-  gameState.running = true;
-  gameState.stars = [];
-  highlightedLine = -1;
-  stepIndex = 0;
-
-  // Update the code display to show new star count
-  codeLines[4].parts[2].text = String(gameState.totalStars);
-  codeLines[4].text = 'stars_to_find = ' + gameState.totalStars;
-
-  updateScore();
-  renderCode();
-  document.getElementById('challengeBox').style.display = 'none';
-
-  // Auto-run the new level
-  runCode();
-}
-
-// Initialize
-renderCode();
-updateLevelDots();
+renderLesson();
+renderBananas();
 </script>
-</body>
-</html>
+</body></html>
