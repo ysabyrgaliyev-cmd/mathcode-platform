@@ -497,6 +497,8 @@ window.goNext = function() {
   if (STEPS[state.step].isLast) { showSummary(); return; }
   state.step++;
   state.ranThisStep = false;
+  delete state['blank_0'];
+  delete state['blank_1'];
   document.getElementById('console').innerHTML = '';
   document.getElementById('runStatus').textContent = '';
   if (STEPS[state.step].runMode !== 'persistBananas') {
@@ -509,6 +511,8 @@ window.goNext = function() {
 window.goPrev = function() {
   if (state.step > 0) state.step--;
   state.ranThisStep = false;
+  delete state['blank_0'];
+  delete state['blank_1'];
   renderLesson();
 };
 
