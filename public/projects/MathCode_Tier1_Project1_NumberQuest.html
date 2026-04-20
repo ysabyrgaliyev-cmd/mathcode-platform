@@ -1,134 +1,34 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Number Quest — MathCode</title>
+<link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
-:root{
-  --primary:#7c5cff;--primary-2:#5b3df0;--accent:#fbbf24;--good:#34d399;--bad:#f87171;
-  --ink:#1f2545;--ink-soft:#5a6190;--bg:#f5f7fc;--card:#ffffff;--line:#e3e7f3;
-  --code-bg:#1c2238;--code-fg:#e6e9f5;--kw:#c084fc;--fn:#60a5fa;--num:#fbbf24;--str:#86efac;--com:#7a8bb8;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
-.app{max-width:1200px;margin:0 auto;padding:18px}
-.hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.hdr .icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--primary-2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px}
-.hdr h1{margin:0;font-size:22px}
-.hdr .sub{color:var(--ink-soft);font-size:13px}
-.hdr .lang{margin-left:auto;background:#eef0fb;color:var(--primary);padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px}
-.shell{display:grid;gap:18px;grid-template-columns:minmax(320px,360px) 1fr}
-@media(max-width:900px){.shell{grid-template-columns:1fr}}
-.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--line)}
-.lesson .step-no{font-size:11px;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.lesson h2{margin:6px 0 4px;font-size:20px}
-.lesson .sub{color:var(--ink-soft);font-size:13px;margin-bottom:14px}
-.lesson .task{background:#fff8eb;border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;margin-bottom:10px;font-weight:700}
-.lesson .task .ts{font-weight:400;color:var(--ink-soft);font-size:13px;margin-top:4px;display:block}
-.lesson .why{background:#eef0fb;padding:12px 14px;border-radius:8px;font-size:14px;color:var(--ink);margin-bottom:10px;line-height:1.55}
-.lesson .why b{color:var(--primary)}
-.lesson .hint-btn{background:transparent;color:var(--primary);border:1px dashed var(--primary);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;margin-bottom:10px}
-.lesson .hint-box{background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:13px;color:#92400e;margin-bottom:10px;display:none}
-.lesson .hint-box.on{display:block}
-.lesson .nav{display:flex;gap:10px;margin-top:14px;align-items:center}
-.btn{padding:10px 18px;border:1px solid var(--line);background:white;color:var(--ink);border-radius:8px;cursor:pointer;font-weight:700;font-size:14px}
-.btn:hover{background:#f5f7fc}
-.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border:none}
-.btn.primary:disabled{opacity:.4;cursor:not-allowed}
-.dots{display:flex;gap:6px;margin-left:auto}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
-.dot.active{background:var(--primary)}
-.dot.done{background:var(--good)}
-.stage{display:flex;flex-direction:column;gap:14px}
-.stage-visual{background:linear-gradient(180deg,#dbeafe,#a7d8ff);border-radius:14px;padding:24px;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.stage-visual{background:linear-gradient(180deg,#dbeafe,#a7d8ff)}
 .basket{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:160px;height:80px;background:linear-gradient(180deg,#b8651a,#7a3a07);border-radius:0 0 70px 70px / 0 0 60px 60px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px}
 .banana-pile{display:flex;flex-wrap:wrap;justify-content:center;gap:1px;width:140px;max-height:60px;overflow:hidden}
 .banana{font-size:20px;animation:pop .3s ease-out}
 @keyframes pop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
 .mango{position:absolute;bottom:14px;left:14px;font-size:60px;animation:wiggle 2s infinite}
 @keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-.counter{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:24px;font-weight:900;font-size:18px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);text-align:center}
-.counter .lbl{font-size:10px;color:var(--ink-soft);font-weight:600;display:block;text-transform:uppercase}
 .flying-banana{position:absolute;font-size:30px;animation:fly 0.7s ease-in forwards;pointer-events:none}
 @keyframes fly{0%{top:-20px;opacity:0}30%{opacity:1}100%{top:160px;opacity:0}}
-.celebration{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;animation:celebrate 1.2s ease-out;pointer-events:none}
-@keyframes celebrate{0%{transform:scale(0) rotate(-180deg)}50%{transform:scale(1.6) rotate(15deg)}100%{transform:scale(1) rotate(0)}}
-.editor{background:var(--code-bg);color:var(--code-fg);border-radius:12px;padding:0;font-family:"SF Mono",Menlo,Monaco,Consolas,monospace;font-size:14px;overflow:hidden}
-.editor-hdr{background:#0f1320;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#8a93b8}
-.editor-hdr .dots-cd{display:flex;gap:5px}
-.editor-hdr .dots-cd span{width:9px;height:9px;border-radius:50%}
-.editor-hdr .dots-cd span:nth-child(1){background:#ff5f57}
-.editor-hdr .dots-cd span:nth-child(2){background:#febc2e}
-.editor-hdr .dots-cd span:nth-child(3){background:#28c840}
-.editor-body{padding:14px 18px;min-height:80px;line-height:1.65}
-.editor-body .line{display:flex;gap:14px;align-items:baseline}
-.editor-body .ln{color:#4a5168;width:18px;text-align:right;user-select:none;flex-shrink:0;font-size:12px}
-.editor-body .code-line{flex:1;white-space:pre-wrap}
-.kw{color:var(--kw)}.fn{color:var(--fn)}.num{color:var(--num)}.str{color:var(--str)}.op{color:#ff79c6}
-.blank{display:inline-block;background:#fbbf24;color:#1c2238;border:0;border-radius:4px;padding:2px 8px;font-family:inherit;font-size:14px;font-weight:700;text-align:center;outline:none;vertical-align:baseline}
-.blank:focus{box-shadow:0 0 0 2px #fff}
-.blank.ok{background:var(--good)}
-.blank.bad{background:var(--bad);color:white}
-.run-row{background:#0f1320;padding:10px 14px;display:flex;gap:10px;align-items:center;border-top:1px solid #2a3148}
-.run-btn{background:var(--good);color:#0a2c1a;border:none;padding:8px 18px;border-radius:8px;font-weight:900;cursor:pointer;font-size:14px}
-.run-btn:hover{background:#10b981;color:white}
-.run-btn:disabled{opacity:.4;cursor:not-allowed;background:#3a4060;color:#7a8bb8}
-.reset-btn{background:transparent;color:#8a93b8;border:1px solid #2a3148;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
-.reset-btn:hover{color:#e6e9f5}
-.console{background:#0a0e18;color:#86efac;padding:10px 14px;font-family:monospace;font-size:13px;min-height:36px;border-top:1px solid #2a3148;max-height:140px;overflow-y:auto}
-.console:empty::after{content:"› (output will appear here when you click Run)";color:#4a5168;font-style:italic}
-.console .out{margin:2px 0;white-space:pre-wrap}
-.console .err{color:var(--bad)}
-.modal-bg{position:fixed;inset:0;background:rgba(31,37,69,.75);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px}
-.modal{background:white;border-radius:16px;max-width:520px;width:100%;padding:30px;text-align:center;box-shadow:0 16px 36px rgba(0,0,0,.3)}
-.modal .ic{font-size:64px;margin-bottom:8px}
-.modal h2{margin:0 0 8px;font-size:24px}
-.modal p{color:var(--ink-soft);font-size:15px;line-height:1.55;margin:0 0 16px}
-.modal .pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0 20px;font-size:12px}
-.modal .pill{background:#eef0fb;color:var(--primary);padding:6px 12px;border-radius:24px;font-weight:700}
-.modal .youwill{background:#fff8eb;border-radius:10px;padding:14px;text-align:left;font-size:14px;margin-bottom:18px}
-.modal .youwill h4{margin:0 0 6px;font-size:13px;color:#92400e;text-transform:uppercase;letter-spacing:.5px}
-.modal .youwill ul{margin:0;padding-left:20px;color:var(--ink)}
-.modal .youwill li{margin:4px 0}
-.summary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;border-radius:14px;padding:24px;text-align:center;margin-top:14px}
-.summary .ic{font-size:48px;margin-bottom:6px}
-.summary h2{margin:0 0 8px}
-.summary ul{text-align:left;display:inline-block;margin:10px auto;padding-left:20px}
-.summary li{margin:4px 0}
-.summary .next{background:rgba(255,255,255,.15);padding:10px 14px;border-radius:8px;margin-top:14px;font-size:14px}
 </style></head><body>
 
-<div id="welcomeModal" class="modal-bg">
-  <div class="modal">
-    <div class="ic">🐵🍌</div>
-    <h2>Welcome to Number Quest!</h2>
-    <p>Mango the Monkey is hungry! Help him collect bananas by writing real Python code.</p>
-    <div class="pills">
-      <div class="pill">⏱ 12 min</div>
-      <div class="pill">📚 Grade 3–5</div>
-      <div class="pill">🐍 Python</div>
-    </div>
-    <div class="youwill">
-      <h4>You will learn to:</h4>
-      <ul>
-        <li>Store numbers in a <b>variable</b></li>
-        <li>Add, count, and update numbers</li>
-        <li>Use a <b>loop</b> to repeat actions</li>
-        <li>Use <b>if</b> to make decisions</li>
-      </ul>
-    </div>
-    <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's start! →</button>
-  </div>
-</div>
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🐵🍌</div><h2>Welcome to Number Quest!</h2>
+  <p>Mango the Monkey is hungry! Help him collect bananas by writing real Python code.</p>
+  <div class="pills"><div class="pill">⏱ 12 min</div><div class="pill">📚 Grade 3–5</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Store numbers in a <b>variable</b></li>
+    <li>Add, count, and update numbers</li>
+    <li>Use a <b>loop</b> to repeat actions</li>
+    <li>Use <b>if</b> to make decisions</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's start! →</button>
+</div></div>
 
 <div class="app">
-  <div class="hdr">
-    <div class="icon">🐵</div>
-    <div>
-      <h1>Number Quest</h1>
-      <div class="sub">Collect bananas by writing Python code</div>
-    </div>
-    <div class="lang">🐍 Python</div>
-  </div>
-
+  <div class="hdr"><div class="icon">🐵</div><div><h1>Number Quest</h1><div class="sub">Collect bananas by writing Python code</div></div><div class="lang">🐍 Python</div></div>
   <div class="shell">
     <div class="card lesson" id="lesson"></div>
     <div class="stage">
@@ -138,10 +38,7 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,san
         <div class="basket"><div class="banana-pile" id="pile"></div></div>
       </div>
       <div class="editor">
-        <div class="editor-hdr">
-          <div class="dots-cd"><span></span><span></span><span></span></div>
-          <div class="file">number_quest.py</div>
-        </div>
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>number_quest.py</div></div>
         <div class="editor-body" id="codeArea"></div>
         <div class="run-row">
           <button class="run-btn" id="runBtn">▶ Run code</button>
@@ -155,304 +52,11 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,san
 </div>
 
 <script>
-const state = { step: 0, bananas: 0, ranThisStep: false, completed: [] };
-
-const STEPS = [
-  {
-    title: "1. Make a variable",
-    sub: "A variable is a box that holds a number.",
-    task: "🎯 Click ▶ Run code to make a banana counter.",
-    taskSub: "We will create a number called bananas and set it to 0.",
-    why: "In Python, <b>bananas = 0</b> means: \"make a box called bananas and put 0 inside.\" The = sign doesn't mean equals — it means \"put this in here.\"",
-    hint: "Just click the green ▶ Run code button. No typing needed yet!",
-    code: [
-      { txt: "bananas = 0" },
-      { txt: 'print("Mango has", bananas, "bananas!")' }
-    ],
-    blanks: [],
-    onRun: (vars) => { state.bananas = vars.bananas || 0; renderBananas(); },
-    canAdvance: () => state.ranThisStep === true,
-    advanceMessage: '✓ You ran your first Python program!'
-  },
-  {
-    title: "2. Add 1 banana",
-    sub: "Use math to grow the number.",
-    task: "🎯 Type 1 in the yellow box, then click ▶ Run.",
-    taskSub: "Click Run a few times — watch bananas grow!",
-    why: "<b>bananas = bananas + 1</b> means: \"take what's in the bananas box, add 1, put it back.\" Each time you click Run, it adds another banana.",
-    hint: "Type the number 1 in the yellow blank.",
-    code: [
-      { txt: "bananas = bananas + ", blank: { idx: 0, width: 50 } },
-      { txt: 'print("Mango grabs a banana! Total:", bananas)' }
-    ],
-    blanks: [{ validator: v => v === "1" }],
-    runMode: 'persistBananas',
-    onRun: (vars) => { state.bananas = vars.bananas; renderBananas(); spawnFlyingBanana(); },
-    canAdvance: () => state.bananas >= 3,
-    advanceMessage: '✓ Got 3+ bananas! Time to learn loops.'
-  },
-  {
-    title: "3. Use a loop",
-    sub: "Repeat code many times — automatically.",
-    task: "🎯 Type 5 in the yellow box, then click ▶ Run.",
-    taskSub: "Mango will grab 5 bananas with one click!",
-    why: "<b>for i in range(5):</b> means \"do this 5 times.\" The indented line is what gets repeated. Loops save you from clicking Run over and over.",
-    hint: "Put 5 in the blank.",
-    code: [
-      { txt: "bananas = 0" },
-      { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
-      { txt: "    bananas = bananas + 1" },
-      { txt: 'print("Total bananas:", bananas)' }
-    ],
-    blanks: [{ validator: v => v === "5" }],
-    onRun: (vars) => { state.bananas = vars.bananas; animateLoopBananas(5); },
-    canAdvance: () => state.bananas >= 5,
-    advanceMessage: '✓ 5 bananas in one click! Loops are powerful.'
-  },
-  {
-    title: "4. Make a choice with if",
-    sub: "Tell the computer when to do something.",
-    task: "🎯 Type 10 in the yellow box, then click ▶ Run.",
-    taskSub: "Mango will celebrate when he has enough bananas!",
-    why: "<b>if bananas >= 10:</b> means \"only do this if bananas is 10 or more.\" The computer checks the rule and only runs the indented line when it's true.",
-    hint: "Put 10 in the blank.",
-    code: [
-      { txt: "bananas = ", blank: { idx: 0, width: 50 } },
-      { txt: "if bananas >= 10:" },
-      { txt: '    print("🎉 Mango is full and happy!")' }
-    ],
-    blanks: [{ validator: v => v === "10" }],
-    onRun: (vars) => { state.bananas = vars.bananas; renderBananas(); if (vars.bananas >= 10) celebrate(); },
-    canAdvance: () => state.bananas >= 10,
-    advanceMessage: '✓ Mango is celebrating! You used if.'
-  },
-  {
-    title: "5. Final challenge",
-    sub: "Put it all together.",
-    task: "🎯 Fill BOTH yellow boxes: 0 (start) and 7 (loop times).",
-    taskSub: "Then click ▶ Run to win the quest!",
-    why: "You're now writing real Python! Variables, loops, and if-statements are the foundation of every program.",
-    hint: "First blank = 0 (start). Second blank = 7 (loop count).",
-    code: [
-      { txt: "bananas = ", blank: { idx: 0, width: 50 } },
-      { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
-      { txt: "    bananas = bananas + 1" },
-      { txt: "if bananas == 7:" },
-      { txt: '    print("🏆 Perfect! Quest complete!")' }
-    ],
-    blanks: [{ validator: v => v === "0" }, { validator: v => v === "7" }],
-    onRun: (vars) => { state.bananas = vars.bananas; animateLoopBananas(7); if (vars.bananas === 7) setTimeout(celebrate, 2400); },
-    canAdvance: () => state.bananas === 7,
-    advanceMessage: '✓ Quest complete! 🏆',
-    isLast: true
-  }
-];
-
-// ====== Mini Python interpreter ======
-function runPython(code, initialVars) {
-  const out = [];
-  const vars = Object.assign({}, initialVars || {});
-  const lines = code.split('\n').map(l => ({ raw: l, indent: l.match(/^(\s*)/)[1].length, body: l.trim() })).filter(l => l.body && !l.body.startsWith('#'));
-
-  function evalExpr(expr) {
-    const keys = Object.keys(vars);
-    const vals = keys.map(k => vars[k]);
-    return Function(...keys, `return (${expr})`)(...vals);
-  }
-
-  function execBlock(startIdx, parentIndent) {
-    let idx = startIdx;
-    while (idx < lines.length && lines[idx].indent > parentIndent) {
-      const line = lines[idx];
-      const body = line.body;
-
-      if (/^print\s*\(/.test(body)) {
-        const inner = body.match(/^print\s*\(([\s\S]*)\)\s*$/)[1];
-        const parts = splitTopLevel(inner);
-        const evaled = parts.map(p => {
-          p = p.trim();
-          if (/^"[^"]*"$/.test(p) || /^'[^']*'$/.test(p)) return p.slice(1, -1);
-          try { return evalExpr(p); } catch { return p; }
-        });
-        out.push(evaled.join(' '));
-        idx++;
-      }
-      else if (/^for\s+(\w+)\s+in\s+range\s*\(\s*(.+?)\s*\)\s*:/.test(body)) {
-        const m = body.match(/^for\s+(\w+)\s+in\s+range\s*\(\s*(.+?)\s*\)\s*:/);
-        const v = m[1], n = evalExpr(m[2]);
-        const loopStart = idx + 1;
-        const loopIndent = line.indent;
-        // find end of loop body
-        let endIdx = loopStart;
-        while (endIdx < lines.length && lines[endIdx].indent > loopIndent) endIdx++;
-        for (let k = 0; k < n; k++) {
-          vars[v] = k;
-          execBlock(loopStart, loopIndent);
-        }
-        idx = endIdx;
-      }
-      else if (/^if\s+(.+?)\s*:/.test(body)) {
-        const cond = body.match(/^if\s+(.+?)\s*:/)[1];
-        const truthy = evalExpr(cond);
-        const blockStart = idx + 1;
-        const blockIndent = line.indent;
-        let endIdx = blockStart;
-        while (endIdx < lines.length && lines[endIdx].indent > blockIndent) endIdx++;
-        if (truthy) execBlock(blockStart, blockIndent);
-        idx = endIdx;
-      }
-      else if (/^(\w+)\s*=\s*(.+)$/.test(body) && !/^(\w+)\s*==/.test(body)) {
-        const m = body.match(/^(\w+)\s*=\s*(.+)$/);
-        vars[m[1]] = evalExpr(m[2]);
-        idx++;
-      }
-      else {
-        idx++;
-      }
-    }
-  }
-  execBlock(0, -1);
-  return { vars, out };
-}
-
-function splitTopLevel(s) {
-  const parts = [];
-  let depth = 0, cur = '', inStr = false, strCh = '';
-  for (const c of s) {
-    if (inStr) { cur += c; if (c === strCh) inStr = false; continue; }
-    if (c === '"' || c === "'") { inStr = true; strCh = c; cur += c; continue; }
-    if (c === '(' || c === '[') depth++;
-    if (c === ')' || c === ']') depth--;
-    if (c === ',' && depth === 0) { parts.push(cur); cur = ''; continue; }
-    cur += c;
-  }
-  if (cur) parts.push(cur);
-  return parts;
-}
-
-// ====== Rendering ======
-function renderLesson() {
-  const s = STEPS[state.step];
-  const el = document.getElementById('lesson');
-  const dots = STEPS.map((_, i) => `<div class="dot ${i === state.step ? 'active' : (state.completed[i] ? 'done' : '')}"></div>`).join('');
-  const advanceOk = s.canAdvance();
-  const isLast = s.isLast;
-  el.innerHTML = `
-    <div class="step-no">Step ${state.step + 1} of ${STEPS.length}</div>
-    <h2>${s.title}</h2>
-    <div class="sub">${s.sub}</div>
-    <div class="task">${s.task}<span class="ts">${s.taskSub}</span></div>
-    <div class="why">${s.why}</div>
-    <button class="hint-btn" onclick="document.getElementById('hintBox').classList.toggle('on')">💡 Need a hint?</button>
-    <div class="hint-box" id="hintBox">${s.hint}</div>
-    <div class="nav">
-      ${state.step > 0 ? '<button class="btn" onclick="goPrev()">← Back</button>' : ''}
-      <button class="btn primary" onclick="goNext()" ${advanceOk ? '' : 'disabled'}>${isLast && advanceOk ? '🏆 Finish' : 'Next →'}</button>
-      <div class="dots">${dots}</div>
-    </div>
-    ${advanceOk ? `<div style="background:#dcfce7;color:#166534;padding:8px 12px;border-radius:8px;margin-top:10px;font-size:13px;font-weight:700;text-align:center">${s.advanceMessage}</div>` : ''}
-  `;
-  renderCode();
-}
-
-function renderCode() {
-  const s = STEPS[state.step];
-  const area = document.getElementById('codeArea');
-  let html = '';
-  s.code.forEach((line, i) => {
-    let inner = colorize(line.txt);
-    if (line.blank) {
-      const cur = state['blank_'+line.blank.idx] || '';
-      const valid = s.blanks[line.blank.idx].validator(cur);
-      const cls = cur === '' ? '' : (valid ? 'ok' : 'bad');
-      inner += `<input class="blank ${cls}" id="blank_${line.blank.idx}" style="width:${line.blank.width}px" value="${cur}" oninput="onBlankInput(${line.blank.idx})">`;
-    }
-    if (line.suffix) inner += colorize(line.suffix);
-    html += `<div class="line"><span class="ln">${i+1}</span><span class="code-line">${inner}</span></div>`;
-  });
-  area.innerHTML = html;
-  document.getElementById('runBtn').disabled = !blanksValid();
-}
-
-function colorize(txt) {
-  return escape(txt)
-    .replace(/(&quot;[^&]*&quot;|&#39;[^&]*&#39;)/g, '<span class="str">$1</span>')
-    .replace(/("[^"]*"|'[^']*')/g, '<span class="str">$1</span>')
-    .replace(/\b(for|in|if|else|elif|while|def|return|True|False|None)\b/g, '<span class="kw">$1</span>')
-    .replace(/\b(print|range|len|input|int|str|float)\b/g, '<span class="fn">$1</span>')
-    .replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
-}
-
-function escape(s) { return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-function blanksValid() {
-  const s = STEPS[state.step];
-  if (!s.blanks || !s.blanks.length) return true;
-  return s.blanks.every((b, i) => b.validator(state['blank_'+i] || ''));
-}
-
-window.onBlankInput = function(idx) {
-  const inp = document.getElementById('blank_'+idx);
-  state['blank_'+idx] = inp.value;
-  const s = STEPS[state.step];
-  const valid = s.blanks[idx].validator(inp.value);
-  inp.classList.toggle('ok', valid);
-  inp.classList.toggle('bad', !valid && inp.value.length > 0);
-  document.getElementById('runBtn').disabled = !blanksValid();
-};
-
-function assembleCode() {
-  const s = STEPS[state.step];
-  return s.code.map(line => {
-    let txt = line.txt;
-    if (line.blank) txt += (state['blank_'+line.blank.idx] || '');
-    if (line.suffix) txt += line.suffix;
-    return txt;
-  }).join('\n');
-}
-
-document.getElementById('runBtn').addEventListener('click', () => {
-  const s = STEPS[state.step];
-  const code = assembleCode();
-  const console_ = document.getElementById('console');
-  console_.innerHTML = '';
-  document.getElementById('runStatus').textContent = 'Running...';
-  try {
-    const initial = s.runMode === 'persistBananas' ? { bananas: state.bananas } : {};
-    const { vars, out } = runPython(code, initial);
-    out.forEach(o => {
-      const div = document.createElement('div');
-      div.className = 'out';
-      div.textContent = '› ' + o;
-      console_.appendChild(div);
-    });
-    document.getElementById('runStatus').textContent = '✓ Ran successfully';
-    state.ranThisStep = true;
-    s.onRun(vars);
-    setTimeout(() => renderLesson(), 100);
-  } catch (e) {
-    const div = document.createElement('div');
-    div.className = 'out err';
-    div.textContent = '✗ Error: ' + e.message;
-    console_.appendChild(div);
-    document.getElementById('runStatus').textContent = '✗ Error';
-  }
-});
-
-document.getElementById('resetBtn').addEventListener('click', () => {
-  state.bananas = 0;
-  state.ranThisStep = false;
-  renderBananas();
-  document.getElementById('console').innerHTML = '';
-  document.getElementById('runStatus').textContent = '';
-  renderLesson();
-});
-
-function renderBananas() {
-  document.getElementById('bananaCount').textContent = state.bananas;
+function renderBananas(count) {
+  document.getElementById('bananaCount').textContent = count;
   const pile = document.getElementById('pile');
   pile.innerHTML = '';
-  for (let i = 0; i < Math.min(state.bananas, 30); i++) {
+  for (let i = 0; i < Math.min(count, 30); i++) {
     const b = document.createElement('span');
     b.className = 'banana';
     b.textContent = '🍌';
@@ -470,72 +74,115 @@ function spawnFlyingBanana() {
   setTimeout(() => fly.remove(), 800);
 }
 
-function animateLoopBananas(n) {
-  state.bananas = 0;
-  renderBananas();
+function animateLoopBananas(n, state) {
+  state.custom.bananas = 0;
+  renderBananas(0);
   for (let i = 0; i < n; i++) {
     setTimeout(() => {
-      state.bananas++;
-      renderBananas();
+      state.custom.bananas++;
+      renderBananas(state.custom.bananas);
       spawnFlyingBanana();
-      if (state.bananas === n) renderLesson();
+      if (state.custom.bananas === n) MC.renderLesson();
     }, 200 + i * 280);
   }
 }
 
-function celebrate() {
-  const stage = document.getElementById('stage');
-  const c = document.createElement('div');
-  c.className = 'celebration';
-  c.textContent = '🎉';
-  stage.appendChild(c);
-  setTimeout(() => c.remove(), 1300);
-}
-
-window.goNext = function() {
-  state.completed[state.step] = true;
-  if (STEPS[state.step].isLast) { showSummary(); return; }
-  state.step++;
-  state.ranThisStep = false;
-  delete state['blank_0'];
-  delete state['blank_1'];
-  document.getElementById('console').innerHTML = '';
-  document.getElementById('runStatus').textContent = '';
-  if (STEPS[state.step].runMode !== 'persistBananas') {
-    state.bananas = 0;
-    renderBananas();
-  }
-  renderLesson();
+window.PROJECT = {
+  initialState: { bananas: 0 },
+  STEPS: [
+    {
+      title: "1. Make a variable",
+      sub: "A variable is a box that holds a number.",
+      task: "🎯 Click ▶ Run code to make a banana counter.",
+      taskSub: "We will create a number called bananas and set it to 0.",
+      why: "In Python, <b>bananas = 0</b> means: \"make a box called bananas and put 0 inside.\" The = sign doesn't mean equals — it means \"put this in here.\"",
+      hint: "Just click the green ▶ Run code button. No typing needed yet!",
+      code: [
+        { txt: "bananas = 0" },
+        { txt: 'print("Mango has", bananas, "bananas!")' }
+      ],
+      blanks: [],
+      onRun: (vars, state) => { state.custom.bananas = vars.bananas || 0; renderBananas(state.custom.bananas); },
+      canAdvance: s => s.ranThisStep === true,
+      advanceMessage: '✓ You ran your first Python program!'
+    },
+    {
+      title: "2. Add 1 banana",
+      sub: "Use math to grow the number.",
+      task: "🎯 Type 1 in the yellow box, then click ▶ Run.",
+      taskSub: "Click Run a few times — watch bananas grow!",
+      why: "<b>bananas = bananas + 1</b> means: \"take what's in the bananas box, add 1, put it back.\" Each time you click Run, it adds another banana.",
+      hint: "Type the number 1 in the yellow blank.",
+      code: [
+        { txt: "bananas = bananas + ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("Mango grabs a banana! Total:", bananas)' }
+      ],
+      blanks: [{ validator: v => v === "1" }],
+      getInitialVars: s => ({ bananas: s.custom.bananas }),
+      onRun: (vars, state) => { state.custom.bananas = vars.bananas; renderBananas(state.custom.bananas); spawnFlyingBanana(); },
+      canAdvance: s => s.custom.bananas >= 3,
+      advanceMessage: '✓ Got 3+ bananas! Time to learn loops.'
+    },
+    {
+      title: "3. Use a loop",
+      sub: "Repeat code many times — automatically.",
+      task: "🎯 Type 5 in the yellow box, then click ▶ Run.",
+      taskSub: "Mango will grab 5 bananas with one click!",
+      why: "<b>for i in range(5):</b> means \"do this 5 times.\" The indented line is what gets repeated. Loops save you from clicking Run over and over.",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "bananas = 0" },
+        { txt: "for i in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    bananas = bananas + 1" },
+        { txt: 'print("Total bananas:", bananas)' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { animateLoopBananas(vars.bananas, state); },
+      canAdvance: s => s.custom.bananas >= 5,
+      advanceMessage: '✓ 5 bananas in one click! Loops are powerful.'
+    },
+    {
+      title: "4. Make a choice with if",
+      sub: "Tell the computer when to do something.",
+      task: "🎯 Type 10 in the yellow box, then click ▶ Run.",
+      taskSub: "Mango will celebrate when he has enough bananas!",
+      why: "<b>if bananas >= 10:</b> means \"only do this if bananas is 10 or more.\" The computer checks the rule and only runs the indented line when it's true.",
+      hint: "Put 10 in the blank.",
+      code: [
+        { txt: "bananas = ", blank: { idx: 0, width: 50 } },
+        { txt: "if bananas >= 10:" },
+        { txt: '    print("🎉 Mango is full and happy!")' }
+      ],
+      blanks: [{ validator: v => v === "10" }],
+      onRun: (vars, state) => { state.custom.bananas = vars.bananas; renderBananas(state.custom.bananas); if (vars.bananas >= 10) MC.celebrate(); },
+      canAdvance: s => s.custom.bananas >= 10,
+      advanceMessage: '✓ Mango is celebrating! You used if.'
+    },
+    {
+      title: "5. Final challenge",
+      sub: "Put it all together.",
+      task: "🎯 Fill BOTH yellow boxes: 0 (start) and 7 (loop times).",
+      taskSub: "Then click ▶ Run to win the quest!",
+      why: "You're now writing real Python! Variables, loops, and if-statements are the foundation of every program.",
+      hint: "First blank = 0 (start). Second blank = 7 (loop count).",
+      code: [
+        { txt: "bananas = ", blank: { idx: 0, width: 50 } },
+        { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+        { txt: "    bananas = bananas + 1" },
+        { txt: "if bananas == 7:" },
+        { txt: '    print("🏆 Perfect! Quest complete!")' }
+      ],
+      blanks: [{ validator: v => v === "0" }, { validator: v => v === "7" }],
+      onRun: (vars, state) => { animateLoopBananas(vars.bananas, state); if (vars.bananas === 7) setTimeout(() => MC.celebrate(), 2400); },
+      canAdvance: s => s.custom.bananas === 7,
+      advanceMessage: '✓ Quest complete! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.bananas = 0; renderBananas(0); },
+  summary: `<div class="ic">🏆</div><h2>Quest Complete!</h2><p>You wrote real Python code and helped Mango collect bananas.</p><ul><li>You used a <b>variable</b> to store numbers</li><li>You did <b>math</b> on your variable</li><li>You used a <b>loop</b> to repeat code</li><li>You used <b>if</b> to make a decision</li></ul><div class="next">Next up: <b>Fraction Feast</b> — slice pizzas with code!</div>`
 };
-
-window.goPrev = function() {
-  if (state.step > 0) state.step--;
-  state.ranThisStep = false;
-  delete state['blank_0'];
-  delete state['blank_1'];
-  renderLesson();
-};
-
-function showSummary() {
-  document.querySelector('.shell').style.display = 'none';
-  const summary = document.createElement('div');
-  summary.className = 'summary';
-  summary.innerHTML = `
-    <div class="ic">🏆</div>
-    <h2>Quest Complete!</h2>
-    <p>You wrote real Python code and helped Mango collect bananas.</p>
-    <ul>
-      <li>You used a <b>variable</b> to store numbers</li>
-      <li>You did <b>math</b> on your variable</li>
-      <li>You used a <b>loop</b> to repeat code</li>
-      <li>You used <b>if</b> to make a decision</li>
-    </ul>
-    <div class="next">Next up: <b>Fraction Feast</b> — slice pizzas with code!</div>
-  `;
-  document.querySelector('.app').appendChild(summary);
-}
-
-renderLesson();
-renderBananas();
+renderBananas(0);
 </script>
+<script src="/js/mathcode-v2.js"></script>
 </body></html>
