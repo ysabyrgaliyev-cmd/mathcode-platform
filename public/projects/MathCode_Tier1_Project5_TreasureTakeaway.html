@@ -1,0 +1,186 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Treasure Takeaway — MathCode</title>
+<link rel="stylesheet" href="/css/mathcode-v2.css">
+<style>
+.stage-visual{background:linear-gradient(180deg,#fef3c7,#f59e0b)}
+.chest{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:50px}
+.pirate{position:absolute;bottom:14px;left:14px;font-size:60px;animation:sway 2s infinite}
+@keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.gem-area{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:280px}
+.gem{font-size:28px;animation:gemPop .3s ease-out}
+@keyframes gemPop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.gem.taken{animation:gemGone .4s ease-in forwards}
+@keyframes gemGone{0%{transform:scale(1);opacity:1}100%{transform:scale(0) translateY(-30px);opacity:0}}
+</style></head><body>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🏴‍☠️💎</div><h2>Welcome to Treasure Takeaway!</h2>
+  <p>Captain Cody found treasure! Help him figure out how many gems are left after sharing some away.</p>
+  <div class="pills"><div class="pill">⏱ 10 min</div><div class="pill">📚 Grade K–2</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Use <b>subtraction</b> in code</li>
+    <li>Take away from a variable</li>
+    <li>Use a <b>loop</b> to subtract many times</li>
+    <li>Use <b>if</b> to check what's left</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's go! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🏴‍☠️</div><div><h1>Treasure Takeaway</h1><div class="sub">Subtract gems with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="counter"><span class="lbl">💎 Gems</span><span id="gemCount">0</span></div>
+        <div class="gem-area" id="gemArea"></div>
+        <div class="pirate">🏴‍☠️</div>
+        <div class="chest">🧰</div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>treasure.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset gems</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const gemEmojis = ['💎','💠','🔷','🔶','💜'];
+
+function renderGems(count) {
+  document.getElementById('gemCount').textContent = count;
+  const area = document.getElementById('gemArea');
+  area.innerHTML = '';
+  for (let i = 0; i < Math.min(count, 30); i++) {
+    const g = document.createElement('span');
+    g.className = 'gem';
+    g.textContent = gemEmojis[i % gemEmojis.length];
+    area.appendChild(g);
+  }
+}
+
+function animateTakeaway(from, taken, state) {
+  state.custom.gems = from;
+  renderGems(from);
+  for (let i = 0; i < taken; i++) {
+    setTimeout(() => {
+      const area = document.getElementById('gemArea');
+      const last = area.lastElementChild;
+      if (last) { last.classList.add('taken'); setTimeout(() => last.remove(), 400); }
+      state.custom.gems--;
+      document.getElementById('gemCount').textContent = state.custom.gems;
+      if (i === taken - 1) MC.renderLesson();
+    }, 300 + i * 350);
+  }
+}
+
+window.PROJECT = {
+  initialState: { gems: 0 },
+  STEPS: [
+    {
+      title: "1. Count the treasure",
+      sub: "Start by putting gems in the chest.",
+      task: "🎯 Type 8 to put 8 gems in the chest, then click ▶ Run.",
+      taskSub: "This creates your starting treasure.",
+      why: "<b>gems = 8</b> means \"put 8 gems in our treasure chest.\" We're storing the number 8 in a variable called gems.",
+      hint: "Type 8 in the yellow box.",
+      code: [
+        { txt: "gems = ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("Captain Cody has", gems, "gems!")' }
+      ],
+      blanks: [{ validator: v => v === "8" }],
+      onRun: (vars, state) => { state.custom.gems = vars.gems; renderGems(vars.gems); },
+      canAdvance: s => s.custom.gems === 8,
+      advanceMessage: '✓ 8 gems in the chest!'
+    },
+    {
+      title: "2. Give some away",
+      sub: "Subtraction means taking away.",
+      task: "🎯 Type 3 to give away 3 gems, then click ▶ Run.",
+      taskSub: "Watch the gems disappear!",
+      why: "<b>gems = gems - 3</b> means: \"take what's in gems (8), subtract 3, put the answer back (5).\" This is how computers subtract — same as you do on paper!",
+      hint: "Put 3 in the blank.",
+      code: [
+        { txt: "gems = 8" },
+        { txt: "gems = gems - ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("Gave some away! Left:", gems)' }
+      ],
+      blanks: [{ validator: v => v === "3" }],
+      onRun: (vars, state) => { animateTakeaway(8, 3, state); },
+      canAdvance: s => s.custom.gems === 5,
+      advanceMessage: '✓ 8 - 3 = 5 gems left!'
+    },
+    {
+      title: "3. Give away in a loop",
+      sub: "Subtract many times automatically.",
+      task: "🎯 Start with 10 gems, give away 4 in a loop.",
+      taskSub: "Fill both blanks: gems=10, loop=4.",
+      why: "<b>for i in range(4):</b> runs the subtraction 4 times. Each time, one gem is removed. 10 - 1 - 1 - 1 - 1 = 6 gems left.",
+      hint: "First blank: 10. Second blank: 4.",
+      code: [
+        { txt: "gems = ", blank: { idx: 0, width: 50 } },
+        { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+        { txt: "    gems = gems - 1" },
+        { txt: 'print("Gems remaining:", gems)' }
+      ],
+      blanks: [{ validator: v => v === "10" }, { validator: v => v === "4" }],
+      onRun: (vars, state) => { animateTakeaway(10, 4, state); },
+      canAdvance: s => s.custom.gems === 6,
+      advanceMessage: '✓ 10 - 4 = 6! Loops make subtraction easy.'
+    },
+    {
+      title: "4. Check if any left",
+      sub: "Use if to make a decision.",
+      task: "🎯 Type 5 to give away 5 of 5 gems.",
+      taskSub: "See what happens when gems reaches 0!",
+      why: "<b>if gems == 0:</b> checks whether all gems are gone. The computer only runs the indented line when the check is true. == means \"is equal to.\"",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "gems = 5" },
+        { txt: "gems = gems - ", blank: { idx: 0, width: 50 } },
+        { txt: "if gems == 0:" },
+        { txt: '    print("🏴‍☠️ All treasure given away!")' },
+        { txt: "else:" },
+        { txt: '    print("Still have", gems, "gems")' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { state.custom.gems = vars.gems; renderGems(vars.gems); if (vars.gems === 0) MC.celebrate(); },
+      canAdvance: s => s.custom.gems === 0,
+      advanceMessage: '✓ All gone! You used if and else.'
+    },
+    {
+      title: "5. Final challenge",
+      sub: "Put it all together!",
+      task: "🎯 Start with 12 gems, give away 9 in a loop. Check if fewer than 5 left.",
+      taskSub: "Fill all blanks: 12, 9, 5.",
+      why: "12 - 9 = 3. Since 3 < 5, the if-check is true! You combined variables, loops, subtraction, and if — real programming!",
+      hint: "First: 12. Second: 9. Third: 5.",
+      code: [
+        { txt: "gems = ", blank: { idx: 0, width: 50 } },
+        { txt: "for i in range(", blank: { idx: 1, width: 50 }, suffix: "):" },
+        { txt: "    gems = gems - 1" },
+        { txt: "if gems < ", blank: { idx: 2, width: 50 }, suffix: ":" },
+        { txt: '    print("🏆 Almost empty! Only", gems, "left!")' }
+      ],
+      blanks: [{ validator: v => v === "12" }, { validator: v => v === "9" }, { validator: v => v === "5" }],
+      onRun: (vars, state) => { animateTakeaway(12, 9, state); if (vars.gems < 5) setTimeout(() => MC.celebrate(), 3500); },
+      canAdvance: s => s.custom.gems === 3,
+      advanceMessage: '✓ Treasure Takeaway complete! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.gems = 0; renderGems(0); },
+  summary: `<div class="ic">🏴‍☠️</div><h2>Takeaway Complete!</h2><p>You helped Captain Cody subtract gems using Python.</p><ul><li>Subtraction with <b>minus (-)</b></li><li>Loops to subtract many times</li><li><b>if/else</b> to check what's left</li><li>Combined everything in a challenge</li></ul><div class="next">Next up: <b>Number Showdown</b> — compare numbers in a battle!</div>`
+};
+renderGems(0);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

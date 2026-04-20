@@ -1,0 +1,159 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skip Count Safari — MathCode</title>
+<link rel="stylesheet" href="/css/mathcode-v2.css">
+<style>
+.stage-visual{background:linear-gradient(180deg,#fef9c3,#84cc16)}
+.safari-trail{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:400px;padding:10px}
+.animal-group{display:flex;flex-direction:column;align-items:center;gap:2px;animation:hop .4s ease-out}
+.animal-group .emojis{font-size:22px;letter-spacing:2px}
+.animal-group .count-tag{font-size:11px;font-weight:900;color:white;background:#166534;border-radius:10px;padding:2px 8px}
+@keyframes hop{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.ranger{position:absolute;bottom:14px;left:14px;font-size:50px;animation:walk 1.5s infinite}
+@keyframes walk{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+.trail-count{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:24px;font-weight:900;font-size:16px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.trail-count .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:600;text-transform:uppercase}
+</style></head><body>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🦒🐘🦓</div><h2>Welcome to Skip Count Safari!</h2>
+  <p>Ranger Riley spots animals in groups! Count by 2s, 5s, and 10s to track them all.</p>
+  <div class="pills"><div class="pill">⏱ 10 min</div><div class="pill">📚 Grade K–2</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Count by <b>2s, 5s, and 10s</b></li>
+    <li>Use <b>range(start, stop, step)</b></li>
+    <li>See how skip counting connects to <b>multiplication</b></li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Start safari! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🦁</div><div><h1>Skip Count Safari</h1><div class="sub">Count by 2s, 5s, and 10s with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="trail-count"><span class="lbl">Total spotted</span><span id="totalSpotted">0</span></div>
+        <div class="safari-trail" id="trail"></div>
+        <div class="ranger">🧑‍🌾</div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>safari.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const animalSets = {
+  2: ['🐘🐘','🦒🦒','🦓🦓','🐄🐄','🦬🦬','🐑🐑'],
+  5: ['🐘🐘🐘🐘🐘','🦒🦒🦒🦒🦒','🦓🦓🦓🦓🦓','🐄🐄🐄🐄🐄'],
+  10:['🐘🐘🐘🐘🐘🐘🐘🐘🐘🐘','🦒🦒🦒🦒🦒🦒🦒🦒🦒🦒']
+};
+
+function animateTrail(step, groups, state) {
+  const trail = document.getElementById('trail');
+  trail.innerHTML = '';
+  state.custom.total = 0;
+  document.getElementById('totalSpotted').textContent = 0;
+  const animals = animalSets[step] || animalSets[2];
+  for (let i = 0; i < groups; i++) {
+    setTimeout(() => {
+      const grp = document.createElement('div');
+      grp.className = 'animal-group';
+      const count = (i + 1) * step;
+      grp.innerHTML = `<span class="emojis">${animals[i % animals.length]}</span><span class="count-tag">${count}</span>`;
+      trail.appendChild(grp);
+      state.custom.total = count;
+      document.getElementById('totalSpotted').textContent = count;
+      if (i === groups - 1) MC.renderLesson();
+    }, 300 + i * 400);
+  }
+}
+
+window.PROJECT = {
+  initialState: { total: 0 },
+  STEPS: [
+    {
+      title: "1. Count by 2s",
+      sub: "Animals come in pairs!",
+      task: "🎯 Type 2 to count by twos, then click ▶ Run.",
+      taskSub: "Watch: 2, 4, 6, 8, 10!",
+      why: "<b>range(2, 11, 2)</b> means \"start at 2, go up to 10, jumping by 2 each time.\" That gives us 2, 4, 6, 8, 10 — counting by twos! The third number in range() is the step size.",
+      hint: "Put 2 in the blank.",
+      code: [
+        { txt: "for count in range(", blank: { idx: 0, width: 40 }, suffix: ", 11, 2):" },
+        { txt: '    print("Spotted:", count, "animals")' }
+      ],
+      blanks: [{ validator: v => v === "2" }],
+      onRun: (vars, state) => { animateTrail(2, 5, state); },
+      canAdvance: s => s.custom.total === 10,
+      advanceMessage: '✓ 2, 4, 6, 8, 10 — counting by 2s!'
+    },
+    {
+      title: "2. Count by 5s",
+      sub: "Bigger groups now!",
+      task: "🎯 Type 5 to count by fives up to 25.",
+      taskSub: "Watch: 5, 10, 15, 20, 25!",
+      why: "<b>range(5, 26, 5)</b> starts at 5 and jumps by 5 each time. This is skip counting by 5s — like counting nickels! Notice the pattern: 5, 10, 15, 20, 25.",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "for count in range(", blank: { idx: 0, width: 40 }, suffix: ", 26, 5):" },
+        { txt: '    print("Group of 5! Total:", count)' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { animateTrail(5, 5, state); },
+      canAdvance: s => s.custom.total === 25,
+      advanceMessage: '✓ 5, 10, 15, 20, 25 — counting by 5s!'
+    },
+    {
+      title: "3. Count by 10s",
+      sub: "The biggest groups!",
+      task: "🎯 Type 10 to count by tens up to 50.",
+      taskSub: "Watch: 10, 20, 30, 40, 50!",
+      why: "<b>range(10, 51, 10)</b> jumps by 10 each time. Counting by 10s is the fastest way to count big numbers. Notice: the ones digit is always 0!",
+      hint: "Put 10 in the blank.",
+      code: [
+        { txt: "for count in range(", blank: { idx: 0, width: 50 }, suffix: ", 51, 10):" },
+        { txt: '    print("Herd of 10! Total:", count)' }
+      ],
+      blanks: [{ validator: v => v === "10" }],
+      onRun: (vars, state) => { animateTrail(10, 5, state); },
+      canAdvance: s => s.custom.total === 50,
+      advanceMessage: '✓ 10, 20, 30, 40, 50 — counting by 10s!'
+    },
+    {
+      title: "4. Safari challenge!",
+      sub: "Choose your own skip count.",
+      task: "🎯 Start at 5, end at 30, step by 5. Fill all three blanks.",
+      taskSub: "How many groups will the ranger spot?",
+      why: "You control all three parts of range: <b>start</b>, <b>stop</b>, and <b>step</b>. range(5, 31, 5) gives 5, 10, 15, 20, 25, 30 — that's 6 groups! Skip counting is really multiplication: 6 groups of 5 = 30.",
+      hint: "First: 5. Second: 31 (one more than 30). Third: 5.",
+      code: [
+        { txt: "total = 0" },
+        { txt: "for count in range(", blank: { idx: 0, width: 40 }, suffix: ", 31, 5):" },
+        { txt: "    total = count" },
+        { txt: '    print("Spotted:", count)' },
+        { txt: "if total == 30:" },
+        { txt: '    print("🏆 Safari complete! Spotted", total, "animals!")' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { animateTrail(5, 6, state); if (vars.total === 30) setTimeout(() => MC.celebrate(), 2800); },
+      canAdvance: s => s.custom.total === 30,
+      advanceMessage: '✓ 30 animals spotted! Safari complete! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.total = 0; document.getElementById('trail').innerHTML = ''; document.getElementById('totalSpotted').textContent = '0'; },
+  summary: `<div class="ic">🦁</div><h2>Safari Complete!</h2><p>You counted animals by 2s, 5s, and 10s using Python.</p><ul><li><b>range(start, stop, step)</b> controls skip counting</li><li>Count by 2s: 2, 4, 6, 8, 10...</li><li>Count by 5s: 5, 10, 15, 20, 25...</li><li>Count by 10s: 10, 20, 30, 40, 50...</li></ul><div class="next">Next up: <b>Addition Station</b> — add bigger numbers on a train!</div>`
+};
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

@@ -1,0 +1,224 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Addition Station — MathCode</title>
+<link rel="stylesheet" href="/css/mathcode-v2.css">
+<style>
+.stage-visual{background:linear-gradient(180deg,#dbeafe,#60a5fa)}
+.train{display:flex;align-items:flex-end;justify-content:center;gap:4px;position:relative}
+.car{background:white;border-radius:10px 10px 4px 4px;padding:8px 10px;text-align:center;min-width:60px;box-shadow:0 4px 8px rgba(0,0,0,.15);animation:trainPull .4s ease-out;position:relative}
+.car::after{content:'';position:absolute;bottom:-6px;left:8px;width:10px;height:10px;background:#374151;border-radius:50%;box-shadow:24px 0 0 #374151}
+@keyframes trainPull{0%{transform:translateX(40px);opacity:0}100%{transform:translateX(0);opacity:1}}
+.car .passengers{font-size:20px;letter-spacing:1px}
+.car .car-label{font-size:10px;color:var(--ink-soft);font-weight:700;margin-top:2px}
+.car .car-num{font-size:18px;font-weight:900;color:var(--primary)}
+.engine{background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border-radius:10px 14px 4px 4px;padding:10px 14px;font-size:20px;box-shadow:0 4px 8px rgba(0,0,0,.2);position:relative}
+.engine::after{content:'';position:absolute;bottom:-6px;left:8px;width:10px;height:10px;background:#374151;border-radius:50%;box-shadow:20px 0 0 #374151}
+.engine .smoke{position:absolute;top:-12px;left:10px;font-size:16px;animation:puff 1s infinite}
+@keyframes puff{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-14px)}}
+.total-display{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:24px;font-weight:900;font-size:18px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.total-display .lbl{display:block;font-size:10px;color:var(--ink-soft);font-weight:600;text-transform:uppercase}
+.track{position:absolute;bottom:20px;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#374151 0,#374151 20px,transparent 20px,transparent 30px)}
+</style></head><body>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🚂🧑‍🤝‍🧑</div><h2>Welcome to Addition Station!</h2>
+  <p>The MathCode Express picks up passengers at each stop! Add up all the riders.</p>
+  <div class="pills"><div class="pill">⏱ 12 min</div><div class="pill">📚 Grade K–2</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li><b>Add</b> two and three numbers</li>
+    <li>Use a <b>list</b> to hold many numbers</li>
+    <li>Use a <b>loop</b> to add a whole list</li>
+    <li>Use <b>sum()</b> — Python's built-in adder</li>
+    <li>Solve a multi-step <b>word problem</b></li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">All aboard! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🚂</div><div><h1>Addition Station</h1><div class="sub">Add passengers on the MathCode Express</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="total-display"><span class="lbl">🧑‍🤝‍🧑 Passengers</span><span id="totalPass">0</span></div>
+        <div class="train" id="trainArea">
+          <div class="engine"><span class="smoke">💨</span>🚂</div>
+        </div>
+        <div class="track"></div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>train.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function renderTrain(stops) {
+  const area = document.getElementById('trainArea');
+  area.innerHTML = '<div class="engine"><span class="smoke">💨</span>🚂</div>';
+  let total = 0;
+  stops.forEach((n, i) => {
+    total += n;
+    const car = document.createElement('div');
+    car.className = 'car';
+    car.style.animationDelay = (i * 200) + 'ms';
+    const people = '🧑'.repeat(Math.min(n, 8));
+    car.innerHTML = `<div class="passengers">${people}</div><div class="car-num">+${n}</div><div class="car-label">Stop ${i+1}</div>`;
+    area.appendChild(car);
+  });
+  document.getElementById('totalPass').textContent = total;
+  return total;
+}
+
+function animateStops(stops, state) {
+  const area = document.getElementById('trainArea');
+  area.innerHTML = '<div class="engine"><span class="smoke">💨</span>🚂</div>';
+  state.custom.passengers = 0;
+  document.getElementById('totalPass').textContent = 0;
+  stops.forEach((n, i) => {
+    setTimeout(() => {
+      state.custom.passengers += n;
+      const car = document.createElement('div');
+      car.className = 'car';
+      const people = '🧑'.repeat(Math.min(n, 8));
+      car.innerHTML = `<div class="passengers">${people}</div><div class="car-num">+${n}</div><div class="car-label">Stop ${i+1}</div>`;
+      area.appendChild(car);
+      document.getElementById('totalPass').textContent = state.custom.passengers;
+      if (i === stops.length - 1) MC.renderLesson();
+    }, 400 + i * 500);
+  });
+}
+
+window.PROJECT = {
+  initialState: { passengers: 0 },
+  STEPS: [
+    {
+      title: "1. First two stops",
+      sub: "Add passengers from two stations.",
+      task: "🎯 Type 5 for the second stop, then click ▶ Run.",
+      taskSub: "3 people get on, then 5 more!",
+      why: "<b>total = stop1 + stop2</b> adds the passengers together. 3 + 5 = 8. The + sign works the same in Python as in math!",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "stop1 = 3" },
+        { txt: "stop2 = ", blank: { idx: 0, width: 50 } },
+        { txt: "total = stop1 + stop2" },
+        { txt: 'print("Passengers aboard:", total)' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { state.custom.passengers = vars.total; renderTrain([3, 5]); },
+      canAdvance: s => s.custom.passengers === 8,
+      advanceMessage: '✓ 3 + 5 = 8 passengers!'
+    },
+    {
+      title: "2. Three stops",
+      sub: "Add three numbers in one line.",
+      task: "🎯 Type 4 for stop 3. Total should be 13.",
+      taskSub: "2 + 7 + 4 = ?",
+      why: "Python can add as many numbers as you want in one line: <b>total = a + b + c</b>. It works left to right, just like you'd do it: 2 + 7 = 9, then 9 + 4 = 13.",
+      hint: "Put 4 in the blank. 2 + 7 + 4 = 13.",
+      code: [
+        { txt: "stop1 = 2" },
+        { txt: "stop2 = 7" },
+        { txt: "stop3 = ", blank: { idx: 0, width: 50 } },
+        { txt: "total = stop1 + stop2 + stop3" },
+        { txt: 'print("All aboard!", total, "passengers")' }
+      ],
+      blanks: [{ validator: v => v === "4" }],
+      onRun: (vars, state) => { state.custom.passengers = vars.total; renderTrain([2, 7, 4]); },
+      canAdvance: s => s.custom.passengers === 13,
+      advanceMessage: '✓ 2 + 7 + 4 = 13!'
+    },
+    {
+      title: "3. Use a list",
+      sub: "Store many numbers in one place.",
+      task: "🎯 Type 6 as the last stop. Then click ▶ Run.",
+      taskSub: "A list holds all the stops together.",
+      why: "<b>stops = [3, 5, 2, 6]</b> puts all four numbers in one list. <b>sum(stops)</b> adds them all up instantly! Lists are like train cars — they hold things in order.",
+      hint: "Put 6 in the blank.",
+      code: [
+        { txt: "stops = [3, 5, 2, ", blank: { idx: 0, width: 50 }, suffix: "]" },
+        { txt: "total = sum(stops)" },
+        { txt: 'print("Total passengers:", total)' }
+      ],
+      blanks: [{ validator: v => v === "6" }],
+      onRun: (vars, state) => { state.custom.passengers = vars.total; renderTrain([3, 5, 2, 6]); },
+      canAdvance: s => s.custom.passengers === 16,
+      advanceMessage: '✓ sum([3, 5, 2, 6]) = 16! Lists are handy.'
+    },
+    {
+      title: "4. Loop through stops",
+      sub: "Add one stop at a time with a loop.",
+      task: "🎯 Type 0 to start total at zero, then click ▶ Run.",
+      taskSub: "Watch the loop add each stop!",
+      why: "<b>for people in stops:</b> goes through each number one by one. <b>total = total + people</b> adds each one to the running total. This is exactly what sum() does inside — now you know the secret!",
+      hint: "Put 0 in the blank (start with zero passengers).",
+      code: [
+        { txt: "stops = [4, 3, 5, 8]" },
+        { txt: "total = ", blank: { idx: 0, width: 50 } },
+        { txt: "for people in stops:" },
+        { txt: "    total = total + people" },
+        { txt: '    print("Picked up", people, "— total:", total)' }
+      ],
+      blanks: [{ validator: v => v === "0" }],
+      onRun: (vars, state) => { animateStops([4, 3, 5, 8], state); },
+      canAdvance: s => s.custom.passengers === 20,
+      advanceMessage: '✓ 4 + 3 + 5 + 8 = 20 — loop power!'
+    },
+    {
+      title: "5. Express route",
+      sub: "Pick up passengers at 5 stops of 6 each.",
+      task: "🎯 Type 5 for the number of stops.",
+      taskSub: "Each stop picks up 6 people.",
+      why: "<b>range(5)</b> runs the loop 5 times. Each time we add 6 people. That's 6 + 6 + 6 + 6 + 6 = 30. Hey — that's 5 × 6! Addition and multiplication are connected!",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "total = 0" },
+        { txt: "for stop in range(", blank: { idx: 0, width: 50 }, suffix: "):" },
+        { txt: "    total = total + 6" },
+        { txt: 'print("Express total:", total)' },
+        { txt: "if total == 30:" },
+        { txt: '    print("🏆 Full train! 30 passengers!")' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { animateStops([6, 6, 6, 6, 6], state); if (vars.total === 30) setTimeout(() => MC.celebrate(), 2800); },
+      canAdvance: s => s.custom.passengers === 30,
+      advanceMessage: '✓ 5 stops × 6 = 30! All aboard!'
+    },
+    {
+      title: "6. Word problem bonus",
+      sub: "Solve a real-world problem with code!",
+      task: "🎯 The morning train has 12 people. The afternoon has 15. Evening has 8. What's the total?",
+      taskSub: "Fill in the three numbers.",
+      why: "Word problems become easy when you turn them into code! Read the problem → find the numbers → code it → run it. That's what real programmers do.",
+      hint: "First: 12. Second: 15. Third: 8. Total = 35.",
+      code: [
+        { txt: "morning = ", blank: { idx: 0, width: 50 } },
+        { txt: "afternoon = ", blank: { idx: 1, width: 50 } },
+        { txt: "evening = ", blank: { idx: 2, width: 50 } },
+        { txt: "total = morning + afternoon + evening" },
+        { txt: 'print("Daily total:", total, "passengers")' },
+        { txt: "if total > 30:" },
+        { txt: '    print("🏆 Busy day! Over 30 riders!")' }
+      ],
+      blanks: [{ validator: v => v === "12" }, { validator: v => v === "15" }, { validator: v => v === "8" }],
+      onRun: (vars, state) => { state.custom.passengers = vars.total; renderTrain([12, 15, 8]); if (vars.total > 30) MC.celebrate(); },
+      canAdvance: s => s.custom.passengers === 35,
+      advanceMessage: '✓ 12 + 15 + 8 = 35! Station complete! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.passengers = 0; document.getElementById('trainArea').innerHTML = '<div class="engine"><span class="smoke">💨</span>🚂</div>'; document.getElementById('totalPass').textContent = '0'; },
+  summary: `<div class="ic">🚂</div><h2>Station Complete!</h2><p>You added passengers on the MathCode Express with Python.</p><ul><li><b>+</b> adds two or more numbers</li><li><b>Lists</b> hold many numbers together</li><li><b>sum()</b> adds a whole list</li><li><b>Loops</b> add one at a time</li><li>Addition connects to <b>multiplication</b></li></ul><div class="next">🎉 Tier 1 complete! You're ready for Tier 2!</div>`
+};
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

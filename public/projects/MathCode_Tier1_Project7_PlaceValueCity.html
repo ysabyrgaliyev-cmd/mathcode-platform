@@ -1,0 +1,181 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Place Value City — MathCode</title>
+<link rel="stylesheet" href="/css/mathcode-v2.css">
+<style>
+.stage-visual{background:linear-gradient(180deg,#d1fae5,#34d399)}
+.block-area{display:flex;align-items:flex-end;justify-content:center;gap:20px;min-height:160px}
+.tens-col,.ones-col{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tens-col .label,.ones-col .label{font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;margin-bottom:4px}
+.ten-rod{width:20px;height:60px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:4px;animation:buildUp .3s ease-out}
+.one-cube{width:20px;height:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:3px;animation:buildUp .3s ease-out}
+@keyframes buildUp{0%{transform:scaleY(0);opacity:0}100%{transform:scaleY(1);opacity:1}}
+.number-display{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:white;padding:8px 20px;border-radius:24px;font-weight:900;font-size:24px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1)}
+.number-display .small{font-size:12px;color:var(--ink-soft);font-weight:600;display:block;text-align:center}
+.builder{position:absolute;bottom:14px;left:14px;font-size:50px}
+</style></head><body>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🏗️🧱</div><h2>Welcome to Place Value City!</h2>
+  <p>Builder Bot needs help! Build numbers using tens (blue rods) and ones (yellow cubes).</p>
+  <div class="pills"><div class="pill">⏱ 10 min</div><div class="pill">📚 Grade K–2</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Break numbers into <b>tens</b> and <b>ones</b></li>
+    <li>Use <b>multiplication</b> (tens × 10)</li>
+    <li>Add tens and ones together</li>
+    <li>Use <b>//</b> and <b>%</b> to split numbers</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's build! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">🏗️</div><div><h1>Place Value City</h1><div class="sub">Build numbers with tens and ones</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="number-display"><span class="small">Number</span><span id="totalNum">0</span></div>
+        <div class="block-area">
+          <div class="tens-col"><div class="label">Tens</div><div id="tensArea"></div></div>
+          <div class="ones-col"><div class="label">Ones</div><div id="onesArea"></div></div>
+        </div>
+        <div class="builder">🤖</div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>place_value.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function renderBlocks(tens, ones) {
+  const total = tens * 10 + ones;
+  document.getElementById('totalNum').textContent = total;
+  const tensArea = document.getElementById('tensArea');
+  const onesArea = document.getElementById('onesArea');
+  tensArea.innerHTML = '';
+  onesArea.innerHTML = '';
+  for (let i = 0; i < Math.min(tens, 9); i++) {
+    const rod = document.createElement('div');
+    rod.className = 'ten-rod';
+    rod.style.animationDelay = (i * 100) + 'ms';
+    tensArea.appendChild(rod);
+  }
+  for (let i = 0; i < Math.min(ones, 9); i++) {
+    const cube = document.createElement('div');
+    cube.className = 'one-cube';
+    cube.style.animationDelay = (i * 80) + 'ms';
+    onesArea.appendChild(cube);
+  }
+}
+
+window.PROJECT = {
+  initialState: { tens: 0, ones: 0 },
+  STEPS: [
+    {
+      title: "1. Build with ones",
+      sub: "Ones are the small yellow cubes.",
+      task: "🎯 Type 5 to place 5 ones cubes, then click ▶ Run.",
+      taskSub: "Each cube is worth 1.",
+      why: "When we write <b>ones = 5</b>, we're saying \"put 5 small cubes.\" Each cube is worth exactly 1. Five cubes = the number 5.",
+      hint: "Put 5 in the blank.",
+      code: [
+        { txt: "ones = ", blank: { idx: 0, width: 50 } },
+        { txt: 'print("We have", ones, "ones =", ones)' }
+      ],
+      blanks: [{ validator: v => v === "5" }],
+      onRun: (vars, state) => { state.custom.tens = 0; state.custom.ones = vars.ones; renderBlocks(0, vars.ones); },
+      canAdvance: s => s.custom.ones === 5,
+      advanceMessage: '✓ 5 ones cubes = 5!'
+    },
+    {
+      title: "2. Add some tens",
+      sub: "Tens are the tall blue rods. Each is worth 10!",
+      task: "🎯 Type 3 for tens and 4 for ones.",
+      taskSub: "3 tens + 4 ones = 34!",
+      why: "<b>number = tens * 10 + ones</b> — each ten-rod is worth 10, so 3 rods = 30. Add the 4 ones and you get 34. This is how place value works!",
+      hint: "First blank: 3. Second blank: 4.",
+      code: [
+        { txt: "tens = ", blank: { idx: 0, width: 50 } },
+        { txt: "ones = ", blank: { idx: 1, width: 50 } },
+        { txt: "number = tens * 10 + ones" },
+        { txt: 'print(tens, "tens +", ones, "ones =", number)' }
+      ],
+      blanks: [{ validator: v => v === "3" }, { validator: v => v === "4" }],
+      onRun: (vars, state) => { state.custom.tens = vars.tens; state.custom.ones = vars.ones; renderBlocks(vars.tens, vars.ones); },
+      canAdvance: s => s.custom.tens === 3 && s.custom.ones === 4,
+      advanceMessage: '✓ 3 tens + 4 ones = 34!'
+    },
+    {
+      title: "3. Break a number apart",
+      sub: "Split a number into tens and ones.",
+      task: "🎯 Type 57 — Python will split it for you!",
+      taskSub: "// gives tens, % gives ones.",
+      why: "<b>57 // 10</b> = 5 (how many tens fit in 57). <b>57 % 10</b> = 7 (what's left over). These are Python's division and remainder operators — perfect for place value!",
+      hint: "Put 57 in the blank.",
+      code: [
+        { txt: "number = ", blank: { idx: 0, width: 60 } },
+        { txt: "tens = number // 10" },
+        { txt: "ones = number % 10" },
+        { txt: 'print(number, "=", tens, "tens +", ones, "ones")' }
+      ],
+      blanks: [{ validator: v => v === "57" }],
+      onRun: (vars, state) => { state.custom.tens = vars.tens; state.custom.ones = vars.ones; renderBlocks(vars.tens, vars.ones); },
+      canAdvance: s => s.custom.tens === 5 && s.custom.ones === 7,
+      advanceMessage: '✓ 57 = 5 tens + 7 ones!'
+    },
+    {
+      title: "4. Build a loop of numbers",
+      sub: "Use a loop to build several numbers.",
+      task: "🎯 Type 3 to build numbers 10, 20, 30.",
+      taskSub: "Watch the blocks grow!",
+      why: "The loop counts i = 1, 2, 3. Each time, <b>number = i * 10</b> makes 10, 20, 30. Loops + math = powerful building!",
+      hint: "Put 3 in the blank (to loop 3 times).",
+      code: [
+        { txt: "for i in range(1, ", blank: { idx: 0, width: 50 }, suffix: " + 1):" },
+        { txt: "    number = i * 10" },
+        { txt: "    tens = number // 10" },
+        { txt: "    ones = number % 10" },
+        { txt: '    print(number, "=", tens, "tens")' }
+      ],
+      blanks: [{ validator: v => v === "3" }],
+      onRun: (vars, state) => { state.custom.tens = 3; state.custom.ones = 0; renderBlocks(3, 0); },
+      canAdvance: s => s.custom.tens === 3 && s.custom.ones === 0,
+      advanceMessage: '✓ Built 10, 20, 30 with a loop!'
+    },
+    {
+      title: "5. Final challenge",
+      sub: "Build the biggest number you can!",
+      task: "🎯 Type 8 tens and 6 ones. What number is that?",
+      taskSub: "Fill both blanks to win!",
+      why: "8 × 10 + 6 = 86. You now know how any two-digit number is built from tens and ones — and how to code it in Python!",
+      hint: "First: 8. Second: 6. The answer is 86.",
+      code: [
+        { txt: "tens = ", blank: { idx: 0, width: 50 } },
+        { txt: "ones = ", blank: { idx: 1, width: 50 } },
+        { txt: "number = tens * 10 + ones" },
+        { txt: "if number > 80:" },
+        { txt: '    print("🏆 Big number!", number, "— great building!")' }
+      ],
+      blanks: [{ validator: v => v === "8" }, { validator: v => v === "6" }],
+      onRun: (vars, state) => { state.custom.tens = vars.tens; state.custom.ones = vars.ones; renderBlocks(vars.tens, vars.ones); if (vars.tens * 10 + vars.ones > 80) MC.celebrate(); },
+      canAdvance: s => s.custom.tens === 8 && s.custom.ones === 6,
+      advanceMessage: '✓ 86! Place Value City complete! 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.tens = 0; s.custom.ones = 0; renderBlocks(0, 0); },
+  summary: `<div class="ic">🏗️</div><h2>City Complete!</h2><p>You built numbers using tens and ones with Python.</p><ul><li>Ones are worth <b>1</b>, tens are worth <b>10</b></li><li><b>* 10</b> to make tens, <b>+ ones</b> to finish</li><li><b>//</b> and <b>%</b> to split numbers apart</li><li>Loops to build many numbers</li></ul><div class="next">Next up: <b>Skip Count Safari</b> — count by 2s, 5s, and 10s!</div>`
+};
+renderBlocks(0, 0);
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>

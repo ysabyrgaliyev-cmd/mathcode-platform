@@ -1,0 +1,179 @@
+<!doctype html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Showdown — MathCode</title>
+<link rel="stylesheet" href="/css/mathcode-v2.css">
+<style>
+.stage-visual{background:linear-gradient(180deg,#ede9fe,#8b5cf6)}
+.arena{display:flex;align-items:center;justify-content:center;gap:20px;width:100%}
+.fighter{text-align:center;transition:transform .3s}
+.fighter .emoji{font-size:56px;display:block}
+.fighter .name{font-size:13px;color:white;font-weight:700;margin-top:4px}
+.fighter .num-badge{font-size:32px;font-weight:900;color:white;background:rgba(0,0,0,.25);border-radius:12px;padding:6px 16px;margin-top:6px;display:inline-block;min-width:60px}
+.fighter.win{transform:scale(1.15)}
+.fighter.lose{opacity:.5;transform:scale(.85)}
+.vs{font-size:36px;font-weight:900;color:#fbbf24;text-shadow:0 2px 8px rgba(0,0,0,.3)}
+.result-badge{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:white;padding:6px 16px;border-radius:24px;font-weight:900;font-size:16px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.15);opacity:0;transition:opacity .3s}
+.result-badge.show{opacity:1}
+</style></head><body>
+
+<div id="welcomeModal" class="modal-bg"><div class="modal">
+  <div class="ic">🐲⚔️🦁</div><h2>Welcome to Number Showdown!</h2>
+  <p>Dragon and Lion each have a number. Write Python code to figure out who has the bigger number!</p>
+  <div class="pills"><div class="pill">⏱ 8 min</div><div class="pill">📚 Grade K–2</div><div class="pill">🐍 Python</div></div>
+  <div class="youwill"><h4>You will learn to:</h4><ul>
+    <li>Compare numbers with <b>&gt;</b>, <b>&lt;</b>, <b>==</b></li>
+    <li>Use <b>if/else</b> to pick a winner</li>
+    <li>Combine comparisons</li>
+  </ul></div>
+  <button class="btn primary" onclick="document.getElementById('welcomeModal').remove()">Let's battle! →</button>
+</div></div>
+
+<div class="app">
+  <div class="hdr"><div class="icon">⚔️</div><div><h1>Number Showdown</h1><div class="sub">Compare numbers with Python</div></div><div class="lang">🐍 Python</div></div>
+  <div class="shell">
+    <div class="card lesson" id="lesson"></div>
+    <div class="stage">
+      <div class="stage-visual" id="stage">
+        <div class="result-badge" id="resultBadge">—</div>
+        <div class="arena">
+          <div class="fighter" id="fighterL">
+            <span class="emoji">🐲</span>
+            <span class="name">Dragon</span>
+            <span class="num-badge" id="numL">?</span>
+          </div>
+          <div class="vs">VS</div>
+          <div class="fighter" id="fighterR">
+            <span class="emoji">🦁</span>
+            <span class="name">Lion</span>
+            <span class="num-badge" id="numR">?</span>
+          </div>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="editor-hdr"><div class="dots-cd"><span></span><span></span><span></span></div><div>showdown.py</div></div>
+        <div class="editor-body" id="codeArea"></div>
+        <div class="run-row">
+          <button class="run-btn" id="runBtn">▶ Run code</button>
+          <button class="reset-btn" id="resetBtn">↺ Reset</button>
+          <span style="margin-left:auto;font-size:12px;color:#8a93b8" id="runStatus"></span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showBattle(left, right, result) {
+  document.getElementById('numL').textContent = left;
+  document.getElementById('numR').textContent = right;
+  const fL = document.getElementById('fighterL');
+  const fR = document.getElementById('fighterR');
+  fL.className = 'fighter'; fR.className = 'fighter';
+  const badge = document.getElementById('resultBadge');
+  if (result === 'left') { fL.classList.add('win'); fR.classList.add('lose'); badge.textContent = '🐲 Dragon wins!'; }
+  else if (result === 'right') { fR.classList.add('win'); fL.classList.add('lose'); badge.textContent = '🦁 Lion wins!'; }
+  else { badge.textContent = '🤝 It\'s a tie!'; }
+  badge.classList.add('show');
+}
+
+function resetArena() {
+  document.getElementById('numL').textContent = '?';
+  document.getElementById('numR').textContent = '?';
+  document.getElementById('fighterL').className = 'fighter';
+  document.getElementById('fighterR').className = 'fighter';
+  const badge = document.getElementById('resultBadge');
+  badge.classList.remove('show');
+}
+
+window.PROJECT = {
+  initialState: { winner: '' },
+  STEPS: [
+    {
+      title: "1. Give Dragon a number",
+      sub: "Each fighter gets a number to battle with.",
+      task: "🎯 Type 7 for Dragon, then click ▶ Run.",
+      taskSub: "Dragon enters the arena with 7 power!",
+      why: "<b>dragon = 7</b> stores the number 7. <b>lion = 3</b> stores 3. Now we can compare them to see who's bigger.",
+      hint: "Put 7 in the blank.",
+      code: [
+        { txt: "dragon = ", blank: { idx: 0, width: 50 } },
+        { txt: "lion = 3" },
+        { txt: 'print("Dragon:", dragon, "vs Lion:", lion)' }
+      ],
+      blanks: [{ validator: v => v === "7" }],
+      onRun: (vars, state) => { showBattle(vars.dragon, vars.lion, 'left'); state.custom.winner = 'dragon'; },
+      canAdvance: s => s.custom.winner === 'dragon',
+      advanceMessage: '✓ Dragon has 7, Lion has 3 — Dragon is bigger!'
+    },
+    {
+      title: "2. Who is greater?",
+      sub: "Use > to compare.",
+      task: "🎯 Type > in the blank to check if dragon is greater.",
+      taskSub: "The > sign means \"greater than.\"",
+      why: "<b>if dragon > lion:</b> asks \"is dragon's number bigger than lion's?\" If yes, it runs the indented line. The > sign works just like in math class!",
+      hint: "Type the > symbol in the blank.",
+      code: [
+        { txt: "dragon = 9" },
+        { txt: "lion = 4" },
+        { txt: "if dragon ", blank: { idx: 0, width: 40 }, suffix: " lion:" },
+        { txt: '    print("🐲 Dragon wins!")' },
+        { txt: "else:" },
+        { txt: '    print("🦁 Lion wins!")' }
+      ],
+      blanks: [{ validator: v => v.trim() === ">" }],
+      onRun: (vars, state) => { const w = vars.dragon > vars.lion ? 'left' : 'right'; showBattle(vars.dragon, vars.lion, w); state.custom.winner = 'compared'; },
+      canAdvance: s => s.custom.winner === 'compared',
+      advanceMessage: '✓ You used > to compare! 9 > 4 is true.'
+    },
+    {
+      title: "3. What about less than?",
+      sub: "< means the first number is smaller.",
+      task: "🎯 Type 2 for Dragon so Lion wins this round.",
+      taskSub: "Make Dragon smaller than Lion!",
+      why: "<b>if dragon < lion:</b> checks \"is dragon smaller?\" When dragon = 2 and lion = 6, the answer is yes! < is the opposite of >.",
+      hint: "Put 2 in the blank so dragon (2) < lion (6).",
+      code: [
+        { txt: "dragon = ", blank: { idx: 0, width: 50 } },
+        { txt: "lion = 6" },
+        { txt: "if dragon < lion:" },
+        { txt: '    print("🦁 Lion wins this round!")' },
+        { txt: "else:" },
+        { txt: '    print("🐲 Dragon wins or tie!")' }
+      ],
+      blanks: [{ validator: v => v === "2" }],
+      onRun: (vars, state) => { const w = vars.dragon < vars.lion ? 'right' : 'left'; showBattle(vars.dragon, vars.lion, w); state.custom.winner = 'lion'; if (vars.dragon < vars.lion) MC.celebrate(); },
+      canAdvance: s => s.custom.winner === 'lion',
+      advanceMessage: '✓ 2 < 6 — Lion wins! You know < now.'
+    },
+    {
+      title: "4. Final showdown!",
+      sub: "Handle all three cases: >, <, and ==.",
+      task: "🎯 Make it a tie! Type 5 for both fighters.",
+      taskSub: "Fill both blanks with 5.",
+      why: "<b>==</b> checks if two numbers are exactly equal. With if/elif/else we handle all three outcomes: dragon wins, lion wins, or tie. This is real decision-making in code!",
+      hint: "Both blanks should be 5.",
+      code: [
+        { txt: "dragon = ", blank: { idx: 0, width: 50 } },
+        { txt: "lion = ", blank: { idx: 1, width: 50 } },
+        { txt: "if dragon > lion:" },
+        { txt: '    print("🐲 Dragon wins!")' },
+        { txt: "if dragon < lion:" },
+        { txt: '    print("🦁 Lion wins!")' },
+        { txt: "if dragon == lion:" },
+        { txt: '    print("🤝 Perfect tie!")' }
+      ],
+      blanks: [{ validator: v => v === "5" }, { validator: v => v === "5" }],
+      onRun: (vars, state) => { const r = vars.dragon > vars.lion ? 'left' : (vars.dragon < vars.lion ? 'right' : 'tie'); showBattle(vars.dragon, vars.lion, r); state.custom.winner = 'tie'; if (vars.dragon === vars.lion) MC.celebrate(); },
+      canAdvance: s => s.custom.winner === 'tie',
+      advanceMessage: '✓ It\'s a tie! You mastered >, <, and == 🏆',
+      isLast: true
+    }
+  ],
+  onReset: s => { s.custom.winner = ''; resetArena(); },
+  summary: `<div class="ic">⚔️</div><h2>Showdown Complete!</h2><p>You compared numbers using Python operators.</p><ul><li><b>&gt;</b> means greater than</li><li><b>&lt;</b> means less than</li><li><b>==</b> means equal to</li><li><b>if/else</b> to handle different outcomes</li></ul><div class="next">Next up: <b>Place Value City</b> — build numbers with tens and ones!</div>`
+};
+resetArena();
+</script>
+<script src="/js/mathcode-v2.js"></script>
+</body></html>
