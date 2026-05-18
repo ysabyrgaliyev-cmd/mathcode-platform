@@ -49,6 +49,12 @@ async function mountTopbar(active = '') {
     if (!l.show) continue;
     nav.appendChild(el('a', { href: l.href, style: l.key === active ? 'color: var(--accent-2)' : '' }, l.label));
   }
+  // Hamburger button for mobile
+  const menuBtn = el('button', { class: 'mobile-menu-btn', 'aria-label': 'Menu', onclick: () => {
+    nav.classList.toggle('open');
+    menuBtn.textContent = nav.classList.contains('open') ? '✕' : '☰';
+  }}, '☰');
+  bar.appendChild(menuBtn);
   bar.appendChild(nav);
   const actions = el('div', { class: 'topbar-actions' });
   if (me) {

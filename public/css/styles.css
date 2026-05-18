@@ -187,3 +187,103 @@ footer { padding: 30px 28px; border-top: 1px solid var(--border); color: var(--t
 .spacer { flex: 1; }
 .center { text-align: center; }
 .hide { display: none; }
+
+/* ---- Mobile hamburger toggle ---- */
+.mobile-menu-btn {
+  display: none;
+  background: none; border: none; color: var(--text); cursor: pointer;
+  padding: 8px; font-size: 22px; line-height: 1;
+}
+
+/* ============================================================
+   RESPONSIVE — Tablet (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Topbar */
+  .topbar { padding: 12px 16px; gap: 8px; }
+  .topbar nav { display: none; flex-direction: column; position: absolute;
+    top: 100%; left: 0; right: 0; background: var(--bg-soft);
+    border-bottom: 1px solid var(--border); padding: 12px 16px; gap: 8px; z-index: 49; }
+  .topbar nav.open { display: flex; }
+  .topbar nav a { padding: 10px 0; font-size: 16px; border-bottom: 1px solid var(--border); }
+  .topbar nav a:last-child { border-bottom: none; }
+  .mobile-menu-btn { display: block; }
+  .topbar-actions { gap: 6px; }
+  .topbar-actions .btn { padding: 8px 14px; font-size: 13px; }
+
+  /* Layout */
+  .container { padding: 20px 16px; }
+
+  /* Hero */
+  .hero { padding: 48px 16px 36px; }
+  .hero p.lead { font-size: 16px; margin-bottom: 20px; }
+  .hero-cta { flex-direction: column; align-items: center; }
+  .hero-cta .btn { width: 100%; max-width: 320px; text-align: center; }
+
+  /* Cards — stack to single column */
+  .cards { grid-template-columns: 1fr; gap: 14px; }
+  .card { padding: 16px; }
+
+  /* Sections */
+  .section { padding: 36px 0; }
+  .section h2 { font-size: 22px; margin-bottom: 20px; }
+
+  /* Stats */
+  .stat-row { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat { padding: 16px; }
+  .stat .num { font-size: 26px; }
+
+  /* Tables — horizontal scroll */
+  table.data { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.data th, table.data td { padding: 10px; white-space: nowrap; }
+
+  /* Auth card */
+  .auth-card { margin: 40px 16px; padding: 24px; max-width: none; }
+
+  /* Learn shell */
+  .learn-bar { padding: 10px 14px; gap: 10px; flex-wrap: wrap; }
+  .learn-title strong { font-size: 14px; }
+  .learn-actions .btn { padding: 8px 12px; font-size: 13px; }
+
+  /* Footer */
+  footer { padding: 24px 16px; }
+
+  /* Buttons — touch-friendly minimum size */
+  .btn { min-height: 44px; padding: 12px 18px; }
+}
+
+/* ============================================================
+   RESPONSIVE — Phone (≤ 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+  .container { padding: 16px 12px; }
+
+  /* Hero */
+  .hero { padding: 36px 12px 28px; }
+  .hero h1 { font-size: clamp(26px, 7vw, 36px); margin-bottom: 12px; }
+  .hero p.lead { font-size: 15px; }
+
+  /* Cards */
+  .card h3 { font-size: 16px; }
+  .card p { font-size: 13px; }
+  .card .meta { font-size: 12px; }
+
+  /* Stats — single column */
+  .stat-row { grid-template-columns: 1fr; }
+  .stat .num { font-size: 22px; }
+  .stat .lbl { font-size: 11px; }
+
+  /* Sections */
+  .section h2 { font-size: 20px; }
+
+  /* Auth */
+  .auth-card { margin: 24px 8px; padding: 20px 16px; }
+  .auth-card h1 { font-size: 20px; }
+
+  /* Topbar */
+  .brand { font-size: 16px; gap: 8px; }
+  .brand-logo { width: 28px; height: 28px; font-size: 14px; }
+
+  /* Tier pills and status pills */
+  .tier-pill, .status-pill { font-size: 11px; padding: 2px 8px; }
+}
