@@ -4,8 +4,9 @@
   --code-bg:#1c2238;--code-fg:#e6e9f5;--kw:#c084fc;--fn:#60a5fa;--num:#fbbf24;--str:#86efac;--com:#7a8bb8;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
-.app{max-width:1200px;margin:0 auto;padding:10px}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+html{overflow-x:hidden}
+.app{max-width:1200px;margin:0 auto;padding:10px;overflow-x:hidden}
 @media(min-width:901px){.app{padding:18px}}
 .hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 @media(min-width:901px){.hdr{gap:12px;margin-bottom:14px}}
@@ -20,13 +21,18 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,san
 /* Mobile-first: single column by default, two-column on wide screens only */
 .shell{display:grid;gap:14px;grid-template-columns:1fr}
 @media(min-width:901px){.shell{grid-template-columns:minmax(320px,360px) 1fr;gap:18px}}
-.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--line)}
+.card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid var(--line);overflow:hidden;word-wrap:break-word;overflow-wrap:break-word}
+@media(min-width:901px){.card{padding:20px}}
+.lesson{overflow:visible}
 .lesson .step-no{font-size:11px;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.lesson h2{margin:6px 0 4px;font-size:20px}
-.lesson .sub{color:var(--ink-soft);font-size:13px;margin-bottom:14px}
-.lesson .task{background:#fff8eb;border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;margin-bottom:10px;font-weight:700}
-.lesson .task .ts{font-weight:400;color:var(--ink-soft);font-size:13px;margin-top:4px;display:block}
-.lesson .why{background:#eef0fb;padding:12px 14px;border-radius:8px;font-size:14px;color:var(--ink);margin-bottom:10px;line-height:1.55}
+.lesson h2{margin:6px 0 4px;font-size:18px}
+@media(min-width:901px){.lesson h2{font-size:20px}}
+.lesson .sub{color:var(--ink-soft);font-size:13px;margin-bottom:10px}
+.lesson .task{background:#fff8eb;border-left:4px solid var(--accent);padding:10px 12px;border-radius:8px;margin-bottom:10px;font-weight:700;font-size:14px;word-wrap:break-word;overflow-wrap:break-word}
+@media(min-width:901px){.lesson .task{padding:12px 14px}}
+.lesson .task .ts{font-weight:400;color:var(--ink-soft);font-size:12px;margin-top:4px;display:block}
+.lesson .why{background:#eef0fb;padding:10px 12px;border-radius:8px;font-size:13px;color:var(--ink);margin-bottom:10px;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word}
+@media(min-width:901px){.lesson .why{padding:12px 14px;font-size:14px;line-height:1.55}}
 .lesson .why b{color:var(--primary)}
 .lesson .hint-btn{background:transparent;color:var(--primary);border:1px dashed var(--primary);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;margin-bottom:10px}
 .lesson .hint-box{background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:13px;color:#92400e;margin-bottom:10px;display:none}
@@ -40,14 +46,16 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,san
 .dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
 .dot.active{background:var(--primary)}
 .dot.done{background:var(--good)}
-.stage{display:flex;flex-direction:column;gap:14px}
-.stage-visual{background:linear-gradient(180deg,#dbeafe,#a7d8ff);border-radius:14px;padding:24px;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0;overflow:hidden}
+.stage-visual{background:linear-gradient(180deg,#dbeafe,#a7d8ff);border-radius:12px;padding:16px;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+@media(min-width:901px){.stage-visual{padding:24px;min-height:260px;border-radius:14px}}
 .counter{position:absolute;top:14px;right:14px;background:white;padding:8px 14px;border-radius:24px;font-weight:900;font-size:18px;color:var(--primary);box-shadow:0 4px 8px rgba(0,0,0,.1);text-align:center}
 .counter .lbl{font-size:10px;color:var(--ink-soft);font-weight:600;display:block;text-transform:uppercase}
 .celebration{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;animation:celebrate 1.2s ease-out;pointer-events:none;z-index:5}
 @keyframes celebrate{0%{transform:scale(0) rotate(-180deg)}50%{transform:scale(1.6) rotate(15deg)}100%{transform:scale(1) rotate(0)}}
-.editor{background:var(--code-bg);color:var(--code-fg);border-radius:12px;padding:0;font-family:"SF Mono",Menlo,Monaco,Consolas,monospace;font-size:14px;overflow:hidden}
-.editor-hdr{background:#0f1320;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#8a93b8}
+.editor{background:var(--code-bg);color:var(--code-fg);border-radius:10px;padding:0;font-family:"SF Mono",Menlo,Monaco,Consolas,monospace;font-size:13px;overflow:hidden;max-width:100%}
+@media(min-width:901px){.editor{font-size:14px;border-radius:12px}}
+.editor-hdr{background:#0f1320;padding:6px 12px;display:flex;align-items:center;gap:10px;font-size:11px;color:#8a93b8}
 .editor-hdr .dots-cd{display:flex;gap:5px}
 .editor-hdr .dots-cd span{width:9px;height:9px;border-radius:50%}
 .editor-hdr .dots-cd span:nth-child(1){background:#ff5f57}
@@ -62,11 +70,11 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,san
 .blank:focus{box-shadow:0 0 0 3px rgba(124,92,255,0.4);border-color:#7c5cff}
 .blank.ok{background:var(--good);border-color:#1fa06a}
 .blank.bad{background:var(--bad);color:white;border-color:#d44}
-.run-row{background:#0f1320;padding:10px 14px;display:flex;gap:10px;align-items:center;border-top:1px solid #2a3148;flex-wrap:wrap}
-.run-btn{background:var(--good);color:#0a2c1a;border:none;padding:12px 20px;border-radius:8px;font-weight:900;cursor:pointer;font-size:15px;min-height:44px}
+.run-row{background:#0f1320;padding:10px 12px;display:flex;gap:8px;align-items:center;border-top:1px solid #2a3148;flex-wrap:nowrap}
+.run-btn{background:var(--good);color:#0a2c1a;border:none;padding:12px 16px;border-radius:8px;font-weight:900;cursor:pointer;font-size:14px;min-height:44px;flex:1;text-align:center}
 .run-btn:hover{background:#10b981;color:white}
 .run-btn:disabled{opacity:.4;cursor:not-allowed;background:#3a4060;color:#7a8bb8}
-.reset-btn{background:transparent;color:#8a93b8;border:1px solid #2a3148;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
+.reset-btn{background:transparent;color:#8a93b8;border:1px solid #2a3148;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;min-height:44px;white-space:nowrap;flex-shrink:0}
 .reset-btn:hover{color:#e6e9f5}
 .console{background:#0a0e18;color:#86efac;padding:10px 14px;font-family:monospace;font-size:13px;min-height:36px;border-top:1px solid #2a3148;max-height:140px;overflow-y:auto}
 .console:empty::after{content:"› (output will appear here when you click Run)";color:#4a5168;font-style:italic}
