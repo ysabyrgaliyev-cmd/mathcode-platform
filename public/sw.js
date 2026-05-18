@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mathcode-v1';
+const CACHE_NAME = 'mathcode-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -113,3 +113,60 @@ input[type=range].slider { width:100%; }
 .kv .pair b { display:block; font-size:20px; color:var(--primary); }
 .kv .pair span { font-size:12px; color:var(--ink-soft); text-transform:uppercase; }
 canvas { background:white; border:1px solid var(--line); border-radius:8px; max-width:100%; height:auto; }
+
+/* ---- Mobile responsive (≤ 768px) ---- */
+@media (max-width: 768px) {
+  header.proj-header { padding: 10px 14px; gap: 8px; }
+  .proj-title { font-size: 15px; gap: 6px; }
+  .proj-tools { gap: 6px; }
+  .step-pill { padding: 4px 10px; font-size: 12px; }
+  main.proj-main { grid-template-columns: 1fr; padding: 12px; gap: 14px;
+    min-height: auto; }
+  .lesson { max-height: none; padding: 16px; }
+  .lesson h2 { font-size: 17px; }
+  .task { font-size: 14px; padding: 12px; }
+  .task small { font-size: 12px; }
+  .lesson-actions { gap: 6px; }
+  .btn { min-height: 44px; padding: 10px 14px; }
+  .progress-dots { gap: 4px; }
+  .dot { width: 10px; height: 10px; }
+  .stage-wrap { gap: 10px; }
+  .stage { min-height: 220px; padding: 14px; }
+  .bignum { font-size: 48px; }
+  .numlbl { font-size: 13px; }
+  .stage .row-controls { gap: 8px; }
+  .code-panel { padding: 14px; font-size: 12px; }
+  .code-head .label { font-size: 11px; }
+  .code pre { font-size: 12px; line-height: 1.6; overflow-x: auto; }
+  .code-line .annot { font-size: 11px; margin-left: 8px; }
+  .modal-bg { padding: 12px; }
+  .modal-card { padding: 22px 20px; max-width: 92vw; }
+  .modal-card h1 { font-size: 22px; }
+  .modal-card p { font-size: 14px; }
+  .modal-card .you-will { padding: 12px 14px; font-size: 14px; }
+  .challenge { padding: 16px; }
+  .challenge h3 { font-size: 16px; }
+  .qbox { padding: 12px; font-size: 15px; }
+  .options { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .opt { padding: 12px; font-size: 15px; }
+  .summary-card { padding: 22px; }
+  .summary-card .badge { font-size: 60px; }
+  .summary-card h2 { font-size: 22px; }
+  .you-learned { padding: 12px 16px; }
+  .kv .pair b { font-size: 18px; }
+  .kv .pair { padding: 6px 10px; }
+}
+@media (max-width: 480px) {
+  header.proj-header { padding: 8px 10px; }
+  .proj-title { font-size: 14px; }
+  main.proj-main { padding: 8px; gap: 10px; }
+  .lesson { padding: 14px; }
+  .lesson h2 { font-size: 16px; }
+  .stage { min-height: 180px; padding: 10px; }
+  .bignum { font-size: 40px; }
+  .code-panel { padding: 10px; font-size: 11px; }
+  .modal-card { padding: 18px 14px; }
+  .modal-card h1 { font-size: 20px; }
+  .options { grid-template-columns: 1fr 1fr; }
+  .opt { padding: 10px; font-size: 14px; }
+}

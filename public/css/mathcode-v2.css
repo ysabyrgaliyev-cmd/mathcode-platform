@@ -82,3 +82,50 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,san
 .summary ul{text-align:left;display:inline-block;margin:10px auto;padding-left:20px}
 .summary li{margin:4px 0}
 .summary .next{background:rgba(255,255,255,.15);padding:10px 14px;border-radius:8px;margin-top:14px;font-size:14px}
+
+/* ---- Mobile responsive (≤ 768px) ---- */
+@media (max-width: 768px) {
+  .app { padding: 12px; }
+  .hdr { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .hdr .icon { width: 40px; height: 40px; font-size: 22px; }
+  .hdr h1 { font-size: 18px; }
+  .hdr .lang { margin-left: 0; }
+  .shell { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  .lesson h2 { font-size: 17px; }
+  .lesson .task { font-size: 14px; padding: 10px 12px; }
+  .lesson .nav { gap: 8px; }
+  .stage-visual { min-height: 180px; padding: 16px; }
+  .counter { top: 8px; right: 8px; padding: 6px 10px; font-size: 14px; }
+  .counter .lbl { font-size: 9px; }
+  .editor { font-size: 12px; }
+  .editor-body { padding: 10px 12px; overflow-x: auto; }
+  .editor-body .line { gap: 8px; }
+  .editor-body .code-line { white-space: pre; min-width: 0; }
+  .run-row { padding: 8px 12px; flex-wrap: wrap; }
+  .run-btn, .reset-btn { padding: 10px 14px; font-size: 13px; min-height: 44px; }
+  .console { padding: 8px 12px; font-size: 12px; }
+  .blank { padding: 2px 6px; font-size: 12px; }
+  .modal { padding: 22px; max-width: 92vw; }
+  .modal h2 { font-size: 20px; }
+  .modal p { font-size: 14px; }
+  .modal .pills { gap: 6px; }
+  .modal .pill { padding: 4px 10px; font-size: 11px; }
+  .modal .youwill { padding: 10px; font-size: 13px; }
+  .btn { padding: 10px 14px; min-height: 44px; }
+  .dots { gap: 4px; }
+  .dot { width: 8px; height: 8px; }
+  .summary { padding: 18px; }
+  .summary h2 { font-size: 20px; }
+}
+@media (max-width: 480px) {
+  .app { padding: 8px; }
+  .hdr h1 { font-size: 16px; }
+  .hdr .sub { font-size: 12px; }
+  .hdr .icon { width: 36px; height: 36px; font-size: 20px; border-radius: 10px; }
+  .stage-visual { min-height: 140px; padding: 12px; }
+  .editor { font-size: 11px; }
+  .editor-hdr { padding: 6px 10px; font-size: 11px; }
+  .lesson .why { padding: 10px; font-size: 13px; }
+  .celebration { font-size: 56px; }
+}
