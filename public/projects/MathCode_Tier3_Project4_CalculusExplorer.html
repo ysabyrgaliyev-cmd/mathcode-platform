@@ -1,5 +1,11 @@
 <!doctype html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#7c5cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MathCode">
+<link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
 <title>Calculus Explorer — MathCode</title>
 <link rel="stylesheet" href="/css/mathcode-v2.css">
 <style>
@@ -211,4 +217,5 @@ window.PROJECT = {
 drawPlot(() => 0, null, null, '—');
 </script>
 <script src="/js/mathcode-v2.js"></script>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{})}</script>
 </body></html>
