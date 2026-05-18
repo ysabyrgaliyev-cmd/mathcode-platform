@@ -262,6 +262,8 @@
       <p>You wrote real Python code to solve a math problem.</p>
     `;
     document.querySelector('.app').appendChild(summary);
+    // Notify parent frame that the exercise is complete
+    try { window.parent.postMessage({ type: 'exerciseComplete' }, '*'); } catch(e) {}
   }
 
   // ====== Boot ======

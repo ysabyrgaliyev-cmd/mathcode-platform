@@ -214,33 +214,117 @@ app.get('/learn/:id', requireAuth, (req, res) => {
   `).run(req.session.userId, p.id);
   logEvent(req.session.userId, p.id, 'project_opened');
 
+  // Find the next project in this tier
+  const nextProject = db.prepare('SELECT id, title FROM projects WHERE tier = ? AND ordinal = ? LIMIT 1')
+    .get(p.tier, p.ordinal + 1);
+  const isLastInTier = !nextProject;
+  const nextUrl = nextProject ? `/learn/${nextProject.id}` : null;
+  const nextTitle = nextProject ? escapeHtml(nextProject.title) : null;
+  const tierUrl = `/tier.html?tier=${p.tier}`;
+
   res.send(`<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><title>${escapeHtml(p.title)} — MathCode</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="/css/styles.css">
+<style>
+  .done-bar { display:none; padding:12px 16px; background:var(--bg-card); border-top:1px solid var(--border);
+    flex-shrink:0; text-align:center; }
+  .done-bar.show { display:block; }
+  .done-bar .next-btn { display:inline-block; width:100%; max-width:400px; padding:14px 24px;
+    background:linear-gradient(135deg,#7c5cff,#4cc9f0); color:white; border:none; border-radius:10px;
+    font-size:16px; font-weight:700; cursor:pointer; text-decoration:none; }
+  .done-bar .next-btn:hover { filter:brightness(1.08); }
+  /* Rating screen */
+  .rating-overlay { display:none; position:fixed; inset:0; background:rgba(15,19,32,0.95);
+    z-index:100; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+  .rating-overlay.show { display:flex; }
+  .rating-box { background:var(--bg-card); border:1px solid var(--border); border-radius:16px;
+    padding:28px 24px; max-width:400px; width:100%; text-align:center; }
+  .rating-box h2 { color:var(--text); margin:0 0 8px; font-size:20px; }
+  .rating-box p { color:var(--text-muted); font-size:14px; margin:0 0 20px; }
+  .stars { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-bottom:20px; }
+  .star-btn { width:44px; height:44px; border-radius:10px; border:2px solid var(--border);
+    background:var(--bg-soft); color:var(--text); font-size:16px; font-weight:700; cursor:pointer;
+    transition:all 0.15s; }
+  .star-btn:hover, .star-btn.selected { background:#7c5cff; color:white; border-color:#7c5cff; }
+  .rating-submit { display:inline-block; padding:14px 32px; background:linear-gradient(135deg,#7c5cff,#4cc9f0);
+    color:white; border:none; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer;
+    opacity:0.4; pointer-events:none; }
+  .rating-submit.active { opacity:1; pointer-events:auto; }
+</style>
 </head><body class="learn-shell">
 <header class="learn-bar">
-  <a href="/dashboard.html" class="back">← Dashboard</a>
+  <a href="${tierUrl}" class="back">← Back</a>
   <div class="learn-title">
     <span class="tier-pill tier-${p.tier}">Tier ${p.tier} · ${escapeHtml(p.grade_band)}</span>
     <strong>${escapeHtml(p.title)}</strong>
-    <span class="muted">${escapeHtml(p.subtitle)}</span>
   </div>
-  <div class="learn-actions">
-    <button id="complete-btn" class="btn primary">Mark complete</button>
+  <div class="learn-actions" id="actions">
   </div>
 </header>
 <iframe class="learn-frame" src="/${p.file_path}" title="${escapeHtml(p.title)}"></iframe>
+<div class="done-bar" id="doneBar">
+  ${isLastInTier ? '' : `<a href="${nextUrl}" class="next-btn">Next Exercise: ${nextTitle} →</a>`}
+  ${isLastInTier ? `<a href="#" class="next-btn" onclick="showRating();return false;">Continue →</a>` : ''}
+</div>
+${isLastInTier ? `
+<div class="rating-overlay" id="ratingOverlay">
+  <div class="rating-box">
+    <h2>🎉 Tier ${p.tier} Complete!</h2>
+    <p>How would you rate this app?</p>
+    <div class="stars" id="starRow"></div>
+    <button class="rating-submit" id="ratingSubmit" onclick="submitRating()">Submit Rating</button>
+    <div style="margin-top:12px"><a href="${tierUrl}" style="color:#8a93b8;font-size:13px;">Skip</a></div>
+  </div>
+</div>` : ''}
 <script>
-  document.getElementById('complete-btn').addEventListener('click', async () => {
-    const score = prompt('Optional: enter a self-assessed score 0-100, or leave blank.');
-    const body = { project_id: ${JSON.stringify(p.id)}, status: 'completed' };
-    if (score && !isNaN(Number(score))) body.score = Number(score);
-    const r = await fetch('/api/progress', { method:'POST',
-      headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (r.ok) { alert('Marked complete!'); window.location='/dashboard.html'; }
-    else { alert('Could not save progress.'); }
+  const projectId = ${JSON.stringify(p.id)};
+  const isLastInTier = ${isLastInTier};
+  let selectedRating = 0;
+
+  // Listen for exercise completion from iframe
+  window.addEventListener('message', async (e) => {
+    if (e.data && e.data.type === 'exerciseComplete') {
+      // Auto-mark as complete
+      await fetch('/api/progress', { method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ project_id: projectId, status: 'completed' }) });
+      // Show the done bar
+      document.getElementById('doneBar').classList.add('show');
+    }
   });
+
+  ${isLastInTier ? `
+  // Build 1-10 star buttons
+  (function() {
+    const row = document.getElementById('starRow');
+    for (let i = 1; i <= 10; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'star-btn';
+      btn.textContent = i;
+      btn.onclick = () => {
+        selectedRating = i;
+        row.querySelectorAll('.star-btn').forEach(b => b.classList.remove('selected'));
+        for (let j = 0; j < i; j++) row.children[j].classList.add('selected');
+        document.getElementById('ratingSubmit').classList.add('active');
+      };
+      row.appendChild(btn);
+    }
+  })();
+
+  function showRating() {
+    document.getElementById('ratingOverlay').classList.add('show');
+  }
+
+  async function submitRating() {
+    if (!selectedRating) return;
+    // Save rating as a session log event
+    await fetch('/api/progress', { method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ project_id: projectId, status: 'completed', score: selectedRating * 10 }) });
+    window.location = '${tierUrl}';
+  }
+  ` : ''}
 </script>
 </body></html>`);
 });
