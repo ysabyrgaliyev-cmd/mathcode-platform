@@ -24,8 +24,8 @@
       <input id="full_name" name="full_name" required>
     </div>
     <div class="field">
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" required autocomplete="username">
+      <label for="username">Username</label>
+      <input id="username" name="username" required autocomplete="username" placeholder="e.g. alex or sara5" pattern="[a-zA-Z0-9_]{2,20}" title="2-20 characters: letters, numbers, underscore">
     </div>
     <div class="field">
       <label for="grade_level">Grade (optional)</label>
@@ -57,7 +57,7 @@ document.getElementById('reg-form').addEventListener('submit', async (e) => {
   msg.innerHTML = '';
   try {
     await api('/api/register', { method: 'POST', body: {
-      email: document.getElementById('email').value.trim(),
+      username: document.getElementById('username').value.trim().toLowerCase(),
       password: document.getElementById('password').value,
       full_name: document.getElementById('full_name').value.trim(),
       grade_level: document.getElementById('grade_level').value || null

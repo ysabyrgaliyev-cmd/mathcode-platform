@@ -203,8 +203,8 @@ if (userCount === 0) {
   insertUser.run('student@mathcode.local', hash('student123'),
                  'Demo Student', 'student', 5);
   console.log('Seeded demo users:');
-  console.log('  teacher@mathcode.local / teacher123');
-  console.log('  student@mathcode.local / student123');
+  console.log('  teacher / teacher123');
+  console.log('  student / student123');
 }
 
 console.log(`Database ready at ${dbPath}`);

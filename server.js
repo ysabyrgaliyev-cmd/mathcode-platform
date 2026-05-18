@@ -52,27 +52,37 @@ function logEvent(userId, projectId, event, metadata = null) {
 
 // ---------- Auth API ----------
 app.post('/api/register', (req, res) => {
-  const { email, password, full_name, grade_level } = req.body;
-  if (!email || !password || !full_name) {
-    return res.status(400).json({ error: 'email, password, full_name required' });
+  const { username, email, password, full_name, grade_level } = req.body;
+  if ((!username && !email) || !password || !full_name) {
+    return res.status(400).json({ error: 'username (or email), password, full_name required' });
   }
   if (password.length < 8) return res.status(400).json({ error: 'password must be 8+ chars' });
-  const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
-  if (exists) return res.status(409).json({ error: 'email already registered' });
+  const login = username ? username.toLowerCase().replace(/[^a-z0-9_]/g, '') : null;
+  const finalEmail = email ? email.toLowerCase() : (login + '@mathcode.local');
+  if (login && (login.length < 2 || login.length > 20)) {
+    return res.status(400).json({ error: 'username must be 2-20 characters' });
+  }
+  const exists = db.prepare('SELECT id FROM users WHERE email = ?').get(finalEmail);
+  if (exists) return res.status(409).json({ error: 'username already taken' });
   const hash = bcrypt.hashSync(password, 10);
   const info = db.prepare(`
     INSERT INTO users (email, password_hash, full_name, role, grade_level)
     VALUES (?, ?, ?, 'student', ?)
-  `).run(email.toLowerCase(), hash, full_name, grade_level || null);
+  `).run(finalEmail, hash, full_name, grade_level || null);
   req.session.userId = info.lastInsertRowid;
   logEvent(info.lastInsertRowid, null, 'register');
   res.json({ ok: true, user_id: info.lastInsertRowid });
 });
 
 app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'email and password required' });
-  const u = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+  const { username, email, password } = req.body;
+  const login = username || email;
+  if (!login || !password) return res.status(400).json({ error: 'username and password required' });
+  // Try exact match first, then try as username@mathcode.local
+  let u = db.prepare('SELECT * FROM users WHERE email = ?').get(login.toLowerCase());
+  if (!u && !login.includes('@')) {
+    u = db.prepare('SELECT * FROM users WHERE email = ?').get(login.toLowerCase() + '@mathcode.local');
+  }
   if (!u || !bcrypt.compareSync(password, u.password_hash)) {
     return res.status(401).json({ error: 'invalid credentials' });
   }
