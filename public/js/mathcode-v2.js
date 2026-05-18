@@ -174,7 +174,9 @@
         const cur = state.blanks['s'+state.step+'_b'+line.blank.idx] || '';
         const valid = s.blanks[line.blank.idx].validator(cur);
         const cls = cur === '' ? '' : (valid ? 'ok' : 'bad');
-        inner += `<input class="blank ${cls}" id="blank_${line.blank.idx}" style="width:${line.blank.width}px" value="${escape(cur)}" oninput="MC.onBlankInput(${line.blank.idx})">`;
+        const isMobile = window.innerWidth <= 768;
+        const blankW = isMobile ? '' : `width:${line.blank.width}px;`;
+        inner += `<input class="blank ${cls}" id="blank_${line.blank.idx}" style="${blankW}" value="${escape(cur)}" oninput="MC.onBlankInput(${line.blank.idx})" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">`;
       }
       if (line.suffix) inner += colorize(line.suffix);
       html += `<div class="line"><span class="ln">${i+1}</span><span class="code-line">${inner}</span></div>`;
