@@ -8,7 +8,18 @@
   // Supports: assignment, arithmetic, print, for-in-range, if/else, def simple, list literals, math.sin/cos/sqrt/pi
   function runPython(code, initialVars) {
     const out = [];
-    const vars = Object.assign({ math: { sin: Math.sin, cos: Math.cos, sqrt: Math.sqrt, pi: Math.PI, pow: Math.pow, floor: Math.floor, ceil: Math.ceil, abs: Math.abs } }, initialVars || {});
+    const vars = Object.assign({
+      math: { sin: Math.sin, cos: Math.cos, sqrt: Math.sqrt, pi: Math.PI, pow: Math.pow, floor: Math.floor, ceil: Math.ceil, abs: Math.abs },
+      sum: arr => arr.reduce((a, b) => a + b, 0),
+      len: arr => arr.length,
+      abs: Math.abs,
+      int: v => Math.trunc(Number(v)),
+      float: v => Number(v),
+      str: v => String(v),
+      round: (v, d) => d !== undefined ? Math.round(v * 10**d) / 10**d : Math.round(v),
+      min: (...a) => a.length === 1 && Array.isArray(a[0]) ? Math.min(...a[0]) : Math.min(...a),
+      max: (...a) => a.length === 1 && Array.isArray(a[0]) ? Math.max(...a[0]) : Math.max(...a)
+    }, initialVars || {});
     const lines = code.split('\n').map(l => ({ raw: l, indent: l.match(/^(\s*)/)[1].length, body: l.trim() })).filter(l => l.body && !l.body.startsWith('#'));
 
     function evalExpr(expr) {
