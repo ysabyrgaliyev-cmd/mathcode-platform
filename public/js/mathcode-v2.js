@@ -111,12 +111,20 @@
           vars[fname] = function(...args) {
             const saved = {};
             params.forEach((p, i) => { saved[p] = vars[p]; vars[p] = args[i]; });
+            const locals = [];
             let retVal;
             for (const bl of bodyLines) {
               const rm = bl.body.match(/^return\s+(.+)$/);
               if (rm) { retVal = evalExpr(rm[1]); break; }
+              // Handle assignments inside function body (e.g. h = 0.001)
+              if (/^(\w+)\s*=\s*(.+)$/.test(bl.body) && !/^(\w+)\s*==/.test(bl.body)) {
+                const am = bl.body.match(/^(\w+)\s*=\s*(.+)$/);
+                if (!(am[1] in saved)) { saved[am[1]] = vars[am[1]]; locals.push(am[1]); }
+                vars[am[1]] = evalExpr(am[2]);
+              }
             }
             params.forEach(p => vars[p] = saved[p]);
+            locals.forEach(v => { if (!params.includes(v)) vars[v] = saved[v]; });
             return retVal;
           };
           idx = endIdx;
