@@ -75,10 +75,12 @@ function drawPlot(fn, tangentAt, slope, label) {
   }
   // curve
   let d = '';
+  let needsMove = true;
   for (let x = -5; x <= 5; x += 0.05) {
-    let y; try { y = fn(x); } catch { continue; }
-    if (!isFinite(y) || y < -10 || y > 10) { d += ' M '; continue; }
-    d += (d === '' || d.endsWith(' M ') ? 'M ' : 'L ') + x + ' ' + (-y) + ' ';
+    let y; try { y = fn(x); } catch { needsMove = true; continue; }
+    if (!isFinite(y) || y < -10 || y > 10) { needsMove = true; continue; }
+    d += (needsMove ? 'M ' : 'L ') + x.toFixed(3) + ' ' + (-y).toFixed(3) + ' ';
+    needsMove = false;
   }
   const p = document.createElementNS('http://www.w3.org/2000/svg','path');
   p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#7c5cff'); p.setAttribute('stroke-width', '0.08');
