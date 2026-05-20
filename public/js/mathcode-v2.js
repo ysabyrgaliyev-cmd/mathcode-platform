@@ -30,7 +30,8 @@
         .replace(/\bNone\b/g, 'null')
         .replace(/\band\b/g, '&&')
         .replace(/\bor\b/g, '||')
-        .replace(/\bnot\b/g, '!');
+        .replace(/\bnot\b/g, '!')
+        .replace(/([^\s/]+)\s*\/\/\s*([^\s,)]+)/g, 'Math.trunc($1/$2)');
       const keys = Object.keys(vars);
       const vals = keys.map(k => vars[k]);
       return Function(...keys, `return (${js})`)(...vals);
